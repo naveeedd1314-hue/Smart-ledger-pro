@@ -47,6 +47,10 @@ function analyse(){
  const invoiceProfit=bills.map(b=>{const qty=n(field(b,"qty","quantity"));const rate=n(field(b,"rate","sellingPrice"));const revenue=field(b,"taxableValue")!==undefined?n(field(b,"taxableValue")):qty*rate;const rawCost=field(b,"purchasePrice");const hasCost=rawCost!==undefined&&rawCost!==null&&rawCost!==""&&Number.isFinite(Number(rawCost))&&Number(rawCost)>=0;return {profit:revenue-(hasCost?qty*Number(rawCost):0),hasCost};});
  const returnProfit=returns.filter(x=>x.type==="Sales Return").map(x=>{const rawCost=field(x,"purchasePrice");const hasCost=rawCost!==undefined&&rawCost!==null&&rawCost!==""&&Number.isFinite(Number(rawCost))&&Number(rawCost)>=0;return {profit:(n(field(x,"rate"))-Number(rawCost||0))*n(field(x,"qty","quantity")),hasCost};});
  const knownGrossProfit=sum(invoiceProfit.filter(x=>x.hasCost).map(x=>x.profit))-sum(returnProfit.filter(x=>x.hasCost).map(x=>x.profit));
+ const customerProfitMap=new Map<string,{revenue:number;profit:number;invoices:number;missingCost:number}>();
+ bills.forEach(b=>{const name=String(field(b,"customer","party")||"Walk-in Customer");const qty=n(field(b,"qty","quantity"));const rate=n(field(b,"rate","sellingPrice"));const revenue=field(b,"taxableValue")!==undefined?n(field(b,"taxableValue")):qty*rate;const rawCost=field(b,"purchasePrice");const hasCost=rawCost!==undefined&&rawCost!==null&&rawCost!==""&&Number.isFinite(Number(rawCost))&&Number(rawCost)>=0;const row=customerProfitMap.get(name)||{revenue:0,profit:0,invoices:0,missingCost:0};row.revenue+=revenue;row.invoices++;if(hasCost)row.profit+=revenue-qty*Number(rawCost);else row.missingCost++;customerProfitMap.set(name,row);});
+ returns.filter(x=>x.type==="Sales Return").forEach(item=>{const name=String(field(item,"party")||"Walk-in Customer");const row=customerProfitMap.get(name)||{revenue:0,profit:0,invoices:0,missingCost:0};const rawCost=field(item,"purchasePrice");const hasCost=rawCost!==undefined&&rawCost!==null&&rawCost!==""&&Number.isFinite(Number(rawCost))&&Number(rawCost)>=0;row.revenue-=n(field(item,"amount"));if(hasCost)row.profit-=(n(field(item,"rate"))-Number(rawCost))*n(field(item,"qty","quantity"));else row.missingCost++;customerProfitMap.set(name,row);});
+ const customerProfitRows=Array.from(customerProfitMap.entries()).map(([name,row])=>({name,...row})).sort((a,b)=>b.profit-a.profit);
  const missingCostInvoices=invoiceProfit.filter(x=>!x.hasCost).length;
  const returnsMissingCost=returnProfit.filter(x=>!x.hasCost).length;
  const estimatedAfterExpenses=knownGrossProfit-expenseTotal;
@@ -59,7 +63,7 @@ function analyse(){
  const rateGroups=new Map<string,typeof rateRecords>();
  rateRecords.forEach(p=>{const key=p.kind+"|"+p.key;if(!rateGroups.has(key))rateGroups.set(key,[]);rateGroups.get(key)!.push(p);});
  const rateMovements=Array.from(rateGroups.values()).map(rows=>{const sorted=[...rows].sort((a,b)=>a.date.localeCompare(b.date));const previous=sorted.length>1?sorted[sorted.length-2]:null;const latest=sorted[sorted.length-1];return {...latest,previous:previous?.rate??null,change:previous?latest.rate-previous.rate:0,percent:previous&&previous.rate>0?(latest.rate-previous.rate)/previous.rate*100:null,observations:sorted.length};}).sort((a,b)=>b.date.localeCompare(a.date));
- return {products,bills,purchases,payments,expenses,customers,suppliers,productRows,known,low,negative,sales,expenseTotal,purchaseTotal,receivable,payable,stockValue,missingCost,marginAvg,rateMovements,knownGrossProfit,estimatedAfterExpenses,missingCostInvoices,returnsMissingCost};
+ return {products,bills,purchases,payments,expenses,customers,suppliers,productRows,known,low,negative,sales,expenseTotal,purchaseTotal,receivable,payable,stockValue,missingCost,marginAvg,rateMovements,knownGrossProfit,estimatedAfterExpenses,missingCostInvoices,returnsMissingCost,customerProfitRows};
 }
 function answer(q:string,d:ReturnType<typeof analyse>){
  const s=q.toLowerCase();
@@ -77,6 +81,12 @@ function answer(q:string,d:ReturnType<typeof analyse>){
  }
  if(/stock|inventory|shortage|reorder|fast|slow/.test(s))
   return `Stock review: ${d.products.length} products recorded. ${d.low.length} products have stock of 5 units or less. ${d.negative.length} products show negative stock. Estimated stock value at recorded purchase cost: ${money(d.stockValue)}. Low-stock items: ${d.low.slice(0,8).map(p=>`${p.name} (${p.stock})`).join(", ")||"None detected"}.`;
+ if(/customer|party/.test(s)&&/profit|margin|loss|munafa|nuksan/.test(s)){
+  const matched=d.customerProfitRows.find((x:any)=>s.includes(x.name.toLowerCase()));
+  if(matched)return `${matched.name} profit review — Sales revenue after sales returns (taxable basis): ${money(matched.revenue)}; known gross profit after costed returns: ${money(matched.profit)}; invoices: ${matched.invoices}; missing cost records: ${matched.missingCost}. Expenses are not allocated to individual customers.`;
+  const leaders=d.customerProfitRows.slice(0,8);
+  return `Customer gross-profit ranking from recorded item costs (before business expenses):\\n${leaders.map((x:any,i:number)=>`${i+1}. ${x.name}: ${money(x.profit)} known gross profit; ${x.missingCost} missing cost records`).join("\\n")||"No customer sales records available."}\\nCustomer-specific expenses are not allocated.`;
+ }
  if(/profit|margin|loss|munafa|nuksan/.test(s))
   return `Recorded taxable sales: ${money(d.sales)}. Known gross profit from invoices with saved item costs, less costed sales returns: ${money(d.knownGrossProfit)}. Recorded expenses: ${money(d.expenseTotal)}. Estimated profit after expenses on costed invoices only: ${money(d.estimatedAfterExpenses)}. Missing cost snapshots: ${d.missingCostInvoices} sales invoices and ${d.returnsMissingCost} sales returns. Average listed product margin: ${d.marginAvg.toFixed(2)}%. This is an incomplete estimate, not a finalized P&L; missing costs, opening stock, overhead timing and tax treatment must be reconciled.`;
  if(/customer|collect|receivable|udhaar/.test(s))
