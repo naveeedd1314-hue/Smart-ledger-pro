@@ -93,6 +93,7 @@ export default function Settings() {
           ['targetMarginPercent','Minimum gross margin (%)']
         ] as const).map(([key,label])=><label key={key} className="text-sm">{label}<input type={key === 'targetMarginPercent' ? 'number' : 'text'} min={key === 'targetMarginPercent' ? 0 : undefined} max={key === 'targetMarginPercent' ? 100 : undefined} step={key === 'targetMarginPercent' ? 0.1 : undefined} className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] p-3 text-[var(--text)]" value={business[key]} onChange={e=>setBusiness({...business,[key]:e.target.value})}/></label>)}
       </div>
+      <p className="text-xs text-[var(--text-2)]">Products below this margin are flagged in Business Strategy and SmartLedger AI. This is a monitoring threshold, not an automatic price change.</p>
       <button onClick={save} className="rounded-xl bg-[var(--indigo)] px-5 py-3 font-semibold text-white shadow-sm transition hover:bg-[var(--indigo-ink)]">Save Settings</button>
     </div>
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm space-y-3">
