@@ -55,10 +55,12 @@ function analyse(){
  const returnsMissingCost=returnProfit.filter(x=>!x.hasCost).length;
  const estimatedAfterExpenses=knownGrossProfit-expenseTotal;
  const marketQuotes=read("smartledger-market-quotes");
+ const manualPriceHistory=read("smartledger-pro-price-history");
  const rateRecords=[
   ...purchases.filter(p=>n(field(p,"rate","purchaseRate"))>0&&field(p,"date")).map(p=>({key:String(field(p,"productId","product")||field(p,"productName","product")||"unknown"),name:String(field(p,"product","productName")||"Unknown product"),rate:n(field(p,"rate","purchaseRate")),date:String(p.date).slice(0,10),source:String(field(p,"supplier")||"Supplier"),kind:"Supplier purchase"})),
   ...bills.filter(p=>n(field(p,"rate","sellingPrice"))>0&&field(p,"date")).map(p=>({key:String(field(p,"productId","product")||field(p,"productName","product")||"unknown"),name:String(field(p,"product","productName")||"Unknown product"),rate:n(field(p,"rate","sellingPrice")),date:String(p.date).slice(0,10),source:`Sales invoice ${String(field(p,"invoice")||"")}`,kind:"Recorded selling rate"})),
-  ...marketQuotes.filter(p=>n(field(p,"marketRate"))>0&&field(p,"checkedAt")).map(p=>({key:String(field(p,"productId","productName")||"unknown"),name:String(field(p,"productName")||"Unknown product"),rate:n(field(p,"marketRate")),date:String(p.checkedAt).slice(0,10),source:String(field(p,"source")||"Market source"),kind:"Market quotation"}))
+  ...marketQuotes.filter(p=>n(field(p,"marketRate"))>0&&field(p,"checkedAt")).map(p=>({key:String(field(p,"productId","productName")||"unknown"),name:String(field(p,"productName")||"Unknown product"),rate:n(field(p,"marketRate")),date:String(p.checkedAt).slice(0,10),source:String(field(p,"source")||"Market source"),kind:"Market quotation"})),
+  ...manualPriceHistory.filter(p=>n(field(p,"newPrice"))>0&&field(p,"date")).map(p=>({key:String(field(p,"productId","productName")||"unknown"),name:String(field(p,"productName")||"Unknown product"),rate:n(field(p,"newPrice")),date:String(p.date).slice(0,10),source:String(field(p,"source")||"Manual price update"),kind:field(p,"field")==="purchase"?"Purchase cost update":"Retail price update"}))
  ];
  const rateGroups=new Map<string,typeof rateRecords>();
  rateRecords.forEach(p=>{const key=p.kind+"|"+p.key;if(!rateGroups.has(key))rateGroups.set(key,[]);rateGroups.get(key)!.push(p);});
