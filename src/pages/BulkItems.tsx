@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
+import { localDateISO } from '../lib/dateUtils';
 import { Download, Search } from 'lucide-react'
 
 type Product = {
@@ -146,7 +147,7 @@ export default function BulkItems() {
       }
       else { const imported = { ...p, averageCost: p.averageCost ?? (Number(p.purchase) > 0 ? Number(p.purchase) : null) }; next.push(next.some(x => String(x.id) === String(p.id)) ? { ...imported, id: crypto.randomUUID() } : imported); added++ }
       const change = Number(p.stock || 0) - previousStock
-      if (change !== 0) logs.unshift({ id: crypto.randomUUID(), date: new Date().toISOString().slice(0,10), productId: previous?.id ?? p.id, product: p.name, change, movement: change > 0 ? 'Stock In' : 'Stock Out', stockAfter: Number(p.stock || 0), reason: 'Bulk CSV import' })
+      if (change !== 0) logs.unshift({ id: crypto.randomUUID(), date: localDateISO(), productId: previous?.id ?? p.id, product: p.name, change, movement: change > 0 ? 'Stock In' : 'Stock Out', stockAfter: Number(p.stock || 0), reason: 'Bulk CSV import' })
     })
     localStorage.setItem('smartledger-pro-stock-adjustments', JSON.stringify(logs))
     localStorage.setItem('smartledger-pro-price-history', JSON.stringify(priceHistory))
@@ -165,7 +166,7 @@ export default function BulkItems() {
       const old = Number(p[field]) || 0
       const value = mode === 'set' ? n : mode === 'increase' ? old * (1+n/100) : old * (1-n/100)
       const updated = Math.max(0, Number(value.toFixed(2)))
-      if (updated !== old) history.unshift({ id: crypto.randomUUID(), productId: p.id, productName: p.name, field, oldPrice: old, newPrice: updated, date: new Date().toISOString().slice(0,10), savedAt: new Date().toISOString(), source: 'Bulk Items price update' })
+      if (updated !== old) history.unshift({ id: crypto.randomUUID(), productId: p.id, productName: p.name, field, oldPrice: old, newPrice: updated, date: localDateISO(), savedAt: new Date().toISOString(), source: 'Bulk Items price update' })
       return { ...p, [field]: updated }
     })
     localStorage.setItem('smartledger-pro-price-history', JSON.stringify(history))
@@ -185,7 +186,7 @@ export default function BulkItems() {
     const logs = read('smartledger-pro-stock-adjustments') as any[]
     items.filter(p => selected.includes(String(p.id))).forEach(p => {
       const after = Number(p.stock || 0) + n
-      logs.unshift({ id: crypto.randomUUID(), date: new Date().toISOString().slice(0,10), productId: p.id, product: p.name, change: n, movement: n > 0 ? 'Stock In' : 'Stock Out', stockAfter: after, reason: 'Bulk stock adjustment' })
+      logs.unshift({ id: crypto.randomUUID(), date: localDateISO(), productId: p.id, product: p.name, change: n, movement: n > 0 ? 'Stock In' : 'Stock Out', stockAfter: after, reason: 'Bulk stock adjustment' })
     })
     localStorage.setItem('smartledger-pro-stock-adjustments', JSON.stringify(logs))
     save(next)
