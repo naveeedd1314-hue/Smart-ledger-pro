@@ -48,7 +48,7 @@ export default function Reports() {
   const invoiceProfitRows = sales.map((x, index) => {
     const qty = num(x.qty);
     const rate = num(x.rate);
-    const revenue = num(x.total) || qty * rate;
+    const revenue = num(x.taxableValue) || qty * rate;
     const costPrice = num(x.purchasePrice);
     const hasCost = x.purchasePrice !== undefined && x.purchasePrice !== null && x.purchasePrice !== '';
     const cost = hasCost ? qty * costPrice : 0;
@@ -62,7 +62,15 @@ export default function Reports() {
       hasCost
     };
   });
-  const invoiceGrossProfit = invoiceProfitRows.filter(x => x.hasCost).reduce((sum, x) => sum + x.profit, 0);
+  const salesReturnProfitRows = salesReturns.map(x => {
+    const hasCost = x.purchasePrice !== undefined && x.purchasePrice !== null && x.purchasePrice !== '';
+    const qty = num(x.qty);
+    const rate = num(x.rate);
+    return { profit: hasCost ? (rate - num(x.purchasePrice)) * qty : 0, hasCost };
+  });
+  const returnsMissingCost = salesReturnProfitRows.filter(x => !x.hasCost).length;
+  const salesReturnGrossProfit = salesReturnProfitRows.filter(x => x.hasCost).reduce((sum, x) => sum + x.profit, 0);
+  const invoiceGrossProfit = invoiceProfitRows.filter(x => x.hasCost).reduce((sum, x) => sum + x.profit, 0) - salesReturnGrossProfit;
   const invoicesWithCost = invoiceProfitRows.filter(x => x.hasCost).length;
   const invoicesMissingCost = invoiceProfitRows.length - invoicesWithCost;
   const estimatedNetProfit = invoiceGrossProfit - expenseTotal;
@@ -135,13 +143,15 @@ export default function Reports() {
     <div className="rounded-xl bg-[var(--surface)] p-5 shadow-sm space-y-4">
       <div>
         <h2 className="text-lg font-semibold">Invoice-wise Profit &amp; Loss</h2>
-        <p className="text-sm text-[var(--text-2)]">Profit is calculated from the purchase cost saved on each invoice.</p>
+        <p className="text-sm text-[var(--text-2)]">Profit uses sale-time purchase costs, excludes GST from sales revenue and reverses known sales-return margin.</p>
       </div>
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <div className="rounded-lg bg-[var(--surface-2)] p-3"><p className="text-sm text-[var(--text-2)]">Gross Profit</p><strong className="text-xl">{money(invoiceGrossProfit)}</strong></div>
-        <div className="rounded-lg bg-[var(--surface-2)] p-3"><p className="text-sm text-[var(--text-2)]">Net Profit After Expenses</p><strong className="text-xl">{money(estimatedNetProfit)}</strong></div>
+        <div className="rounded-lg bg-[var(--surface-2)] p-3"><p className="text-sm text-[var(--text-2)]">Estimated Profit After Expenses</p><strong className="text-xl">{money(estimatedNetProfit)}</strong></div>
         <div className="rounded-lg bg-[var(--surface-2)] p-3"><p className="text-sm text-[var(--text-2)]">Invoices Missing Cost</p><strong className="text-xl">{invoicesMissingCost}</strong></div>
+        <div className="rounded-lg bg-[var(--surface-2)] p-3"><p className="text-sm text-[var(--text-2)]">Returns Missing Cost</p><strong className="text-xl">{returnsMissingCost}</strong></div>
       </div>
+      <p className="text-xs text-[var(--text-2)]">Estimate excludes unrecorded costs, overhead allocations, financing charges and income tax. Missing historical cost records are not treated as zero-cost stock.</p>
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead><tr className="border-b text-[var(--text-2)]">
