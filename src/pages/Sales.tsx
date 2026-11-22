@@ -98,6 +98,7 @@ export default function Sales() {
   }
 
   const totalReceipts = payments.filter(p => p.type === 'Customer Receipt').reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+  const customerRefunds = payments.filter(p => p.type === 'Customer Refund').reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
   const salesReturnCredits = returns.filter(x => x.type === 'Sales Return').reduce((sum, x) => sum + (Number(x.totalAmount ?? x.amount) || 0), 0);
   const baseReceivable = sales.reduce((sum, x) => sum + (Number.isFinite(Number(x.total)) ? Math.max(0, Number(x.total) - Number(x.paid || 0)) : Math.max(0, Number(x.balance) || 0)), 0);
   const customerOpening = customers.reduce((sum, x) => sum + (Number(x.opening) || 0), 0);
@@ -111,7 +112,7 @@ export default function Sales() {
     <div className="grid gap-3 sm:grid-cols-3">
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">Total Sales</p><strong className="text-xl">{money(sales.reduce((s, x) => s + x.total, 0))}</strong></div>
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">Received</p><strong className="text-xl">{money(sales.reduce((sum, x) => sum + x.paid, 0) + totalReceipts)}</strong></div>
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">To Collect</p><strong className="text-xl">{money(Math.max(0, customerOpening + baseReceivable - totalReceipts - salesReturnCredits))}</strong></div>
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">To Collect</p><strong className="text-xl">{money(Math.max(0, customerOpening + baseReceivable + customerRefunds - totalReceipts - salesReturnCredits))}</strong></div>
     </div>
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm space-y-4">
       <h2 className="font-semibold text-lg">New Sales Invoice</h2>
