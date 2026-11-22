@@ -192,7 +192,7 @@ export default function BusinessAI(){
     {history.map((h,i)=><div key={i} style={{marginTop:12}}><strong>You: {h.q}</strong><p style={{whiteSpace:"pre-wrap",lineHeight:1.5}}>{h.a}</p></div>)}
    </div>
    <form onSubmit={e=>{e.preventDefault();ask(query)}} style={{display:"flex",gap:8,padding:12,borderTop:"1px solid var(--border)"}}>
-    <input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Ask about profit, stock, rates..." style={{flex:1,minWidth:0,padding:11,borderRadius:12,border:"1px solid var(--border)",background:"var(--surface)",color:"var(--text, #0F172A)"}}/>
+    <input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Ask about profit, stock, dues, rate changes, or calculate a price..." style={{flex:1,minWidth:0,padding:11,borderRadius:12,border:"1px solid var(--border)",background:"var(--surface)",color:"var(--text, #0F172A)"}}/>
     <button type="submit" style={{border:0,borderRadius:12,padding:"0 15px",background:"#1F6F6B",color:"white"}}>Ask</button>
    </form>
    <div style={{padding:"0 12px 10px",fontSize:10,color:"var(--text-2, #475569)"}}>Calculations use locally recorded data. External market rates and autonomous AI reasoning are not connected yet.</div>
