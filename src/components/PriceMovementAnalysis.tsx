@@ -20,7 +20,7 @@ function buildSeries() {
     const rate = Number(sale.rate);
     const date = String(sale.date || '');
     if (!Number.isFinite(rate) || rate <= 0 || !date) return;
-    points.push({ productId: sale.productId, product: sale.product || 'Unknown product', rate, date, source: `Sales invoice ${sale.invoice || ''}`, sortAt: date, kind: 'Recorded selling rate' });
+    points.push({ productId: sale.productId, product: sale.product || 'Unknown product', rate, date, source: `Sales invoice ${sale.invoice || ''}`, sortAt: String(sale.invoice || date), kind: 'Recorded selling rate' });
   });
   read('smartledger-pro-purchases').forEach((p: any) => {
     const rate = Number(p.rate);
@@ -32,7 +32,7 @@ function buildSeries() {
       rate,
       date,
       source: p.supplier || 'Supplier not recorded',
-      sortAt: date,
+      sortAt: String(p.id || date),
       kind: 'Supplier purchase'
     });
   });
