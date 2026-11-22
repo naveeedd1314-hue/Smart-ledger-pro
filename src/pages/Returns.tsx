@@ -88,9 +88,20 @@ export default function Returns() {
       return;
     }
 
-    const updatedProducts=products.map(p=>p.id===product.id?{
-      ...p,stock:Number(p.stock)+(type==='Sales Return'?qty:-qty)
-    }:p);
+    const updatedProducts=products.map(p=>{
+      if(p.id!==product.id) return p;
+      const currentStock=Math.max(0,Number(p.stock)||0);
+      const nextStock=currentStock+(type==='Sales Return'?qty:-qty);
+      if(type!=='Sales Return') return {...p,stock:nextStock};
+      const currentCost=Number(p.averageCost ?? p.purchase);
+      const returnCost=Number(source.purchasePrice);
+      const currentCostKnown=Number.isFinite(currentCost)&&currentCost>0;
+      const returnCostKnown=Number.isFinite(returnCost)&&returnCost>0;
+      const averageCost=currentStock>0&&currentCostKnown&&returnCostKnown
+        ? ((currentStock*currentCost)+(qty*returnCost))/nextStock
+        : returnCostKnown ? returnCost : (currentCostKnown ? currentCost : null);
+      return {...p,stock:nextStock,averageCost:averageCost===null?null:Number(averageCost.toFixed(4))};
+    });
 
     const record:ReturnItem={
       id:crypto.randomUUID(),
