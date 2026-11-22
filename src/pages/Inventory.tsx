@@ -97,7 +97,7 @@ export default function Inventory() {
   })
 
   const totalUnits = items.reduce((s, x) => s + (Number(x.stock) || 0), 0)
-  const stockValue = items.reduce((s, x) => s + (Number(x.stock) || 0) * (Number(x.averageCost ?? x.purchase) || 0), 0)
+  const stockValue = items.reduce((s, x) => s + Math.max(0, Number(x.stock) || 0) * (Number(x.averageCost ?? x.purchase) || 0), 0)
   const retailValue = items.reduce((s, x) => s + (Number(x.stock) || 0) * (Number(x.selling) || 0), 0)
   const lowStock = items.filter(x => Number(x.stock) <= Math.max(0, Number(lowLimit) || 0))
   function exportInventoryCsv() {
@@ -175,7 +175,7 @@ export default function Inventory() {
         sellingPrice.toFixed(2),
         (sellingPrice - purchasePrice).toFixed(2),
         String(stock),
-        (stock * purchasePrice).toFixed(2),
+        (Math.max(0, stock) * purchasePrice).toFixed(2),
         (stock * sellingPrice).toFixed(2)
       ]
       let x = startX
@@ -460,7 +460,7 @@ export default function Inventory() {
               <td className="p-2">{money(Number(x.selling) || 0)}</td>
               <td className="p-2 font-medium">{money((Number(x.selling) || 0) - (Number(x.averageCost ?? x.purchase) || 0))}</td>
               <td className={`p-2 font-semibold ${Number(x.stock) <= Number(lowLimit) ? 'text-[var(--amber)]' : ''}`}>{x.stock}</td>
-              <td className="p-2">{money((Number(x.stock) || 0) * (Number(x.averageCost ?? x.purchase) || 0))}</td>
+              <td className="p-2">{money(Math.max(0, Number(x.stock) || 0) * (Number(x.averageCost ?? x.purchase) || 0))}</td>
             </tr>)}</tbody>
           </table>
         </div>
