@@ -18,9 +18,10 @@ export default function Sales() {
   const [placeOfSupply, setPlaceOfSupply] = useState('Jammu and Kashmir');
 
   useEffect(() => {
-    setProducts(JSON.parse(localStorage.getItem('smartledger-products') || '[]'));
-    setSales(JSON.parse(localStorage.getItem('smartledger-pro-sales') || '[]'));
-    try { const savedPayments = JSON.parse(localStorage.getItem('smartledger-pro-payments') || '[]'); setPayments(Array.isArray(savedPayments) ? savedPayments : []); } catch { setPayments([]); }
+    const readArray = (key: string) => { try { const value = JSON.parse(localStorage.getItem(key) || '[]'); return Array.isArray(value) ? value : []; } catch { return []; } };
+    setProducts(readArray('smartledger-products'));
+    setSales(readArray('smartledger-pro-sales'));
+    setPayments(readArray('smartledger-pro-payments'));
     try {
       const settings = JSON.parse(localStorage.getItem('smartledger-pro-settings') || '{}');
       const state = settings.state || 'Jammu and Kashmir';
