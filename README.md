@@ -48,7 +48,7 @@ There is currently no cloud synchronisation or multi-device database.
 
 ## SmartLedger AI
 
-The in-app assistant uses deterministic calculations and business rules over saved SmartLedger records. It can summarize recorded sales, costs, margins, outstanding balances, stock and saved price movements. It does not currently connect to an external language model or a live market-price feed; market quotations must be entered or imported.
+The in-app assistant uses deterministic calculations and business rules over saved SmartLedger records. It can summarize recorded sales, costs, margins, outstanding balances, stock and saved price movements. It does not currently connect to an external language model or a live market-price feed; market quotations must be entered manually.
 
 ## Release status
 
