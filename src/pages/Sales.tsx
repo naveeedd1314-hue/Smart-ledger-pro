@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { downloadInvoicePdf } from '../utils/invoicePdf';
 
-type Product = { id: string; name: string; selling: number; purchase: number; stock: number; sku?: string; category?: string; gstRate?: number; hsn?: string };
+type Product = { id: string; name: string; selling: number; purchase: number; averageCost?: number | null; stock: number; sku?: string; category?: string; gstRate?: number; hsn?: string };
 type Sale = { id: string; productId?: string; invoice: string; date: string; customer: string; product: string; qty: number; rate: number; total: number; paid: number; balance: number; purchasePrice?: number | null; taxableValue?: number; gstRate?: number; taxAmount?: number; cgst?: number; sgst?: number; utgst?: number; igst?: number; placeOfSupply?: string; hsn?: string; customerGstin?: string; customerAddress?: string };
 
 export default function Sales() {
@@ -75,7 +75,7 @@ export default function Sales() {
       date: new Date().toISOString().slice(0, 10),
       customer: customerName,
       product: selected.name,
-      qty, rate, total, paid, balance: total - paid, purchasePrice: Number.isFinite(Number(selected.purchase)) && Number(selected.purchase) > 0 ? Number(selected.purchase) : null,
+      qty, rate, total, paid, balance: total - paid, purchasePrice: Number.isFinite(Number(selected.averageCost ?? selected.purchase)) && Number(selected.averageCost ?? selected.purchase) > 0 ? Number(selected.averageCost ?? selected.purchase) : null,
       taxableValue, gstRate, taxAmount, cgst, sgst, utgst, igst,
       placeOfSupply: applyGST ? placeOfSupply : '',
       hsn: selected.hsn || '',
