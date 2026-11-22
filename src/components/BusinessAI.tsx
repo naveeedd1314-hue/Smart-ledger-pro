@@ -63,6 +63,13 @@ function analyse(){
 }
 function answer(q:string,d:ReturnType<typeof analyse>){
  const s=q.toLowerCase();
+ const matchedProduct=[...d.productRows].sort((a,b)=>b.name.length-a.name.length).find(p=>p.name.length>2&&s.includes(p.name.toLowerCase()));
+ if(matchedProduct){
+  const changes=d.rateMovements.filter((x:any)=>x.name.toLowerCase()===matchedProduct.name.toLowerCase()).slice(0,4);
+  const history=changes.map((x:any)=>x.previous===null?`${x.kind}: latest ₹${x.rate.toFixed(2)} on ${x.date}`:`${x.kind}: ₹${x.previous.toFixed(2)} → ₹${x.rate.toFixed(2)} (${x.change>0?"up":x.change<0?"down":"unchanged"} ${Math.abs(x.percent||0).toFixed(2)}%)`).join("; ");
+  const priceStatus=matchedProduct.profit<0?"Selling below recorded purchase cost":matchedProduct.profit===0?"No gross profit at current price":"Positive gross profit before overheads";
+  return `${matchedProduct.name} business review — Purchase cost: ${money(matchedProduct.cost)}; Wholesale: ${matchedProduct.wholesale>0?money(matchedProduct.wholesale):"not recorded"}; Retail: ${money(matchedProduct.retail)}; Gross profit per unit: ${money(matchedProduct.profit)}; Margin: ${matchedProduct.margin.toFixed(2)}%; Stock: ${matchedProduct.stock}. Assessment: ${priceStatus}. Rate history: ${history||"No dated purchase, selling or market rate comparisons available yet."} These are recorded rates, not live market quotes.`;
+ }
  if(/rate|increase|decrease|price change|badha|ghata|mehnga|sasta/.test(s)){
   const movements=d.rateMovements.filter((x:any)=>x.previous!==null).slice(0,10);
   const details=movements.map((x:any)=>`${x.name} [${x.kind}]: ₹${x.previous.toFixed(2)} → ₹${x.rate.toFixed(2)} (${x.change>0?"up":x.change<0?"down":"unchanged"} ${Math.abs(x.percent||0).toFixed(2)}%), ${x.date}, ${x.source}`).join("\\n");
