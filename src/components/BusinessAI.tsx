@@ -91,7 +91,7 @@ function answer(q:string,d:ReturnType<typeof analyse>){
   const changes=d.rateMovements.filter((x:any)=>x.name.toLowerCase()===matchedProduct.name.toLowerCase()).slice(0,4);
   const history=changes.map((x:any)=>x.previous===null?`${x.kind}: latest ₹${x.rate.toFixed(2)} on ${x.date}`:`${x.kind}: ₹${x.previous.toFixed(2)} → ₹${x.rate.toFixed(2)} (${x.change>0?"up":x.change<0?"down":"unchanged"} ${Math.abs(x.percent||0).toFixed(2)}%)`).join("; ");
   const priceStatus=matchedProduct.profit<0?"Selling below recorded purchase cost":matchedProduct.profit===0?"No gross profit at current price":"Positive gross profit before overheads";
-  return `${matchedProduct.name} business review — Weighted average cost: ${money(matchedProduct.cost)}; Latest purchase rate: ${money(matchedProduct.lastPurchase)}; Wholesale: ${matchedProduct.wholesale>0?money(matchedProduct.wholesale):"not recorded"}; Retail: ${money(matchedProduct.retail)}; Gross profit per unit: ${money(matchedProduct.profit)}; Margin: ${matchedProduct.margin.toFixed(2)}%; Stock: ${matchedProduct.stock}. Assessment: ${priceStatus}. Rate history: ${history||"No dated purchase, selling or market rate comparisons available yet."} These are recorded rates, not live market quotes.`;
+  return `${matchedProduct.name} business review — Weighted average cost: ${money(matchedProduct.cost)}; Latest purchase rate: ${money(matchedProduct.lastPurchase)}; Wholesale: ${matchedProduct.wholesale>0?money(matchedProduct.wholesale):"not recorded"}; Retail: ${money(matchedProduct.retail)}; Gross profit per unit: ${money(matchedProduct.profit)}; Margin: ${matchedProduct.margin.toFixed(2)}%; Stock: ${matchedProduct.stock}. Assessment: ${priceStatus}. ${matchedProduct.margin < d.targetMargin ? `Below your ${d.targetMargin.toFixed(2)}% minimum margin target.` : "At or above your minimum margin target."} Rate history: ${history||"No dated purchase, selling or market rate comparisons available yet."} These are recorded rates, not live market quotes.`;
  }
  if(/\b(rate|rates|increase|decrease|price change|pricing|badha|ghata|mehnga|sasta)\b/.test(s)){
   const movements=d.rateMovements.filter((x:any)=>x.previous!==null).slice(0,10);
@@ -141,6 +141,7 @@ export default function BusinessAI(){
  const insights=[
   priceChanges.length?`${priceChanges.length} dated product rate changes detected from saved invoices and quotations.`:"No dated product rate movements detected yet.",
   data.low.length?`${data.low.length} products have stock at or below 5 units.`:"No low-stock products detected.",
+  data.belowTargetMargin.length?`${data.belowTargetMargin.length} products are below your ${data.targetMargin.toFixed(2)}% minimum margin target.`:"No products are below your minimum margin target.",
   data.missingCost.length?`${data.missingCost.length} products need purchase-cost records for reliable margin analysis.`:"Product purchase costs are available for listed products.",
   data.receivable>0?`${money(data.receivable)} customer receivables need monitoring.`:"No customer receivables detected.",
   data.payable>0?`${money(data.payable)} supplier payables need monitoring.`:"No supplier payables detected."
