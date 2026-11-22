@@ -209,11 +209,11 @@ export function validateBusinessRecords() {
     if (!Number.isFinite(Number(item.marketRate)) || Number(item.marketRate) <= 0) warnings.push("Market quotation " + (i + 1) + ": rate is invalid.");
     if (!item.checkedAt || !item.source) warnings.push("Market quotation " + (i + 1) + ": checked date or source is missing.");
   });
-  const partyBalance = (opening: number, invoices: any[], partyKey: "customer" | "supplier", paymentsToSubtract: string, returnsToSubtract: string) => {
+  const partyBalance = (invoices: any[], partyKey: "customer" | "supplier", paymentsToSubtract: string, returnsToSubtract: string) => {
     const balances = new Map<string, number>();
     const add = (name: unknown, amount: number) => { const key = String(name || "").trim().toLowerCase(); if (key) balances.set(key, (balances.get(key) || 0) + amount); };
-    customers.forEach((item: any) => add(item.name, Number(item.opening) || 0));
-    suppliers.forEach((item: any) => add(item.name, Number(item.opening) || 0));
+    const openingRecords = partyKey === "customer" ? customers : suppliers;
+    openingRecords.forEach((item: any) => add(item.name, Number(item.opening) || 0));
     invoices.forEach((item: any) => {
       const total = Number(item.total ?? item.grandTotal ?? item.amount);
       const due = Number.isFinite(total) ? Math.max(0, total - (Number(item.paid) || 0)) : Math.max(0, Number(item.balance) || 0);
@@ -223,8 +223,8 @@ export function validateBusinessRecords() {
     returns.filter((item: any) => item.type === returnsToSubtract).forEach((item: any) => add(item.party, -(Number(item.totalAmount ?? item.amount) || 0)));
     return balances;
   };
-  const customerBalancesBeforeRefunds = partyBalance(0, sales, "customer", "Customer Receipt", "Sales Return");
-  const supplierBalancesBeforeRefunds = partyBalance(0, purchases, "supplier", "Supplier Payment", "Purchase Return");
+  const customerBalancesBeforeRefunds = partyBalance(sales, "customer", "Customer Receipt", "Sales Return");
+  const supplierBalancesBeforeRefunds = partyBalance(purchases, "supplier", "Supplier Payment", "Purchase Return");
   const customerRefundTotals = new Map<string, number>();
   const supplierRefundTotals = new Map<string, number>();
   payments.filter((item: any) => item.type === "Customer Refund").forEach((item: any) => {
