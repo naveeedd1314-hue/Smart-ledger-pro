@@ -110,6 +110,18 @@ export function validateBusinessRecords() {
     const count = duplicateIds(rows as any[]);
     if (count) warnings.push(String(label) + ": " + count + " duplicate record ID(s) found.");
   });
+  const duplicateValues = (rows: any[], valueOf: (item: any) => string) => {
+    const seen = new Set<string>();
+    const duplicates = new Set<string>();
+    rows.forEach(item => { const value = valueOf(item).trim().toLowerCase(); if (value && seen.has(value)) duplicates.add(value); else if (value) seen.add(value); });
+    return duplicates.size;
+  };
+  const duplicateSkus = duplicateValues(products, item => String(item.sku || item.barcode || ""));
+  const duplicateSalesInvoices = duplicateValues(sales, item => String(item.invoice || item.invoiceNo || ""));
+  const duplicatePurchaseInvoices = duplicateValues(purchases, item => String(item.supplier || "") + "|" + String(item.invoice || ""));
+  if (duplicateSkus) warnings.push("Products: " + duplicateSkus + " duplicate SKU/barcode value(s) found.");
+  if (duplicateSalesInvoices) warnings.push("Sales: " + duplicateSalesInvoices + " duplicate invoice number(s) found.");
+  if (duplicatePurchaseInvoices) warnings.push("Purchases: " + duplicatePurchaseInvoices + " duplicate supplier invoice number(s) found.");
 
   if (!products.length) warnings.push("No product records found.");
   if (!sales.length) warnings.push("No sales records found.");
