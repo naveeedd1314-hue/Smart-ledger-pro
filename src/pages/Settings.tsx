@@ -1,23 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 export default function Settings() {
-  const [business, setBusiness] = useState({
-    name: 'SmartLedger Business',
-    phone: '',
-    email: '',
-    address: '',
-    gstin: '',
-    state: 'Jammu and Kashmir',
-    invoicePrefix: 'SL',
-    financialYear: '2026-27'
+  const [business, setBusiness] = useState(() => {
+    const defaults = { name: 'SmartLedger Business', phone: '', email: '', address: '', gstin: '', state: 'Jammu and Kashmir', invoicePrefix: 'SL', financialYear: '2026-27' };
+    try { return { ...defaults, ...JSON.parse(localStorage.getItem('smartledger-pro-settings') || '{}') }; }
+    catch { return defaults; }
   });
-
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('smartledger-pro-settings');
-      if (saved) setBusiness({ ...business, ...JSON.parse(saved) });
-    } catch {}
-  }, []);
 
   function save() {
     localStorage.setItem('smartledger-pro-settings', JSON.stringify(business));
