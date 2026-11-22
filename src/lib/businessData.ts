@@ -28,7 +28,7 @@ export function getBusinessSnapshot() {
 
   const stock = calculateStockValue(products.map(p => ({
     stock: pick(p, ["stock", "quantity", "qty", "closingStock"]),
-    purchasePrice: pick(p, ["purchase", "purchasePrice", "costPrice", "buyPrice"])
+    purchasePrice: pick(p, ["averageCost", "purchase", "purchasePrice", "costPrice", "buyPrice"])
   })));
 
   const sales = calculateSalesProfit(bills.flatMap(b => {
@@ -133,7 +133,7 @@ export function validateBusinessRecords() {
     const stock = Number(p.stock ?? p.quantity ?? p.qty);
     if (!Number.isFinite(stock)) warnings.push("Product " + (i + 1) + ": stock value missing or invalid.");
     else if (stock < 0) warnings.push("Product " + (i + 1) + ": negative stock.");
-    const cost = p.purchase ?? p.purchasePrice ?? p.costPrice;
+    const cost = p.averageCost ?? p.purchase ?? p.purchasePrice ?? p.costPrice;
     if (cost !== undefined && cost !== null && !validAmount(cost)) warnings.push("Product " + (i + 1) + ": purchase cost is invalid.");
     const selling = p.selling ?? p.sellingPrice ?? p.salePrice;
     if (selling !== undefined && selling !== null && (!validAmount(selling) || Number(selling) <= 0)) warnings.push("Product " + (i + 1) + ": selling price is invalid.");
