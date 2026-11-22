@@ -33,7 +33,7 @@ const dateOf = (obj: any) => {
 export default function ReorderAdvisor() {
   const result = useMemo(() => {
     const products = read(["smartledger-products", "products"]);
-    const bills = read(["smartledger-bills", "bills"]);
+    const bills = read(["smartledger-pro-sales", "smartledger-bills", "bills"]);
     const now = Date.now();
     const cutoff = now - 30 * 86400000;
     const sold = new Map<string, number>();
