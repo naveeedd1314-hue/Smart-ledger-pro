@@ -145,8 +145,8 @@ export default function Analytics() {
                 <YAxis />
                 <Tooltip formatter={(value) => money(Number(value))} />
                 <Legend />
-                <Bar dataKey="sales" name="Sales" fill="#1b4332" />
-                <Bar dataKey="purchases" name="Purchases" fill="#b08968" />
+                <Bar dataKey="sales" name="Sales (before GST)" fill="#1b4332" />
+                <Bar dataKey="purchases" name="Purchases (before GST)" fill="#b08968" />
                 <Bar dataKey="expenses" name="Expenses" fill="#d97757" />
               </BarChart>
             </ResponsiveContainer>
@@ -205,9 +205,9 @@ export default function Analytics() {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead><tr className="border-b border-[var(--border)] text-[var(--text-2)]">
-              <th className="p-2">Month</th><th className="p-2">Sales</th>
-              <th className="p-2">Sales Returns</th><th className="p-2">Net Sales</th>
-              <th className="p-2">Purchases</th><th className="p-2">Expenses</th>
+              <th className="p-2">Month</th><th className="p-2">Sales (before GST)</th>
+              <th className="p-2">Sales Returns (before GST)</th><th className="p-2">Net Sales</th>
+              <th className="p-2">Purchases (before GST)</th><th className="p-2">Expenses</th>
             </tr></thead>
             <tbody>{analytics.months.map(x => (
               <tr className="border-b" key={x.month}>
