@@ -117,19 +117,19 @@ export default function BusinessAI(){
  };
  return <>
   <button onClick={()=>setOpen(v=>!v)} aria-label="Open SmartLedger AI" style={{position:"fixed",right:18,bottom:18,zIndex:9998,border:0,borderRadius:28,padding:"13px 18px",background:"#1F6F6B",color:"white",fontWeight:700,boxShadow:"0 5px 22px #1e2a2f30"}}>✦ SmartLedger AI</button>
-  {open&&<section style={{position:"fixed",zIndex:9999,right:12,bottom:76,width:"min(420px,calc(100vw - 24px))",maxHeight:"78vh",display:"flex",flexDirection:"column",background:"var(--sl-surface,#fff)",color:"var(--sl-text,#1e2a2f)",border:"1px solid var(--sl-border,#ddd)",borderRadius:20,boxShadow:"0 15px 50px #0003",overflow:"hidden"}}>
+  {open&&<section style={{position:"fixed",zIndex:9999,right:12,bottom:76,width:"min(420px,calc(100vw - 24px))",maxHeight:"78vh",display:"flex",flexDirection:"column",background:"var(--surface)",color:"var(--text)",border:"1px solid var(--border)",borderRadius:20,boxShadow:"0 15px 50px #0003",overflow:"hidden"}}>
    <header style={{padding:16,background:"#1F6F6B",color:"white",display:"flex",justifyContent:"space-between",alignItems:"center"}}><div><strong>✦ SmartLedger AI</strong><div style={{fontSize:11,opacity:.85}}>Business intelligence • Connected to your records</div></div><button onClick={()=>setOpen(false)} style={{background:"transparent",color:"white",border:0,fontSize:22}}>×</button></header>
    <div style={{padding:14,overflowY:"auto",fontSize:13}}>
     <strong>Automatic business review</strong>
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,margin:"10px 0"}}>
-     {[["Sales",money(data.sales)],["Purchases",money(data.purchaseTotal)],["Gross profit (known)",money(data.knownGrossProfit)],["After expenses (estimate)",money(data.estimatedAfterExpenses)],["Expenses",money(data.expenseTotal)],["Stock value",money(data.stockValue)],["To collect",money(data.receivable)],["To pay",money(data.payable)]].map(([k,v])=><div key={k} style={{background:"var(--sl-surface-muted,#f1f0ea)",padding:10,borderRadius:12}}><div style={{color:"var(--text-2, #475569)",fontSize:11}}>{k}</div><strong>{v}</strong></div>)}
+     {[["Sales",money(data.sales)],["Purchases",money(data.purchaseTotal)],["Gross profit (known)",money(data.knownGrossProfit)],["After expenses (estimate)",money(data.estimatedAfterExpenses)],["Expenses",money(data.expenseTotal)],["Stock value",money(data.stockValue)],["To collect",money(data.receivable)],["To pay",money(data.payable)]].map(([k,v])=><div key={k} style={{background:"var(--surface-2)",padding:10,borderRadius:12}}><div style={{color:"var(--text-2, #475569)",fontSize:11}}>{k}</div><strong>{v}</strong></div>)}
     </div>
     <strong>Detected points</strong>
-    {insights.map((x,i)=><p key={i} style={{margin:"7px 0",padding:"8px 10px",background:"var(--sl-surface-muted,#f1f0ea)",borderRadius:10}}>{x}</p>)}
+    {insights.map((x,i)=><p key={i} style={{margin:"7px 0",padding:"8px 10px",background:"var(--surface-2)",borderRadius:10}}>{x}</p>)}
     {history.map((h,i)=><div key={i} style={{marginTop:12}}><strong>You: {h.q}</strong><p style={{whiteSpace:"pre-wrap",lineHeight:1.5}}>{h.a}</p></div>)}
    </div>
-   <form onSubmit={e=>{e.preventDefault();ask(query)}} style={{display:"flex",gap:8,padding:12,borderTop:"1px solid var(--sl-border,#ddd)"}}>
-    <input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Ask about profit, stock, rates..." style={{flex:1,minWidth:0,padding:11,borderRadius:12,border:"1px solid var(--sl-border,#ddd)",background:"var(--sl-surface,#fff)",color:"var(--text, #0F172A)"}}/>
+   <form onSubmit={e=>{e.preventDefault();ask(query)}} style={{display:"flex",gap:8,padding:12,borderTop:"1px solid var(--border)"}}>
+    <input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Ask about profit, stock, rates..." style={{flex:1,minWidth:0,padding:11,borderRadius:12,border:"1px solid var(--border)",background:"var(--surface)",color:"var(--text, #0F172A)"}}/>
     <button type="submit" style={{border:0,borderRadius:12,padding:"0 15px",background:"#1F6F6B",color:"white"}}>Ask</button>
    </form>
    <div style={{padding:"0 12px 10px",fontSize:10,color:"var(--text-2, #475569)"}}>Calculations use locally recorded data. External market rates and autonomous AI reasoning are not connected yet.</div>
