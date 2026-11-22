@@ -135,6 +135,7 @@ export function validateBusinessRecords() {
     else if (stock < 0) warnings.push("Product " + (i + 1) + ": negative stock.");
     const cost = p.averageCost ?? p.purchase ?? p.purchasePrice ?? p.costPrice;
     if (cost !== undefined && cost !== null && !validAmount(cost)) warnings.push("Product " + (i + 1) + ": purchase cost is invalid.");
+    if (Number.isFinite(stock) && stock > 0 && (cost === undefined || cost === null || Number(cost) <= 0)) warnings.push("Product " + (i + 1) + ": stocked inventory has no usable purchase cost.");
     const selling = p.selling ?? p.sellingPrice ?? p.salePrice;
     if (selling !== undefined && selling !== null && (!validAmount(selling) || Number(selling) <= 0)) warnings.push("Product " + (i + 1) + ": selling price is invalid.");
     const gstRate = p.gstRate ?? p.gst;
