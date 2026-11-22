@@ -287,6 +287,7 @@ function App() {
                   {name:'Record purchase',icon:ShoppingBag,page:'Purchases'},
                   {name:'Add new product',icon:Boxes,page:'Inventory'},
                   {name:'Add customer',icon:Users,page:'Customers'},
+                  {name:'Record payment / receipt',icon:CreditCard,page:'Payments'},
                 ].map(action => {
                   const Icon = action.icon
                   return <button key={action.name} onClick={() => setActive(action.page)} className="flex w-full items-center gap-3 rounded-xl border border-[var(--border)] p-3 text-left text-sm font-medium hover:bg-[var(--bg)]"><Icon size={18} className="text-[var(--indigo)]"/>{action.name}<ArrowUpRight size={15} className="ml-auto text-[var(--text-2)]"/></button>
