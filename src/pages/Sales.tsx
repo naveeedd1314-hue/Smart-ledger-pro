@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { localDateISO } from '../lib/dateUtils';
 import { downloadInvoicePdf } from '../utils/invoicePdf';
 
@@ -30,6 +30,7 @@ export default function Sales() {
   const [applyGST, setApplyGST] = useState(false);
   const [businessState] = useState(readBusinessState);
   const [placeOfSupply, setPlaceOfSupply] = useState(readBusinessState);
+  const savingRef = useRef(false);
 
   const selected = products.find(p => p.id === productId);
   const taxableValue = qty * rate;
@@ -49,11 +50,11 @@ export default function Sales() {
   const estimatedGrossProfit = selected && Number.isFinite(saleCost) && saleCost > 0 && Number.isFinite(rate) ? (rate - saleCost) * qty : null;
 
   function saveSale() {
-    if (!selected || !Number.isFinite(qty) || qty <= 0 || !Number.isFinite(rate) || rate < 0 || !Number.isFinite(paid) || paid < 0 || !Number.isFinite(total) || paid > total || qty > selected.stock) {
-      alert('Check product, quantity, stock and payment amount.');
-      return;
-    }
-    if (applyGST && (!normalizedBusinessState || !normalizedPlaceState)) { alert('Enter the business state and place of supply before applying GST.'); return; }
+    if (savingRef.current) return;
+    savingRef.current = true;
+    const reject = (message: string) => { savingRef.current = false; alert(message); };
+    if (!selected || !Number.isFinite(qty) || qty <= 0 || !Number.isFinite(rate) || rate < 0 || !Number.isFinite(paid) || paid < 0 || !Number.isFinite(total) || paid > total || qty > selected.stock) return reject('Check product, quantity, stock and payment amount.');
+    if (applyGST && (!normalizedBusinessState || !normalizedPlaceState)) return reject('Enter the business state and place of supply before applying GST.');
     const customerName = customer.trim() || 'Walk-in Customer';
     let customerDetails: { gstin?: string; address?: string } = {};
     try {
@@ -95,6 +96,7 @@ export default function Sales() {
     setQty(1);
     setRate(0);
     setPaid(0);
+    savingRef.current = false;
   }
 
   const totalReceipts = payments.filter(p => p.type === 'Customer Receipt').reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
