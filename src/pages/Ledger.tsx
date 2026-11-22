@@ -74,7 +74,7 @@ export default function Ledger() {
     const cost = item.purchasePrice === undefined || item.purchasePrice === null ? Number.NaN : Number(item.purchasePrice);
     const quantity = Number(item.qty) || 0;
     const rate = Number(item.rate) || 0;
-    return sum + (Number.isFinite(cost) && cost >= 0 ? (rate - cost) * quantity : 0);
+    return sum + (Number.isFinite(cost) && cost > 0 ? (rate - cost) * quantity : 0);
   }, 0) : 0;
   const customerGrossProfit = customerSalesGrossProfit - customerReturnProfit;
   const salesMissingCost = customerSales.filter(x => x.purchasePrice === undefined || x.purchasePrice === null || !Number.isFinite(Number(x.purchasePrice)) || Number(x.purchasePrice) <= 0).length + (type === 'Customer' ? returns.filter(x => x.type === 'Sales Return' && x.party === party && (x.purchasePrice === undefined || x.purchasePrice === null || !Number.isFinite(Number(x.purchasePrice)) || Number(x.purchasePrice) <= 0)).length : 0);
