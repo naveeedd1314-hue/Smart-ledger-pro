@@ -2,10 +2,6 @@ import BusinessStrategyDashboard from "../components/BusinessStrategyDashboard";
 import PriceMovementAnalysis from "../components/PriceMovementAnalysis";
 import MarketRateIntelligence from "../components/MarketRateIntelligence";
 import ReorderAdvisor from "../components/ReorderAdvisor";
-import BusinessAI from "../components/BusinessAI";
-import BusinessIntelligence from "../components/BusinessIntelligence";
-import PriceAnalysis from "../components/PriceAnalysis";
-import BusinessAdvisor from "../components/BusinessAdvisor";
 
 export default function BusinessCommandCentre() {
   return (
@@ -17,10 +13,6 @@ export default function BusinessCommandCentre() {
           Business calculations, performance insights, pricing analysis and decision support.
         </p>
       </header>
-      <BusinessAI />
-      <BusinessIntelligence />
-      <PriceAnalysis />
-      <BusinessAdvisor />
       <ReorderAdvisor />
       <MarketRateIntelligence />
     <PriceMovementAnalysis />
