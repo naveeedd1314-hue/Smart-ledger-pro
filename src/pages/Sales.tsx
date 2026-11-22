@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { localDateISO } from '../lib/dateUtils';
 import { downloadInvoicePdf } from '../utils/invoicePdf';
 
 type Product = { id: string; name: string; selling: number; purchase: number; averageCost?: number | null; wholesale?: number; stock: number; sku?: string; category?: string; gstRate?: number; hsn?: string };
@@ -74,7 +75,7 @@ export default function Sales() {
       id: crypto.randomUUID(),
       productId: selected.id,
       invoice: `SL-${Date.now().toString().slice(-8)}`,
-      date: new Date().toISOString().slice(0, 10),
+      date: localDateISO(),
       customer: customerName,
       product: selected.name,
       qty, rate, total, paid, balance: total - paid, purchasePrice: Number.isFinite(Number(selected.averageCost ?? selected.purchase)) && Number(selected.averageCost ?? selected.purchase) > 0 ? Number(selected.averageCost ?? selected.purchase) : null,
