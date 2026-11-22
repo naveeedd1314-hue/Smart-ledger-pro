@@ -132,6 +132,11 @@ export function validateBusinessRecords() {
     const amount = Number(payment.amount);
     if (!Number.isFinite(amount) || amount <= 0) warnings.push("Payment " + (i + 1) + ": amount missing or invalid.");
     if (!["Customer Receipt", "Supplier Payment"].includes(String(payment.type))) warnings.push("Payment " + (i + 1) + ": transaction type is invalid.");
+    if (Array.isArray(payment.allocations)) {
+      const allocated = payment.allocations.reduce((sum: number, item: any) => sum + (Number(item.amount) || 0), 0);
+      if (payment.allocations.some((item: any) => !item.invoiceId || !Number.isFinite(Number(item.amount)) || Number(item.amount) <= 0)) warnings.push("Payment " + (i + 1) + ": an invoice allocation is missing its invoice link or has an invalid amount.");
+      if (allocated > amount + 0.01) warnings.push("Payment " + (i + 1) + ": allocated amount exceeds the payment total.");
+    }
   });
   returns.forEach((item: any, i: number) => {
     const qty = Number(item.qty);
