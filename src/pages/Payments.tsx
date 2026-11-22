@@ -63,33 +63,34 @@ export default function Payments() {
   const money = (n:number)=>`₹${n.toLocaleString('en-IN',{maximumFractionDigits:2})}`;
 
   const invoiceHistoryRows = items.flatMap((raw: Payment) => {
-    const payment = raw as any;
-    if (Array.isArray(payment.allocations) && payment.allocations.length) {
-      return payment.allocations.map((allocation: any) => ({
-        id: `${payment.id}-${allocation.invoiceId || allocation.invoice}`,
-        invoice: allocation.invoice || allocation.invoiceId || 'Invoice',
-        date: payment.date,
-        type: payment.type,
-        party: payment.party,
-        method: payment.method,
-        reference: payment.reference,
-        amount: Number(allocation.amount) || 0,
-        linked: true,
-      }));
-    }
-    return [{
-      id: payment.id,
-      invoice: 'Not linked to an invoice',
+    const payment = raw as Payment;
+    const allocations = Array.isArray(payment.allocations) ? payment.allocations : [];
+    const rows = allocations.map((allocation, index) => ({
+      id: `${payment.id}-${allocation.invoiceId || allocation.invoice || index}`,
+      invoice: allocation.invoice || allocation.invoiceId || 'Invoice',
       date: payment.date,
       type: payment.type,
       party: payment.party,
       method: payment.method,
       reference: payment.reference,
-      amount: Number(payment.amount) || 0,
+      amount: Math.max(0, Number(allocation.amount) || 0),
+      linked: true,
+    }));
+    const allocated = allocations.reduce((sum, allocation) => sum + Math.max(0, Number(allocation.amount) || 0), 0);
+    const remainder = Math.max(0, (Number(payment.amount) || 0) - allocated);
+    if (!allocations.length || remainder > 0.009) rows.push({
+      id: `${payment.id}-unallocated`,
+      invoice: allocations.length ? 'Unallocated remainder' : 'Not linked to an invoice',
+      date: payment.date,
+      type: payment.type,
+      party: payment.party,
+      method: payment.method,
+      reference: payment.reference,
+      amount: allocations.length ? remainder : Math.max(0, Number(payment.amount) || 0),
       linked: false,
-    }];
+    });
+    return rows;
   });
-
   
 function downloadInvoiceHistoryPdf() {
   const doc = new jsPDF({ orientation: "landscape" });
