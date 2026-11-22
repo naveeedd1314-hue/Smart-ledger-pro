@@ -98,6 +98,11 @@ function answer(q:string,d:ReturnType<typeof analyse>){
  }
  if(/stock|inventory|shortage|reorder|fast|slow/.test(s))
   return `Stock review: ${d.products.length} products recorded. ${d.low.length} products have stock of 5 units or less. ${d.negative.length} products show negative stock. Estimated stock value at recorded purchase cost: ${money(d.stockValue)}. Low-stock items: ${d.low.slice(0,8).map(p=>`${p.name} (${p.stock})`).join(", ")||"None detected"}.`;
+ if(/who owes|who do i owe|top outstanding|outstanding summary/.test(s)){
+  const customers=d.customerDueRows.slice(0,5).map((x:any,i:number)=>`${i+1}. ${x.name}: ${money(x.due)}`).join("\\n");
+  const suppliers=d.supplierDueRows.slice(0,5).map((x:any,i:number)=>`${i+1}. ${x.name}: ${money(x.due)}`).join("\\n");
+  return `Top customer balances to collect:\\n${customers||"None"}\\n\\nTop supplier balances to pay:\\n${suppliers||"None"}`;
+ }
  if(/customer|party/.test(s)&&/(due|outstanding|owe|collect|balance)/.test(s)){
   const matched=d.customerDueRows.find((x:any)=>s.includes(x.name.toLowerCase()));
   if(matched)return `${matched.name} outstanding balance: ${money(matched.due)} after recorded receipts and sales returns.`;
