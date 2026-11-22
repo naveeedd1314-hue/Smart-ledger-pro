@@ -46,7 +46,7 @@ export default function BusinessAdvisor() {
 
     const rows = products.map(p => {
       const name = String(p.name || p.productName || p.itemName || "Unnamed product");
-      const cost = get(p, ["purchase", "purchasePrice", "costPrice", "buyPrice"]);
+      const cost = get(p, ["averageCost", "purchase", "purchasePrice", "costPrice", "buyPrice"]);
       const retail = get(p, ["selling", "sellingPrice", "salePrice", "retail", "price", "rate"]);
       const wholesale = get(p, ["wholesale", "wholesalePrice"]);
       const stock = get(p, ["stock", "quantity", "qty", "closingStock"]);
