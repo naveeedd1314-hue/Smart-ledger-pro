@@ -41,7 +41,7 @@ export default function Payments() {
   }).filter((invoice: any) => invoice.dueNow > 0);
 
   function save() {
-    if (amount <= 0 || !date) return alert('Enter a valid date and amount.');
+    if (!Number.isFinite(amount) || amount <= 0 || !date) return alert('Enter a valid date and amount.');
     const selectedInvoice = invoiceOptions.find((x: any) => x.id === invoiceId);
     if (invoiceId && !selectedInvoice) return alert('Selected invoice is no longer available or is already settled.');
     const selectedParty = selectedInvoice
