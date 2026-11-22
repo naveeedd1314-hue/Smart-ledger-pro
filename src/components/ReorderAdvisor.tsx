@@ -35,8 +35,10 @@ export default function ReorderAdvisor() {
   const result = useMemo(() => {
     const products = read(["smartledger-products", "products"]);
     const bills = read(["smartledger-pro-sales", "smartledger-bills", "bills"]);
+    const returns = read(["smartledger-pro-returns"]);
     const cutoff = now - 30 * 86400000;
     const sold = new Map<string, number>();
+    const returned = new Map<string, number>();
     let undatedInvoices = 0;
 
     for (const bill of bills) {
@@ -51,18 +53,36 @@ export default function ReorderAdvisor() {
         Array.isArray(bill.products) ? bill.products : [bill];
 
       for (const line of lines) {
+        const id = String(line.productId ?? line.product_id ?? "").trim();
         const name = String(line.productName || line.product || line.name || "").trim().toLowerCase();
         const qty = number(line, ["quantity", "qty", "quantitySold"]);
-        if (name && qty !== null && qty > 0) {
-          sold.set(name, (sold.get(name) || 0) + qty);
+        if (qty !== null && qty > 0) {
+          if (id) sold.set(id, (sold.get(id) || 0) + qty);
+          if (name) sold.set(name, (sold.get(name) || 0) + qty);
         }
+      }
+    }
+
+    for (const item of returns) {
+      if (item.type !== "Sales Return") continue;
+      const date = dateOf(item);
+      if (!date || date.getTime() < cutoff || date.getTime() > now + 86400000) continue;
+      const id = String(item.productId ?? "").trim();
+      const name = String(item.product || item.productName || "").trim().toLowerCase();
+      const qty = number(item, ["qty", "quantity"]);
+      if (qty !== null && qty > 0) {
+        if (id) returned.set(id, (returned.get(id) || 0) + qty);
+        if (name) returned.set(name, (returned.get(name) || 0) + qty);
       }
     }
 
     const rows = products.map(p => {
       const name = String(p.name || p.productName || p.itemName || "Unnamed product");
       const stock = number(p, ["stock", "quantity", "qty", "closingStock"]);
-      const daily = (sold.get(name.toLowerCase()) || 0) / 30;
+      const id = String(p.id ?? "").trim();
+      const grossSold = sold.get(id) || sold.get(name.toLowerCase()) || 0;
+      const returnedQty = returned.get(id) || returned.get(name.toLowerCase()) || 0;
+      const daily = Math.max(0, grossSold - returnedQty) / 30;
       const target = Math.ceil(daily * 14);
       const reorder = stock === null ? null : Math.max(0, target - stock);
       return { name, stock, daily, target, reorder };
@@ -80,7 +100,7 @@ export default function ReorderAdvisor() {
     <section style={{ margin: "18px 0", padding: 18, borderRadius: 18, background: "var(--surface)", border: "1px solid var(--border, #ddd)" }}>
       <h2 style={{ margin: "0 0 5px", fontSize: 20 }}>Automatic Reorder Advisor</h2>
       <p style={{ fontSize: 13, opacity: .7, margin: "0 0 14px" }}>
-        Suggested quantities use recorded sales over 30 days and a 14-day target stock cover.
+        Suggested quantities use net recorded sales after sales returns over 30 days and a 14-day target stock cover.
       </p>
       <strong>{result.rows.length} products may need replenishment</strong>
       {result.rows.length === 0 ? (
