@@ -1,9 +1,10 @@
 
 import { useMemo } from "react";
-import { calculateBusinessStrategy } from "../lib/businessStrategy";
+import { calculateBusinessStrategy, generateStrategyRecommendations } from "../lib/businessStrategy";
 
 export default function BusinessStrategyDashboard() {
   const result = useMemo(() => calculateBusinessStrategy(), []);
+  const recommendations = useMemo(() => generateStrategyRecommendations(), []);
 
   const card = {
     padding: 14,
@@ -60,6 +61,19 @@ export default function BusinessStrategyDashboard() {
             {" · "}Estimated stock days: {p.estimatedDaysOfStock === null ? "Unknown" : p.estimatedDaysOfStock.toFixed(1)}
           </p>
           <strong style={{ fontSize: 12 }}>{p.status}</strong>
+        </div>
+      ))}
+
+      <h3 style={{ marginTop: 22 }}>Recommended actions</h3>
+      {recommendations.length === 0 ? (
+        <p style={{ fontSize: 13, opacity: .7 }}>No priority actions were identified from the available records.</p>
+      ) : recommendations.map((item, i) => (
+        <div key={i} style={{ ...card, marginBottom: 9 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+            <strong>{item.name}</strong>
+            <span style={{ fontSize: 12, fontWeight: 700, color: item.priority === "High" ? "var(--rose)" : "var(--amber)" }}>{item.priority} priority</span>
+          </div>
+          <p style={{ fontSize: 13, margin: "7px 0 0" }}>{item.recommendation}</p>
         </div>
       ))}
 
