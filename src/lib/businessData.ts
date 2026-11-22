@@ -72,14 +72,16 @@ export function getBusinessSnapshot() {
 // SMARTLEDGER_DATA_QUALITY_AUDIT
 export function validateBusinessRecords() {
   const warnings: string[] = [];
-  const read = (key: string) => {
-    try {
-      const value = JSON.parse(localStorage.getItem(key) || "[]");
-      return Array.isArray(value) ? value : [];
-    } catch {
-      warnings.push(key + ": invalid stored data");
-      return [];
+  const read = (...keys: string[]) => {
+    for (const key of keys) {
+      try {
+        const value = JSON.parse(localStorage.getItem(key) || "[]");
+        if (Array.isArray(value) && value.length) return value;
+      } catch {
+        warnings.push(key + ": invalid stored data");
+      }
     }
+    return [];
   };
   const products = read("smartledger-products");
   const bills = read("smartledger-pro-sales", "smartledger-bills");
