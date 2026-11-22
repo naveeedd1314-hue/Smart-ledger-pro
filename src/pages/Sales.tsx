@@ -82,13 +82,13 @@ export default function Sales() {
   const money = (n: number) => `₹${n.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
 
   return <section className="space-y-6">
-    <div><h1 className="text-2xl font-bold">Sales & Invoices</h1><p className="text-sm text-[#788579]">Create sales invoices and track customer balances.</p></div>
+    <div><h1 className="text-2xl font-bold">Sales & Invoices</h1><p className="text-sm text-[var(--text-2)]">Create sales invoices and track customer balances.</p></div>
     <div className="grid gap-3 sm:grid-cols-3">
-      <div className="rounded-2xl border border-[#e6e0d2] bg-[#fffdf7] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[#788579]">Total Sales</p><strong className="text-xl">{money(sales.reduce((s, x) => s + x.total, 0))}</strong></div>
-      <div className="rounded-2xl border border-[#e6e0d2] bg-[#fffdf7] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[#788579]">Received</p><strong className="text-xl">{money(sales.reduce((s, x) => s + x.paid, 0))}</strong></div>
-      <div className="rounded-2xl border border-[#e6e0d2] bg-[#fffdf7] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[#788579]">To Collect</p><strong className="text-xl">{money(sales.reduce((s, x) => s + x.balance, 0))}</strong></div>
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">Total Sales</p><strong className="text-xl">{money(sales.reduce((s, x) => s + x.total, 0))}</strong></div>
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">Received</p><strong className="text-xl">{money(sales.reduce((s, x) => s + x.paid, 0))}</strong></div>
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">To Collect</p><strong className="text-xl">{money(sales.reduce((s, x) => s + x.balance, 0))}</strong></div>
     </div>
-    <div className="rounded-2xl border border-[#e6e0d2] bg-[#fffdf7] p-5 shadow-sm space-y-4">
+    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm space-y-4">
       <h2 className="font-semibold text-lg">New Sales Invoice</h2>
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="text-sm">Customer name<input className="mt-1 w-full rounded-lg border p-3" value={customer} onChange={e => setCustomer(e.target.value)} /></label>
@@ -120,13 +120,13 @@ export default function Sales() {
       </div>
       <button onClick={saveSale} className="rounded-lg sl-primary px-5 py-3 font-semibold text-white">Save Invoice</button>
     </div>
-    <div className="rounded-2xl border border-[#e6e0d2] bg-[#fffdf7] p-5 shadow-sm">
+    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
       <h2 className="mb-4 font-semibold text-lg">Recent Sales</h2>
       <div className="overflow-x-auto"><table className="w-full text-left text-sm">
-        <thead><tr className="border-b text-[#788579]"><th className="p-2">Invoice</th><th className="p-2">Date</th><th className="p-2">Customer</th><th className="p-2">Product</th><th className="p-2">Total</th><th className="p-2">Paid</th><th className="p-2">Due</th><th className="p-2">PDF</th></tr></thead>
-        <tbody>{sales.map(s => <tr key={s.id} className="border-b border-[#eee9dd] hover:bg-[#f7f4eb]"><td className="p-2">{s.invoice}</td><td className="p-2">{s.date}</td><td className="p-2">{s.customer}</td><td className="p-2">{s.product} × {s.qty}</td><td className="p-2">{money(s.total)}</td><td className="p-2">{money(s.paid)}</td><td className="p-2">{money(s.balance)}</td><td className="p-2"><button onClick={() => { let b = {}; try { b = JSON.parse(localStorage.getItem('smartledger-pro-settings') || '{}'); } catch {} downloadInvoicePdf(s, b, 'sales'); }} className="rounded sl-primary px-3 py-2 text-white">Download PDF</button></td></tr>)}</tbody>
+        <thead><tr className="border-b text-[var(--text-2)]"><th className="p-2">Invoice</th><th className="p-2">Date</th><th className="p-2">Customer</th><th className="p-2">Product</th><th className="p-2">Total</th><th className="p-2">Paid</th><th className="p-2">Due</th><th className="p-2">PDF</th></tr></thead>
+        <tbody>{sales.map(s => <tr key={s.id} className="border-b border-[#eee9dd] hover:bg-[var(--surface-2)]"><td className="p-2">{s.invoice}</td><td className="p-2">{s.date}</td><td className="p-2">{s.customer}</td><td className="p-2">{s.product} × {s.qty}</td><td className="p-2">{money(s.total)}</td><td className="p-2">{money(s.paid)}</td><td className="p-2">{money(s.balance)}</td><td className="p-2"><button onClick={() => { let b = {}; try { b = JSON.parse(localStorage.getItem('smartledger-pro-settings') || '{}'); } catch {} downloadInvoicePdf(s, b, 'sales'); }} className="rounded sl-primary px-3 py-2 text-white">Download PDF</button></td></tr>)}</tbody>
       </table></div>
-      {sales.length === 0 && <p className="py-6 text-center text-[#788579]">No sales invoices yet.</p>}
+      {sales.length === 0 && <p className="py-6 text-center text-[var(--text-2)]">No sales invoices yet.</p>}
     </div>
   </section>;
 }
