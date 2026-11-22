@@ -33,7 +33,7 @@ export default function Payments() {
     setReturns(read('smartledger-pro-returns'));
   }, []);
 
-  const invoiceList = type === 'Customer Receipt' ? salesInvoices : purchaseInvoices;
+  const invoiceList = type === 'Customer Receipt' ? salesInvoices : type === 'Supplier Payment' ? purchaseInvoices : [];
   const invoiceAllocations = items.flatMap((payment: any) => Array.isArray(payment.allocations) ? payment.allocations.map((a: any) => ({...a, type: payment.type, party: payment.party})) : []);
   const invoiceOptions = invoiceList.map((invoice: any) => {
     const id = String(invoice.id);
@@ -65,6 +65,8 @@ export default function Payments() {
 
   const receipts = items.filter(x=>x.type==='Customer Receipt').reduce((s,x)=>s+x.amount,0);
   const paid = items.filter(x=>x.type==='Supplier Payment').reduce((s,x)=>s+x.amount,0);
+  const customerRefunds = items.filter(x=>x.type==='Customer Refund').reduce((s,x)=>s+x.amount,0);
+  const supplierRefunds = items.filter(x=>x.type==='Supplier Refund').reduce((s,x)=>s+x.amount,0);
   const money = (n:number)=>`₹${n.toLocaleString('en-IN',{maximumFractionDigits:2})}`;
 
   const invoiceHistoryRows = items.flatMap((raw: Payment) => {
@@ -331,19 +333,21 @@ function exportOutstandingPdf() {
 
 
 return <section className="space-y-5">
-    <div><h1 className="text-2xl font-bold">Payments & Receipts</h1><p className="text-sm text-[var(--text-2)]">Record money received from customers and paid to suppliers.</p><p className="mt-2 rounded-xl border border-[var(--amber)]/30 bg-[var(--amber)]/10 p-3 text-sm text-[var(--text)]">Accounting rule: enter the initial amount paid inside the sales or purchase invoice. Use this page only for later receipts or payments. Never record the same cash transaction twice.</p></div>
-    <div className="grid gap-3 sm:grid-cols-3">
+    <div><h1 className="text-2xl font-bold">Payments & Receipts</h1><p className="text-sm text-[var(--text-2)]">Record customer receipts and refunds, plus supplier payments and refunds.</p><p className="mt-2 rounded-xl border border-[var(--amber)]/30 bg-[var(--amber)]/10 p-3 text-sm text-[var(--text)]">Accounting rule: enter the initial amount paid inside the sales or purchase invoice. Use this page only for later receipts or payments. Never record the same cash transaction twice.</p></div>
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">Customer Receipts</p><strong className="text-xl">{money(receipts)}</strong></div>
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">Supplier Payments</p><strong className="text-xl">{money(paid)}</strong></div>
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">Customer Refunds</p><strong className="text-xl">{money(customerRefunds)}</strong></div>
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">Supplier Refunds</p><strong className="text-xl">{money(supplierRefunds)}</strong></div>
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">Transactions</p><strong className="text-xl">{items.length}</strong></div>
     </div>
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm space-y-4">
       <h2 className="font-semibold">New Transaction</h2>
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="text-sm">Transaction type<select className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 focus:border-[var(--indigo)] focus:outline-none focus:ring-2 focus:ring-[var(--indigo)]/15" value={type} onChange={e=>{setType(e.target.value);setInvoiceId('');setParty('');}}><option>Customer Receipt</option><option>Supplier Payment</option></select></label>
+        <label className="text-sm">Transaction type<select className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 focus:border-[var(--indigo)] focus:outline-none focus:ring-2 focus:ring-[var(--indigo)]/15" value={type} onChange={e=>{setType(e.target.value);setInvoiceId('');setParty('');}}><option>Customer Receipt</option><option>Supplier Payment</option><option>Customer Refund</option><option>Supplier Refund</option></select></label>
         <label className="text-sm">Date<input type="date" className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 focus:border-[var(--indigo)] focus:outline-none focus:ring-2 focus:ring-[var(--indigo)]/15" value={date} onChange={e=>setDate(e.target.value)} /></label>
-        <label className="text-sm sm:col-span-2">Allocate to invoice (optional)<select className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3" value={invoiceId} onChange={e=>{const id=e.target.value;setInvoiceId(id);const selected=invoiceOptions.find((x:any)=>x.id===id);if(selected)setParty(type==='Customer Receipt'?selected.customer:selected.supplier);}}><option value="">Unallocated party payment</option>{invoiceOptions.map((x:any)=><option key={x.id} value={x.id}>{x.invoice||x.id} — {type==='Customer Receipt'?x.customer:x.supplier} — Due ₹{x.dueNow.toLocaleString('en-IN',{maximumFractionDigits:2})}</option>)}</select></label>
-        <input className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 focus:border-[var(--indigo)] focus:outline-none focus:ring-2 focus:ring-[var(--indigo)]/15" placeholder="Customer / Supplier name (if unallocated)" value={party} onChange={e=>{setParty(e.target.value);setInvoiceId('');}} />
+        {(type === 'Customer Receipt' || type === 'Supplier Payment') && <label className="text-sm sm:col-span-2">Allocate to invoice (optional)<select className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3" value={invoiceId} onChange={e=>{const id=e.target.value;setInvoiceId(id);const selected=invoiceOptions.find((x:any)=>x.id===id);if(selected)setParty(type==='Customer Receipt'?selected.customer:selected.supplier);}}><option value="">Unallocated party payment</option>{invoiceOptions.map((x:any)=><option key={x.id} value={x.id}>{x.invoice||x.id} — {type==='Customer Receipt'?x.customer:x.supplier} — Due ₹{x.dueNow.toLocaleString('en-IN',{maximumFractionDigits:2})}</option>)}</select></label>}
+        <input className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 focus:border-[var(--indigo)] focus:outline-none focus:ring-2 focus:ring-[var(--indigo)]/15" placeholder={type.includes("Customer") ? "Customer name" : "Supplier name"} value={party} onChange={e=>{setParty(e.target.value);setInvoiceId('');}} />
         <input className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 focus:border-[var(--indigo)] focus:outline-none focus:ring-2 focus:ring-[var(--indigo)]/15" type="number" min="0" placeholder="Amount" value={amount} onChange={e=>setAmount(Number(e.target.value))} />
         <label className="text-sm">Payment method<select className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 focus:border-[var(--indigo)] focus:outline-none focus:ring-2 focus:ring-[var(--indigo)]/15" value={method} onChange={e=>setMethod(e.target.value)}>{['Cash','UPI','Bank Transfer','Cheque','Card','Other'].map(x=><option key={x}>{x}</option>)}</select></label>
         <input className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 focus:border-[var(--indigo)] focus:outline-none focus:ring-2 focus:ring-[var(--indigo)]/15" placeholder="Reference / UTR / Cheque number" value={reference} onChange={e=>setReference(e.target.value)} />
