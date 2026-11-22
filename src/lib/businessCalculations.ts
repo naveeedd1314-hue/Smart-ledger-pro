@@ -82,7 +82,7 @@ export function calculateSalesProfit(lines: SalesLine[]) {
     const cost = toNumber(line.purchasePrice);
     if (quantity === null || selling === null || quantity <= 0 || selling < 0) continue;
     revenue += quantity * selling;
-    if (cost === null || cost < 0) {
+    if (cost === null || cost <= 0) {
       missingCostLines++;
       continue;
     }
