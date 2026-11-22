@@ -77,7 +77,7 @@ export default function Ledger() {
     return sum + (Number.isFinite(cost) && cost >= 0 ? (rate - cost) * quantity : 0);
   }, 0) : 0;
   const customerGrossProfit = customerSalesGrossProfit - customerReturnProfit;
-  const salesMissingCost = customerSales.filter(x => x.purchasePrice === undefined || x.purchasePrice === null || !Number.isFinite(Number(x.purchasePrice))).length;
+  const salesMissingCost = customerSales.filter(x => x.purchasePrice === undefined || x.purchasePrice === null || !Number.isFinite(Number(x.purchasePrice))).length + (type === 'Customer' ? returns.filter(x => x.type === 'Sales Return' && x.party === party && (x.purchasePrice === undefined || x.purchasePrice === null || !Number.isFinite(Number(x.purchasePrice)))).length : 0);
   const opening = Number(selected?.opening) || 0;
   const debit = entries.reduce((s,x)=>s+x.debit,0);
   const credit = entries.reduce((s,x)=>s+x.credit,0);
@@ -107,7 +107,7 @@ export default function Ledger() {
         <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
           <p className="text-sm text-[var(--text-2)]">Sales missing cost data</p>
           <strong className="text-xl">{salesMissingCost}</strong>
-          <p className="mt-1 text-xs text-[var(--text-2)]">Older invoices without cost snapshots are excluded from gross profit.</p>
+          <p className="mt-1 text-xs text-[var(--text-2)]">Invoices or returns without saved cost snapshots are excluded from gross profit.</p>
         </div>
       </div>}
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
