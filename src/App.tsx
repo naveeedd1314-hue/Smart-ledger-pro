@@ -205,7 +205,7 @@ function App() {
         <div className="mx-auto max-w-7xl p-4 md:p-8">
           <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
             <div>
-              <p className="text-sm text-[var(--text-2)]">Friday, 20 November 2026</p>
+              <p className="text-sm text-[var(--text-2)]">{new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</p>
               <h2 className="mt-1 text-2xl font-bold">Business overview</h2>
               <p className="mt-1 text-sm text-[var(--text-2)]">Monitor your business performance from one place.</p>
             </div>
