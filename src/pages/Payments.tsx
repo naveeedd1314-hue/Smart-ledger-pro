@@ -16,17 +16,46 @@ export default function Payments() {
   const [reference, setReference] = useState('');
   const [note, setNote] = useState('');
   const [date, setDate] = useState(new Date().toISOString().slice(0,10));
+  const [salesInvoices, setSalesInvoices] = useState<any[]>([]);
+  const [purchaseInvoices, setPurchaseInvoices] = useState<any[]>([]);
+  const [invoiceId, setInvoiceId] = useState('');
 
   useEffect(() => {
-    setItems(JSON.parse(localStorage.getItem('smartledger-pro-payments') || '[]'));
+    const read = (key: string) => {
+      try { const value = JSON.parse(localStorage.getItem(key) || '[]'); return Array.isArray(value) ? value : []; }
+      catch { return []; }
+    };
+    setItems(read('smartledger-pro-payments'));
+    setSalesInvoices(read('smartledger-pro-sales'));
+    setPurchaseInvoices(read('smartledger-pro-purchases'));
   }, []);
 
+  const invoiceList = type === 'Customer Receipt' ? salesInvoices : purchaseInvoices;
+  const invoiceAllocations = items.flatMap((payment: any) => Array.isArray(payment.allocations) ? payment.allocations.map((a: any) => ({...a, type: payment.type, party: payment.party})) : []);
+  const invoiceOptions = invoiceList.map((invoice: any) => {
+    const id = String(invoice.id);
+    const allocated = invoiceAllocations.filter((a: any) => String(a.invoiceId) === id && a.type === type).reduce((sum: number, a: any) => sum + (Number(a.amount) || 0), 0);
+    const originalPaid = Number(invoice.paid) || 0;
+    const total = Number(invoice.total) || 0;
+    return { ...invoice, id, paidNow: originalPaid + allocated, dueNow: Math.max(0, total - originalPaid - allocated) };
+  }).filter((invoice: any) => invoice.dueNow > 0);
+
   function save() {
-    if (!party.trim() || amount <= 0 || !date) return alert('Enter party, date and a valid amount.');
-    const next = [{ id: crypto.randomUUID(), date, type, party: party.trim(), amount, method, reference, note }, ...items];
+    if (amount <= 0 || !date) return alert('Enter a valid date and amount.');
+    const selectedInvoice = invoiceOptions.find((x: any) => x.id === invoiceId);
+    if (invoiceId && !selectedInvoice) return alert('Selected invoice is no longer available or is already settled.');
+    const selectedParty = selectedInvoice
+      ? (type === 'Customer Receipt' ? selectedInvoice.customer : selectedInvoice.supplier)
+      : party.trim();
+    if (!selectedParty) return alert('Enter a party name or select an invoice.');
+    if (selectedInvoice && amount > selectedInvoice.dueNow) return alert('Payment cannot exceed the selected invoice balance.');
+    const id = crypto.randomUUID();
+    const payment: any = { id, date, type, party: selectedParty, amount, method, reference, note };
+    if (selectedInvoice) payment.allocations = [{ invoiceId: selectedInvoice.id, invoice: selectedInvoice.invoice || selectedInvoice.id, amount }];
+    const next = [payment, ...items];
     setItems(next);
     localStorage.setItem('smartledger-pro-payments', JSON.stringify(next));
-    setParty(''); setAmount(0); setReference(''); setNote('');
+    setParty(''); setAmount(0); setReference(''); setNote(''); setInvoiceId('');
   }
 
   const receipts = items.filter(x=>x.type==='Customer Receipt').reduce((s,x)=>s+x.amount,0);
@@ -163,8 +192,8 @@ function shareInvoiceHistoryWhatsApp() {
       party: x.customer || 'Customer',
       type: 'Customer',
       total: Number(x.total) || 0,
-      paid: Number(x.paid) || 0,
-      remaining: Math.max(0, Number(x.balance ?? ((Number(x.total) || 0) - (Number(x.paid) || 0))) || 0),
+      paid: (Number(x.paid) || 0) + invoiceAllocations.filter((a: any) => String(a.invoiceId) === String(x.id) && a.type === 'Customer Receipt').reduce((sum: number, a: any) => sum + (Number(a.amount) || 0), 0),
+      remaining: Math.max(0, (Number(x.total) || 0) - (Number(x.paid) || 0) - invoiceAllocations.filter((a: any) => String(a.invoiceId) === String(x.id) && a.type === 'Customer Receipt').reduce((sum: number, a: any) => sum + (Number(a.amount) || 0), 0)),
     })),
     ...readInvoices('smartledger-pro-purchases').map((x: any) => ({
       id: `purchase-${x.id}`,
@@ -172,8 +201,8 @@ function shareInvoiceHistoryWhatsApp() {
       party: x.supplier || 'Supplier',
       type: 'Supplier',
       total: Number(x.total) || 0,
-      paid: Number(x.paid) || 0,
-      remaining: Math.max(0, Number(x.balance ?? ((Number(x.total) || 0) - (Number(x.paid) || 0))) || 0),
+      paid: (Number(x.paid) || 0) + invoiceAllocations.filter((a: any) => String(a.invoiceId) === String(x.id) && a.type === 'Supplier Payment').reduce((sum: number, a: any) => sum + (Number(a.amount) || 0), 0),
+      remaining: Math.max(0, (Number(x.total) || 0) - (Number(x.paid) || 0) - invoiceAllocations.filter((a: any) => String(a.invoiceId) === String(x.id) && a.type === 'Supplier Payment').reduce((sum: number, a: any) => sum + (Number(a.amount) || 0), 0)),
     })),
   ].map((x: any) => ({
     ...x,
@@ -302,9 +331,10 @@ return <section className="space-y-5">
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm space-y-4">
       <h2 className="font-semibold">New Transaction</h2>
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="text-sm">Transaction type<select className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 focus:border-[var(--indigo)] focus:outline-none focus:ring-2 focus:ring-[var(--indigo)]/15" value={type} onChange={e=>setType(e.target.value)}><option>Customer Receipt</option><option>Supplier Payment</option></select></label>
+        <label className="text-sm">Transaction type<select className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 focus:border-[var(--indigo)] focus:outline-none focus:ring-2 focus:ring-[var(--indigo)]/15" value={type} onChange={e=>{setType(e.target.value);setInvoiceId('');setParty('');}}><option>Customer Receipt</option><option>Supplier Payment</option></select></label>
         <label className="text-sm">Date<input type="date" className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 focus:border-[var(--indigo)] focus:outline-none focus:ring-2 focus:ring-[var(--indigo)]/15" value={date} onChange={e=>setDate(e.target.value)} /></label>
-        <input className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 focus:border-[var(--indigo)] focus:outline-none focus:ring-2 focus:ring-[var(--indigo)]/15" placeholder="Customer / Supplier name" value={party} onChange={e=>setParty(e.target.value)} />
+        <label className="text-sm sm:col-span-2">Allocate to invoice (optional)<select className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3" value={invoiceId} onChange={e=>{const id=e.target.value;setInvoiceId(id);const selected=invoiceOptions.find((x:any)=>x.id===id);if(selected)setParty(type==='Customer Receipt'?selected.customer:selected.supplier);}}><option value="">Unallocated party payment</option>{invoiceOptions.map((x:any)=><option key={x.id} value={x.id}>{x.invoice||x.id} — {type==='Customer Receipt'?x.customer:x.supplier} — Due ₹{x.dueNow.toLocaleString('en-IN',{maximumFractionDigits:2})}</option>)}</select></label>
+        <input className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 focus:border-[var(--indigo)] focus:outline-none focus:ring-2 focus:ring-[var(--indigo)]/15" placeholder="Customer / Supplier name (if unallocated)" value={party} onChange={e=>{setParty(e.target.value);setInvoiceId('');}} />
         <input className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 focus:border-[var(--indigo)] focus:outline-none focus:ring-2 focus:ring-[var(--indigo)]/15" type="number" min="0" placeholder="Amount" value={amount} onChange={e=>setAmount(Number(e.target.value))} />
         <label className="text-sm">Payment method<select className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 focus:border-[var(--indigo)] focus:outline-none focus:ring-2 focus:ring-[var(--indigo)]/15" value={method} onChange={e=>setMethod(e.target.value)}>{['Cash','UPI','Bank Transfer','Cheque','Card','Other'].map(x=><option key={x}>{x}</option>)}</select></label>
         <input className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 focus:border-[var(--indigo)] focus:outline-none focus:ring-2 focus:ring-[var(--indigo)]/15" placeholder="Reference / UTR / Cheque number" value={reference} onChange={e=>setReference(e.target.value)} />
