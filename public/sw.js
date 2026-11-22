@@ -1,15 +1,19 @@
-const CACHE_NAME = 'smartledger-pro-shell-v1';
-const SHELL_URLS = ['/', '/index.html', '/favicon.svg', '/icon-192.svg', '/icon-512.svg', '/manifest.webmanifest'];
+const CACHE_NAME = 'smartledger-pro-shell-v2';
+const appRoot = () => new URL('./', self.registration.scope).pathname;
+const shellUrls = () => {
+  const root = appRoot();
+  return [root, `${root}index.html`, `${root}favicon.svg`, `${root}icon-192.svg`, `${root}icon-512.svg`, `${root}manifest.webmanifest`];
+};
 
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(async cache => {
-        await cache.addAll(SHELL_URLS);
-        const index = await cache.match('/index.html');
+        await cache.addAll(shellUrls());
+        const index = await cache.match(`${appRoot()}index.html`);
         if (index) {
           const html = await index.text();
-          const assets = Array.from(html.matchAll(/(?:src|href)="(\/assets\/[^"]+)"/g), match => match[1]);
+          const assets = Array.from(html.matchAll(/(?:src|href)="([^"]*\\/assets\\/[^"]+)"/g), match => new URL(match[1], self.location.origin).href);
           if (assets.length) await cache.addAll(assets);
         }
       })
@@ -33,14 +37,15 @@ self.addEventListener('fetch', event => {
   if (request.method !== 'GET' || new URL(request.url).origin !== self.location.origin) return;
 
   if (request.mode === 'navigate') {
+    const root = appRoot();
     event.respondWith(
       fetch(request).then(response => {
         if (response.ok) {
           const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put('/index.html', copy));
+          caches.open(CACHE_NAME).then(cache => cache.put(`${root}index.html`, copy));
         }
         return response;
-      }).catch(() => caches.match('/index.html').then(cached => cached || caches.match('/')))
+      }).catch(() => caches.match(`${root}index.html`).then(cached => cached || caches.match(root)))
     );
     return;
   }
