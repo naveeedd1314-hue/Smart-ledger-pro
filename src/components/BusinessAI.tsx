@@ -24,7 +24,7 @@ function analyse(){
  const returns=read("smartledger-pro-returns");
  const customers=read("smartledger-pro-customers");
  const suppliers=read("smartledger-pro-suppliers");
- const stockValue= sum(products.map(p=>n(field(p,"stock","quantity","qty"))*n(field(p,"averageCost","purchase","purchasePrice","cost"))));
+ const stockValue= sum(products.map(p=>Math.max(0,n(field(p,"stock","quantity","qty")))*n(field(p,"averageCost","purchase","purchasePrice","cost"))));
  const productRows=products.map(p=>{
   const cost=n(field(p,"averageCost","purchase","purchasePrice","cost"));
   const retail=n(field(p,"selling","price","sellingPrice","salePrice","retail"));
