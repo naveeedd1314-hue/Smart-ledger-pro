@@ -138,16 +138,17 @@ export default function BulkItems() {
       )
       const previous = index >= 0 ? next[index] : null
       const previousStock = Number(previous?.stock || 0)
+      let savedProductId: string | number = p.id
       if (index >= 0) {
         const current = next[index]
         const savedAt = new Date().toISOString()
         if (Number(current.purchase) !== Number(p.purchase)) priceHistory.unshift({ id: crypto.randomUUID(), productId: current.id, productName: p.name, field: 'purchase', oldPrice: Number(current.purchase) || 0, newPrice: p.purchase, date: savedAt.slice(0,10), savedAt, source: 'Bulk CSV import' })
         if (Number(current.selling) !== Number(p.selling)) priceHistory.unshift({ id: crypto.randomUUID(), productId: current.id, productName: p.name, field: 'selling', oldPrice: Number(current.selling) || 0, newPrice: p.selling, date: savedAt.slice(0,10), savedAt, source: 'Bulk CSV import' })
-        next[index] = { ...current, ...p, averageCost: p.averageCost ?? current.averageCost ?? (Number(current.purchase) > 0 ? Number(current.purchase) : null), id: current.id }; updated++
+        next[index] = { ...current, ...p, averageCost: p.averageCost ?? current.averageCost ?? (Number(current.purchase) > 0 ? Number(current.purchase) : null), id: current.id }; savedProductId = current.id; updated++
       }
-      else { const imported = { ...p, averageCost: p.averageCost ?? (Number(p.purchase) > 0 ? Number(p.purchase) : null) }; next.push(next.some(x => String(x.id) === String(p.id)) ? { ...imported, id: crypto.randomUUID() } : imported); added++ }
+      else { const imported = { ...p, averageCost: p.averageCost ?? (Number(p.purchase) > 0 ? Number(p.purchase) : null) }; const uniqueProduct = next.some(x => String(x.id) === String(p.id)) ? { ...imported, id: crypto.randomUUID() } : imported; next.push(uniqueProduct); savedProductId = uniqueProduct.id; added++ }
       const change = Number(p.stock || 0) - previousStock
-      if (change !== 0) logs.unshift({ id: crypto.randomUUID(), date: localDateISO(), productId: previous?.id ?? p.id, product: p.name, change, movement: change > 0 ? 'Stock In' : 'Stock Out', stockAfter: Number(p.stock || 0), reason: 'Bulk CSV import' })
+      if (change !== 0) logs.unshift({ id: crypto.randomUUID(), date: localDateISO(), productId: savedProductId, product: p.name, change, movement: change > 0 ? 'Stock In' : 'Stock Out', stockAfter: Number(p.stock || 0), reason: 'Bulk CSV import' })
     })
     localStorage.setItem('smartledger-pro-stock-adjustments', JSON.stringify(logs))
     localStorage.setItem('smartledger-pro-price-history', JSON.stringify(priceHistory))
