@@ -104,6 +104,10 @@ export default function Settings() {
       {backupStatus && <p role="status" aria-live="polite" className="text-sm text-[var(--text-2)]">{backupStatus}</p>}
     </div>
     <div className="rounded-xl border border-[var(--amber)]/30 bg-[var(--amber)]/10 p-4 text-sm text-[var(--text)]">Keep backup files secure. Store a copy outside this device. Restoring overwrites matching SmartLedger sections and does not provide cloud synchronisation.</div>
+    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm space-y-2">
+      <h2 className="text-lg font-semibold text-[var(--text)]">Install on Android</h2>
+      <p className="text-sm text-[var(--text-2)]">Open SmartLedger Pro in Chrome over HTTPS, open the browser menu and choose Install app or Add to Home screen. The app shell and loaded assets are cached for offline reopening after the first successful visit. This installs the web app, not a Google Play APK.</p>
+    </div>
     <DataQualityMonitor />
   </section>;
 }
