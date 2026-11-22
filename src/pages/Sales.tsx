@@ -91,7 +91,7 @@ export default function Sales() {
   }
 
   const totalReceipts = payments.filter(p => p.type === 'Customer Receipt').reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
-  const invoiceDue = (sale: Sale) => { const storedDue = sale.balance !== undefined && sale.balance !== null ? Number(sale.balance) : Math.max(0, Number(sale.total) - Number(sale.paid || 0)); const allocated = payments.filter(p => p.type === 'Customer Receipt').reduce((sum, p) => sum + (Array.isArray(p.allocations) ? p.allocations.filter((a: any) => String(a.invoiceId) === String(sale.id)).reduce((part: number, a: any) => part + (Number(a.amount) || 0), 0) : 0), 0); return Math.max(0, storedDue - allocated); };
+  const invoiceDue = (sale: Sale) => { const total = Number(sale.total); const storedDue = Number.isFinite(total) ? Math.max(0, total - Number(sale.paid || 0)) : Math.max(0, Number(sale.balance) || 0); const allocated = payments.filter(p => p.type === 'Customer Receipt').reduce((sum, p) => sum + (Array.isArray(p.allocations) ? p.allocations.filter((a: any) => String(a.invoiceId) === String(sale.id)).reduce((part: number, a: any) => part + (Number(a.amount) || 0), 0) : 0), 0); return Math.max(0, storedDue - allocated); };
   const money = (n: number) => `₹${n.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
 
   return <section className="space-y-6">
