@@ -35,8 +35,8 @@ export default function Reports() {
   const netSales = Math.max(0,salesTotal-salesReturnTotal);
   const netPurchases = Math.max(0,purchaseTotal-purchaseReturnTotal);
   const expenseTotal = expenses.reduce((s,x)=>s+num(x.amount),0);
-  const received = payments.filter(x=>x.type==='Customer Receipt').reduce((s,x)=>s+(x.allocations ? num(x.unallocatedAmount) : num(x.amount)),0);
-  const supplierPaid = payments.filter(x=>x.type==='Supplier Payment').reduce((s,x)=>s+(x.allocations ? num(x.unallocatedAmount) : num(x.amount)),0);
+  const received = payments.filter(x=>x.type==='Customer Receipt').reduce((s,x)=>s+num(x.amount),0);
+  const supplierPaid = payments.filter(x=>x.type==='Supplier Payment').reduce((s,x)=>s+num(x.amount),0);
   const salesPaid = sales.reduce((s,x)=>s+num(x.paid),0);
   const purchasePaid = purchases.reduce((s,x)=>s+num(x.paid),0);
   const customerDue = Math.max(0, sales.reduce((s,x)=>s+num(x.balance),0) - received - salesReturnTotal);
