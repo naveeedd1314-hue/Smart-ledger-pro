@@ -54,6 +54,7 @@ export function calculateBusinessStrategy(): {
   productsMissingCost: number;
   lowMarginProducts: number;
   slowMovingProducts: number;
+  negativeStockProducts: number;
   warnings: string[];
 } {
   const rawProducts = readArray("smartledger-products");
@@ -72,15 +73,19 @@ export function calculateBusinessStrategy(): {
       Array.isArray(bill.products) ? bill.products : [bill];
 
     for (const item of items) {
-      const id = String(item.productId ?? item.product_id ?? item.product ?? item.name ?? item.productName ?? "");
+      const id = String(item.productId ?? item.product_id ?? "").trim();
+      const name = String(item.product ?? item.name ?? item.productName ?? "").trim().toLowerCase();
       const qty = firstPositive(item.quantity, item.qty);
-      if (id && qty > 0) salesByProduct.set(id, (salesByProduct.get(id) || 0) + qty);
+      if (qty > 0) {
+        if (id) salesByProduct.set(id, (salesByProduct.get(id) || 0) + qty);
+        if (name) salesByProduct.set(name, (salesByProduct.get(name) || 0) + qty);
+      }
     }
   }
 
   const products: StrategyResult[] = rawProducts.map((p: StrategyProduct) => {
     const id = String(p.id ?? p.name ?? p.productName ?? "");
-    const stock = Math.max(0, num(p.stock ?? p.quantity ?? p.qty));
+    const stock = num(p.stock ?? p.quantity ?? p.qty);
     const cost = firstPositive(p.purchasePrice, p.purchase, p.costPrice);
     const selling = firstPositive(p.sellingPrice, p.salePrice, p.price);
     const productName = String(p.name ?? p.productName ?? "").trim().toLowerCase();
@@ -89,7 +94,8 @@ export function calculateBusinessStrategy(): {
     const days = sold > 0 ? (stock / (sold / 30)) : null;
 
     let status = "Normal";
-    if (!cost) status = "Missing purchase cost";
+    if (stock < 0) status = "Negative stock";
+    else if (!cost) status = "Missing purchase cost";
     else if (margin !== null && margin < 5) status = "Low margin";
     else if (stock > 0 && sold === 0) status = "No recorded sales";
     else if (days !== null && days > 60) status = "Slow-moving stock";
@@ -117,6 +123,7 @@ export function calculateBusinessStrategy(): {
     productsMissingCost: products.filter(p => !p.cost).length,
     lowMarginProducts: products.filter(p => p.margin !== null && p.margin < 5).length,
     slowMovingProducts: products.filter(p => p.status === "Slow-moving stock" || p.status === "No recorded sales").length,
+    negativeStockProducts: products.filter(p => p.stock < 0).length,
     warnings
   };
 }
@@ -128,7 +135,10 @@ export function generateStrategyRecommendations() {
     let priority = "Normal";
     let recommendation = "Monitor sales and stock movement.";
 
-    if (product.status === "Missing purchase cost") {
+    if (product.status === "Negative stock") {
+      priority = "High";
+      recommendation = "Investigate stock movements, invoices and returns. Correct the inventory record before making further sales.";
+    } else if (product.status === "Missing purchase cost") {
       priority = "High";
       recommendation = "Record and verify the purchase cost before relying on profit figures.";
     } else if (product.status === "Low margin") {
