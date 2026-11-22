@@ -5,14 +5,22 @@ export default function DataQualityMonitor() {
   const audit = useMemo(() => validateBusinessRecords(), []);
 
   return (
-    <section style={{ padding: 18, borderRadius: 16, background: "var(--card, #fff)", margin: "16px 0" }}>
-      <h3>Data Quality Monitor</h3>
-      <p>{audit.valid ? "No data-quality warnings detected." : `${audit.warnings.length} item(s) need review.`}</p>
-      <p>Products: {audit.checked.products} · Sales: {audit.checked.sales}</p>
-      <p>Purchases: {audit.checked.purchases} · Expenses: {audit.checked.expenses}</p>
-      {audit.warnings.slice(0, 10).map((warning, index) => (
-        <p key={index} style={{ fontSize: 13 }}>{warning}</p>
-      ))}
+    <section className="space-y-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
+      <div>
+        <h2 className="text-lg font-semibold text-[var(--text)]">Data Quality Monitor</h2>
+        <p className="text-sm text-[var(--text-2)]">{audit.valid ? "No data-quality warnings detected." : `${audit.warnings.length} item(s) need review.`}</p>
+      </div>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {([["Products",audit.checked.products],["Sales",audit.checked.sales],["Purchases",audit.checked.purchases],["Expenses",audit.checked.expenses]] as const).map(([label,value])=>
+          <div key={label} className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-3">
+            <p className="text-xs text-[var(--text-2)]">{label}</p>
+            <strong className="text-lg text-[var(--text)]">{value}</strong>
+          </div>
+        )}
+      </div>
+      {!audit.valid && <div className="space-y-2" role="status">{audit.warnings.slice(0,20).map((warning,index)=>
+        <p key={index} className="rounded-lg border border-[var(--amber)]/25 bg-[var(--amber)]/10 px-3 py-2 text-sm text-[var(--text)]">{warning}</p>
+      )}</div>}
     </section>
   );
 }
