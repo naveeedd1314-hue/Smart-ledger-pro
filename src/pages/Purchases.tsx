@@ -10,6 +10,7 @@ export default function Purchases() {
   const [suppliers,setSuppliers] = useState<Supplier[]>([]);
   const [items,setItems] = useState<Purchase[]>([]);
   const [payments,setPayments] = useState<any[]>([]);
+  const [returns,setReturns] = useState<any[]>([]);
   const [supplier,setSupplier] = useState('');
   const [invoice,setInvoice] = useState('');
   const [date,setDate] = useState(new Date().toISOString().slice(0,10));
@@ -31,6 +32,7 @@ export default function Purchases() {
     setSuppliers(read<Supplier>('smartledger-pro-suppliers'));
     setItems(read<Purchase>('smartledger-pro-purchases'));
     setPayments(read<any>('smartledger-pro-payments'));
+    setReturns(read<any>('smartledger-pro-returns'));
 try {
   const settings = JSON.parse(localStorage.getItem('smartledger-pro-settings') || '{}');
   const state = settings.state || 'Jammu and Kashmir';
@@ -51,6 +53,7 @@ const utgst = applyGST && sameState && isJammuKashmir ? taxAmount / 2 : 0;
 const igst = applyGST && !sameState ? taxAmount : 0;
 const total = taxableValue + taxAmount;
   const totalPayments=payments.filter(x=>x.type==='Supplier Payment').reduce((sum,x)=>sum+(Number(x.amount)||0),0);
+  const purchaseReturnCredits=returns.filter(x=>x.type==='Purchase Return').reduce((sum,x)=>sum+(Number(x.totalAmount??x.amount)||0),0);
   const invoiceDue=(item:Purchase)=>{const total=Number(item.total);const storedDue=Number.isFinite(total)?Math.max(0,total-Number(item.paid||0)):Math.max(0,Number(item.balance)||0);const allocated=payments.filter(x=>x.type==='Supplier Payment').reduce((sum,x)=>sum+(Array.isArray(x.allocations)?x.allocations.filter((a:any)=>String(a.invoiceId)===String(item.id)).reduce((part:number,a:any)=>part+(Number(a.amount)||0),0):0),0);return Math.max(0,storedDue-allocated);};
   const money=(n:number)=>`₹${n.toLocaleString('en-IN',{maximumFractionDigits:2})}`;
 
@@ -89,7 +92,7 @@ const total = taxableValue + taxAmount;
     <div className="grid gap-3 sm:grid-cols-3">
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">Purchase Value</p><strong className="text-xl">{money(items.reduce((s,x)=>s+x.total,0))}</strong></div>
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">Paid</p><strong className="text-xl">{money(items.reduce((sum,x)=>sum+x.paid,0)+totalPayments)}</strong></div>
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">Outstanding</p><strong className="text-xl">{money(Math.max(0,items.reduce((sum,x)=>sum+x.balance,0)-totalPayments))}</strong></div>
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">Outstanding</p><strong className="text-xl">{money(Math.max(0,items.reduce((sum,x)=>sum+x.balance,0)-totalPayments-purchaseReturnCredits))}</strong></div>
     </div>
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm space-y-5">
       <h2 className="font-semibold">Record Purchase Invoice</h2>
