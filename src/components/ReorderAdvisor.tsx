@@ -77,7 +77,7 @@ export default function ReorderAdvisor() {
   }, [now]);
 
   return (
-    <section style={{ margin: "18px 0", padding: 18, borderRadius: 18, background: "var(--card, #fff)", border: "1px solid var(--border, #ddd)" }}>
+    <section style={{ margin: "18px 0", padding: 18, borderRadius: 18, background: "var(--surface)", border: "1px solid var(--border, #ddd)" }}>
       <h2 style={{ margin: "0 0 5px", fontSize: 20 }}>Automatic Reorder Advisor</h2>
       <p style={{ fontSize: 13, opacity: .7, margin: "0 0 14px" }}>
         Suggested quantities use recorded sales over 30 days and a 14-day target stock cover.
@@ -92,7 +92,7 @@ export default function ReorderAdvisor() {
         </div>
       ))}
       {(result.missingStock > 0 || result.undatedInvoices > 0) && (
-        <p style={{ fontSize: 12, color: "#a45a32", marginTop: 12 }}>
+        <p style={{ fontSize: 12, color: "var(--amber)", marginTop: 12 }}>
           Data limitations: {result.missingStock} products have no readable stock quantity; {result.undatedInvoices} invoices have no recognised date and were excluded.
         </p>
       )}
