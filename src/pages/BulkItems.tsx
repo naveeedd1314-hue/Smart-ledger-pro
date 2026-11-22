@@ -138,7 +138,7 @@ export default function BulkItems() {
       )
       const previous = index >= 0 ? next[index] : null
       const previousStock = Number(previous?.stock || 0)
-      let savedProductId: string | number = p.id
+      let savedProductId: string | number
       if (index >= 0) {
         const current = next[index]
         const savedAt = new Date().toISOString()
