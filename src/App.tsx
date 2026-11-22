@@ -123,7 +123,7 @@ function getMonthlyPerformance() {
   const add = (key: string, field: 'sales' | 'purchases' | 'expenses', amount: (x: any) => number) => {
     readData(key).forEach(x => {
       const date = String(x.date || '')
-      if (!/^\\d{4}-\\d{2}/.test(date)) return
+      if (!/^\d{4}-\d{2}/.test(date)) return
       const month = date.slice(0, 7)
       groups[month] ||= { month, sales: 0, purchases: 0, expenses: 0, salesReturns: 0, purchaseReturns: 0 }
       groups[month][field] += amount(x)
@@ -135,7 +135,7 @@ function getMonthlyPerformance() {
   add('smartledger-pro-expenses', 'expenses', x => Number(x.amount) || 0)
   readData('smartledger-pro-returns').forEach(x => {
     const date = String(x.date || '')
-    if (!/^\\d{4}-\\d{2}/.test(date)) return
+    if (!/^\d{4}-\d{2}/.test(date)) return
     const month = date.slice(0, 7)
     groups[month] ||= { month, sales: 0, purchases: 0, expenses: 0, salesReturns: 0, purchaseReturns: 0 }
     if (x.type === 'Sales Return') groups[month].salesReturns += Number(x.amount ?? x.totalAmount) || 0
