@@ -43,12 +43,23 @@ function analyse(){
  const payable=Math.max(0,sum(suppliers.map(s=>n(field(s,"opening","balance","outstanding","closingBalance","due"))))+sum(purchases.map(p=>n(field(p,"balance"))))-supplierPaid);
  const missingCost=productRows.filter(p=>p.retail>0&&p.cost<=0);
  const marginAvg=known.length?sum(known.map(p=>p.margin))/known.length:0;
- return {products,bills,purchases,payments,expenses,customers,suppliers,productRows,known,low,negative,sales,expenseTotal,purchaseTotal,receivable,payable,stockValue,missingCost,marginAvg};
+ const marketQuotes=read("smartledger-market-quotes");
+ const rateRecords=[
+  ...purchases.filter(p=>n(field(p,"rate","purchaseRate"))>0&&field(p,"date")).map(p=>({key:String(field(p,"productId","product")||field(p,"productName","product")||"unknown"),name:String(field(p,"product","productName")||"Unknown product"),rate:n(field(p,"rate","purchaseRate")),date:String(p.date).slice(0,10),source:String(field(p,"supplier")||"Supplier"),kind:"Supplier purchase"})),
+  ...marketQuotes.filter(p=>n(field(p,"marketRate"))>0&&field(p,"checkedAt")).map(p=>({key:String(field(p,"productId","productName")||"unknown"),name:String(field(p,"productName")||"Unknown product"),rate:n(field(p,"marketRate")),date:String(p.checkedAt).slice(0,10),source:String(field(p,"source")||"Market source"),kind:"Market quotation"}))
+ ];
+ const rateGroups=new Map<string,typeof rateRecords>();
+ rateRecords.forEach(p=>{const key=p.kind+"|"+p.key;if(!rateGroups.has(key))rateGroups.set(key,[]);rateGroups.get(key)!.push(p);});
+ const rateMovements=Array.from(rateGroups.values()).map(rows=>{const sorted=[...rows].sort((a,b)=>a.date.localeCompare(b.date));const previous=sorted.length>1?sorted[sorted.length-2]:null;const latest=sorted[sorted.length-1];return {...latest,previous:previous?.rate??null,change:previous?latest.rate-previous.rate:0,percent:previous&&previous.rate>0?(latest.rate-previous.rate)/previous.rate*100:null,observations:sorted.length};}).sort((a,b)=>b.date.localeCompare(a.date));
+ return {products,bills,purchases,payments,expenses,customers,suppliers,productRows,known,low,negative,sales,expenseTotal,purchaseTotal,receivable,payable,stockValue,missingCost,marginAvg,rateMovements};
 }
 function answer(q:string,d:ReturnType<typeof analyse>){
  const s=q.toLowerCase();
- if(/rate|increase|decrease|price change|badha|ghata|mehnga|sasta/.test(s))
-  return `I can compare recorded purchase and selling prices, but your current product records do not yet contain dated rate history. I will not invent a market movement. Products with recorded cost and selling price: ${d.known.length}. Average product margin: ${d.marginAvg.toFixed(2)}%. To detect increases and decreases automatically, the next stage will add dated supplier-rate history and market-source checks.`;
+ if(/rate|increase|decrease|price change|badha|ghata|mehnga|sasta/.test(s)){
+  const movements=d.rateMovements.filter((x:any)=>x.previous!==null).slice(0,10);
+  const details=movements.map((x:any)=>`${x.name} [${x.kind}]: ₹${x.previous.toFixed(2)} → ₹${x.rate.toFixed(2)} (${x.change>0?"up":x.change<0?"down":"unchanged"} ${Math.abs(x.percent||0).toFixed(2)}%), ${x.date}, ${x.source}`).join("\\n");
+  return `Dated rate review — ${movements.length} product rate movements found.\\n${details||"No product has two dated rate records yet. Record purchase invoices or verified market quotations on separate dates to calculate a trend."}\\nThese are recorded supplier invoice rates and saved market quotations; no live market feed is connected. Average listed product margin: ${d.marginAvg.toFixed(2)}%.`;
+ }
  if(/stock|inventory|shortage|reorder|fast|slow/.test(s))
   return `Stock review: ${d.products.length} products recorded. ${d.low.length} products have stock of 5 units or less. ${d.negative.length} products show negative stock. Estimated stock value at recorded purchase cost: ${money(d.stockValue)}. Low-stock items: ${d.low.slice(0,8).map(p=>`${p.name} (${p.stock})`).join(", ")||"None detected"}.`;
  if(/profit|margin|loss|munafa|nuksan/.test(s))
