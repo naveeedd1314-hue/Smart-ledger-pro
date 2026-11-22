@@ -1,0 +1,19 @@
+{
+  "name": "SmartLedger Pro",
+  "short_name": "SmartLedger",
+  "description": "Professional inventory, billing and business accounting.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#F5F7FB",
+  "theme_color": "#101B31",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
