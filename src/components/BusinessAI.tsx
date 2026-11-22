@@ -37,8 +37,10 @@ function analyse(){
  const sales=sum(bills.map(b=>n(field(b,"taxableValue","total","grandTotal","netTotal","amount","totalAmount"))));
  const expenseTotal=sum(expenses.map(e=>n(field(e,"amount","total","value"))));
  const purchaseTotal=sum(purchases.map(p=>n(field(p,"total","grandTotal","amount","totalAmount"))));
- const receivable=sum(customers.map(c=>n(field(c,"balance","outstanding","closingBalance","due"))));
- const payable=sum(suppliers.map(s=>n(field(s,"balance","outstanding","closingBalance","due"))));
+ const collected=sum(payments.filter(p=>field(p,"type")==="Customer Receipt").map(p=>n(field(p,"amount"))));
+ const supplierPaid=sum(payments.filter(p=>field(p,"type")==="Supplier Payment").map(p=>n(field(p,"amount"))));
+ const receivable=Math.max(0,sum(customers.map(c=>n(field(c,"opening","balance","outstanding","closingBalance","due"))))+sum(bills.map(b=>n(field(b,"balance"))))-collected);
+ const payable=Math.max(0,sum(suppliers.map(s=>n(field(s,"opening","balance","outstanding","closingBalance","due"))))+sum(purchases.map(p=>n(field(p,"balance"))))-supplierPaid);
  const missingCost=productRows.filter(p=>p.retail>0&&p.cost<=0);
  const marginAvg=known.length?sum(known.map(p=>p.margin))/known.length:0;
  return {products,bills,purchases,payments,expenses,customers,suppliers,productRows,known,low,negative,sales,expenseTotal,purchaseTotal,receivable,payable,stockValue,missingCost,marginAvg};
