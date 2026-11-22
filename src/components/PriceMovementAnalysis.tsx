@@ -1,5 +1,3 @@
-import { useMemo } from "react";
-
 type Quote = {
   productId?: string | number;
   productName?: string;
@@ -10,7 +8,7 @@ type Quote = {
 };
 
 export default function PriceMovementAnalysis() {
-  const movements = useMemo(() => {
+  const movements = (() => {
     try {
       const data: Quote[] = JSON.parse(
         localStorage.getItem("smartledger-market-quotes") || "[]"
@@ -52,7 +50,7 @@ export default function PriceMovementAnalysis() {
     } catch {
       return [];
     }
-  }, []);
+  })();
 
   return (
     <section style={{ padding: 18, borderRadius: 16, background: "var(--card, #fff)", margin: "16px 0" }}>
