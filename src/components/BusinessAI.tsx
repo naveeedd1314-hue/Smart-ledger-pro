@@ -76,7 +76,7 @@ function answer(q:string,d:ReturnType<typeof analyse>){
   const priceStatus=matchedProduct.profit<0?"Selling below recorded purchase cost":matchedProduct.profit===0?"No gross profit at current price":"Positive gross profit before overheads";
   return `${matchedProduct.name} business review — Purchase cost: ${money(matchedProduct.cost)}; Wholesale: ${matchedProduct.wholesale>0?money(matchedProduct.wholesale):"not recorded"}; Retail: ${money(matchedProduct.retail)}; Gross profit per unit: ${money(matchedProduct.profit)}; Margin: ${matchedProduct.margin.toFixed(2)}%; Stock: ${matchedProduct.stock}. Assessment: ${priceStatus}. Rate history: ${history||"No dated purchase, selling or market rate comparisons available yet."} These are recorded rates, not live market quotes.`;
  }
- if(/rate|increase|decrease|price change|badha|ghata|mehnga|sasta/.test(s)){
+ if(/\b(rate|rates|increase|decrease|price change|pricing|badha|ghata|mehnga|sasta)\b/.test(s)){
   const movements=d.rateMovements.filter((x:any)=>x.previous!==null).slice(0,10);
   const details=movements.map((x:any)=>`${x.name} [${x.kind}]: ₹${x.previous.toFixed(2)} → ₹${x.rate.toFixed(2)} (${x.change>0?"up":x.change<0?"down":"unchanged"} ${Math.abs(x.percent||0).toFixed(2)}%), ${x.date}, ${x.source}`).join("\\n");
   return `Dated rate review — ${movements.length} product rate movements found.\\n${details||"No product has two dated rate records yet. Record purchase invoices or verified market quotations on separate dates to calculate a trend."}\\nThese are recorded supplier invoice rates and saved market quotations; no live market feed is connected. Average listed product margin: ${d.marginAvg.toFixed(2)}%.`;
