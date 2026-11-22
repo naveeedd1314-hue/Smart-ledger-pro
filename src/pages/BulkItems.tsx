@@ -146,7 +146,7 @@ export default function BulkItems() {
   return <div data-sl-page="true" className="mx-auto max-w-7xl space-y-6 p-4 md:p-8">
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div><h2 className="text-2xl font-bold">Bulk Items</h2><p className="mt-1 text-sm text-[var(--text-2)]">Manage many inventory items together.</p></div>
-      <button onClick={exportCSV} className="flex items-center gap-2 rounded-xl bg-[#183b2b] px-4 py-3 text-sm font-semibold text-white"><Download size={17}/> Export CSV</button>
+      <button onClick={exportCSV} className="flex items-center gap-2 rounded-xl bg-[var(--indigo-ink)] px-4 py-3 text-sm font-semibold text-white"><Download size={17}/> Export CSV</button>
     </div>
 
     <div className="grid gap-4 sm:grid-cols-3">
@@ -165,7 +165,7 @@ export default function BulkItems() {
           <table className="w-full text-left text-xs"><thead className="sticky top-0 bg-[var(--bg)]"><tr>{['Name','SKU','Purchase','Selling','Stock'].map(x=><th className="p-2" key={x}>{x}</th>)}</tr></thead>
           <tbody>{preview.slice(0,100).map((p,i)=><tr className="border-t" key={i}><td className="p-2">{p.name}</td><td className="p-2">{p.sku || '—'}</td><td className="p-2">{money(p.purchase)}</td><td className="p-2">{money(p.selling)}</td><td className="p-2">{p.stock}</td></tr>)}</tbody></table>
         </div>
-        <button onClick={applyImport} className="mt-3 rounded-xl bg-[#183b2b] px-4 py-2 text-sm font-semibold text-white">Apply import</button>
+        <button onClick={applyImport} className="mt-3 rounded-xl bg-[var(--indigo-ink)] px-4 py-2 text-sm font-semibold text-white">Apply import</button>
         <button onClick={()=>setPreview([])} className="ml-2 rounded-xl border px-4 py-2 text-sm">Cancel</button>
       </div>}
     </section>
@@ -177,8 +177,8 @@ export default function BulkItems() {
           <select value={field} onChange={e=>setField(e.target.value as 'selling'|'purchase')} className="min-w-0 flex-1 rounded-lg border bg-[var(--surface)] p-2 text-sm"><option value="selling">Selling</option><option value="purchase">Purchase</option></select>
           <select value={mode} onChange={e=>setMode(e.target.value as 'increase'|'decrease'|'set')} className="min-w-0 flex-1 rounded-lg border bg-[var(--surface)] p-2 text-sm"><option value="increase">Increase %</option><option value="decrease">Decrease %</option><option value="set">Set price</option></select>
           <input type="number" min="0" value={amount} onChange={e=>setAmount(e.target.value)} placeholder={mode==='set'?'Price':'Percent'} className="w-24 rounded-lg border p-2 text-sm"/>
-        </div><button onClick={updatePrices} className="mt-3 rounded-lg bg-[#183b2b] px-3 py-2 text-xs font-semibold text-white">Apply price update</button></div>
-        <div className="rounded-xl bg-[var(--bg)] p-4"><p className="mb-3 text-sm font-semibold">Stock adjustment</p><p className="text-xs text-[var(--text-2)]">Use positive to add stock and negative to remove stock.</p><div className="mt-2 flex gap-2"><input type="number" step="1" value={stockChange} onChange={e=>setStockChange(e.target.value)} placeholder="e.g. 5 or -2" className="w-36 rounded-lg border p-2 text-sm"/><button onClick={updateStock} className="rounded-lg bg-[#183b2b] px-3 py-2 text-xs font-semibold text-white">Adjust</button></div></div>
+        </div><button onClick={updatePrices} className="mt-3 rounded-lg bg-[var(--indigo-ink)] px-3 py-2 text-xs font-semibold text-white">Apply price update</button></div>
+        <div className="rounded-xl bg-[var(--bg)] p-4"><p className="mb-3 text-sm font-semibold">Stock adjustment</p><p className="text-xs text-[var(--text-2)]">Use positive to add stock and negative to remove stock.</p><div className="mt-2 flex gap-2"><input type="number" step="1" value={stockChange} onChange={e=>setStockChange(e.target.value)} placeholder="e.g. 5 or -2" className="w-36 rounded-lg border p-2 text-sm"/><button onClick={updateStock} className="rounded-lg bg-[var(--indigo-ink)] px-3 py-2 text-xs font-semibold text-white">Adjust</button></div></div>
       </div>
     </section>
 
