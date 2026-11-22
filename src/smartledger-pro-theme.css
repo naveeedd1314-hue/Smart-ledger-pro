@@ -399,16 +399,6 @@ main .card [class*="font-bold"] {
 }
 
 
-/* SmartLedger Pro unified theme compatibility */
-html:root {
-  --sl-surface: var(--surface) !important;
-  --sl-surface-muted: var(--surface-2) !important;
-  --sl-text: var(--text) !important;
-  --sl-text-muted: var(--text-2) !important;
-  --sl-border: var(--border) !important;
-}
-
-
 /* Compatibility bridge: legacy component tokens mapped to Pro theme tokens */
 :root {
   --sl-bg: var(--bg);
