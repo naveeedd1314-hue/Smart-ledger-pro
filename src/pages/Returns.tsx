@@ -73,7 +73,7 @@ export default function Returns() {
   }
 
   function saveReturn() {
-    if(!source || qty<=0 || qty>remaining) {
+    if(!date || !source || qty<=0 || qty>remaining) {
       alert('Select an invoice and enter a valid return quantity.');
       return;
     }
