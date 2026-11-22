@@ -25,6 +25,7 @@ type InvoiceRecord = {
   total: number;
   paid: number;
   balance: number;
+  returnCredit?: number;
   taxableValue?: number;
   gstRate?: number;
   taxAmount?: number;
@@ -154,6 +155,7 @@ export function downloadInvoicePdf(
   addRow('Invoice total', record.total);
   doc.setFont('helvetica', 'normal');
   addRow('Amount paid', record.paid);
+  if (Number(record.returnCredit) > 0) addRow('Return credit', record.returnCredit || 0);
   doc.setFont('helvetica', 'bold');
   addRow('Balance due', record.balance);
 
