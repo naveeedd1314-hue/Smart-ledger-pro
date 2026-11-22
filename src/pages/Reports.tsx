@@ -110,11 +110,11 @@ export default function Reports() {
     <div><h1 className="text-2xl font-bold">Financial Reports</h1>
       <button type="button" onClick={() => window.print()} className="mt-3 rounded-lg sl-primary px-5 py-3 font-semibold text-white print:hidden">
         Print Financial Report
-      </button><p className="text-sm text-[#788579]">Summary based on records currently stored in this device.</p></div>
+      </button><p className="text-sm text-[var(--text-2)]">Summary based on records currently stored in this device.</p></div>
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-      {cards.map(([label,value])=><div key={String(label)} className="rounded-2xl border border-[#e6e0d2] bg-[#fffdf7] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[#788579]">{label}</p><strong className="text-xl">{money(Number(value))}</strong></div>)}
+      {cards.map(([label,value])=><div key={String(label)} className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">{label}</p><strong className="text-xl">{money(Number(value))}</strong></div>)}
     </div>
-    <div className="rounded-2xl border border-[#e6e0d2] bg-[#fffdf7] p-5 shadow-sm space-y-3">
+    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm space-y-3">
       <h2 className="font-semibold text-lg">Transaction Summary</h2>
       <div className="divide-y text-sm">
         {[
@@ -138,9 +138,9 @@ export default function Reports() {
         <p className="text-sm text-[var(--text-2)]">Profit is calculated from the purchase cost saved on each invoice.</p>
       </div>
       <div className="grid gap-3 sm:grid-cols-3">
-        <div className="rounded-lg bg-gray-50 p-3"><p className="text-sm text-[var(--text-2)]">Gross Profit</p><strong className="text-xl">{money(invoiceGrossProfit)}</strong></div>
-        <div className="rounded-lg bg-gray-50 p-3"><p className="text-sm text-[var(--text-2)]">Net Profit After Expenses</p><strong className="text-xl">{money(estimatedNetProfit)}</strong></div>
-        <div className="rounded-lg bg-gray-50 p-3"><p className="text-sm text-[var(--text-2)]">Invoices Missing Cost</p><strong className="text-xl">{invoicesMissingCost}</strong></div>
+        <div className="rounded-lg bg-[var(--surface-2)] p-3"><p className="text-sm text-[var(--text-2)]">Gross Profit</p><strong className="text-xl">{money(invoiceGrossProfit)}</strong></div>
+        <div className="rounded-lg bg-[var(--surface-2)] p-3"><p className="text-sm text-[var(--text-2)]">Net Profit After Expenses</p><strong className="text-xl">{money(estimatedNetProfit)}</strong></div>
+        <div className="rounded-lg bg-[var(--surface-2)] p-3"><p className="text-sm text-[var(--text-2)]">Invoices Missing Cost</p><strong className="text-xl">{invoicesMissingCost}</strong></div>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
@@ -167,7 +167,7 @@ export default function Reports() {
         <h2 className="text-lg font-semibold">Product-wise Margin Analysis</h2>
         <p className="text-sm text-[var(--text-2)]">Margins are based on current product prices and recorded purchase costs.</p>
       </div>
-      <div className="rounded-lg bg-gray-50 p-3">
+      <div className="rounded-lg bg-[var(--surface-2)] p-3">
         <p className="text-sm text-[var(--text-2)]">Potential profit on current stock at retail prices</p>
         <strong className="text-xl">{money(totalPotentialStockProfit)}</strong>
       </div>
@@ -193,7 +193,7 @@ export default function Reports() {
       </div>
     </div>
 
-    <div className="rounded-xl bg-amber-50 p-4 text-sm text-amber-900">
+    <div className="rounded-xl bg-[var(--amber-tint)] p-4 text-sm text-[var(--amber-ink)]">
       These figures are operational summaries, not a finalized profit-and-loss statement. Accurate profit requires item-level cost of goods sold, returns, opening stock, tax treatment and reconciled party ledgers. Cash movement is an estimate and may include duplicate receipts or payments if the same transaction is recorded in both an invoice and Payments.
     </div>
   </section>;
