@@ -63,6 +63,8 @@ export default function Inventory() {
   const [reason, setReason] = useState('Stock correction')
   const [movementFilter, setMovementFilter] = useState('All Movements')
   const [movementSearch, setMovementSearch] = useState('')
+  const addProductLock = useRef(false);
+  const stockAdjustLock = useRef(false);
 
   const saveItems = (next: Product[]) => {
     setItems(next)
@@ -224,22 +226,22 @@ export default function Inventory() {
   }).sort((a, b) => b.date.localeCompare(a.date))
 
   function addProduct() {
+    if (addProductLock.current) return;
+    addProductLock.current = true;
+    const reject = (message: string) => { addProductLock.current = false; alert(message); };
     const purchaseValue = Number(purchase);
     const sellingValue = Number(selling);
     const wholesaleValue = Number(wholesale || 0);
     const stockValue = Number(qty);
     const gstValue = Number(gstRate);
     if (!name.trim() || !Number.isFinite(sellingValue) || sellingValue <= 0 || !Number.isFinite(purchaseValue) || purchaseValue < 0 || !Number.isFinite(wholesaleValue) || wholesaleValue < 0 || !Number.isFinite(stockValue) || stockValue < 0 || !Number.isFinite(gstValue) || gstValue < 0 || gstValue > 100) {
-      alert('Enter a product name, valid prices and opening stock.')
-      return
+      return reject('Enter a product name, valid prices and opening stock.')
     }
     if (items.some(x => x.name.trim().toLowerCase() === name.trim().toLowerCase())) {
-      alert('A product with this name already exists.')
-      return
+      return reject('A product with this name already exists.')
     }
     if (sku.trim() && items.some(x => (x.sku || '').toLowerCase() === sku.trim().toLowerCase())) {
-      alert('This SKU already exists.')
-      return
+      return reject('This SKU already exists.')
     }
 
     const newProduct = {
@@ -277,19 +279,21 @@ export default function Inventory() {
     setSelling('')
     setWholesale('')
     setQty('')
+    addProductLock.current = false;
     alert('Product added successfully.')
   }
 
   function changeStock() {
+    if (stockAdjustLock.current) return;
+    stockAdjustLock.current = true;
+    const reject = (message: string) => { stockAdjustLock.current = false; alert(message); };
     const product = items.find(x => String(x.id) === adjustProduct)
     const change = Number(adjustQty)
     if (!product || !Number.isFinite(change) || change === 0) {
-      alert('Select a product and enter a non-zero stock change.')
-      return
+      return reject('Select a product and enter a non-zero stock change.')
     }
     if (!Number.isFinite(Number(product.stock)) || Number(product.stock) + change < 0) {
-      alert('Stock cannot become negative.')
-      return
+      return reject('Stock cannot become negative.')
     }
 
     saveItems(items.map(x =>
@@ -309,6 +313,7 @@ export default function Inventory() {
     }, ...adjustments])
 
     setAdjustQty('')
+    stockAdjustLock.current = false;
     alert('Stock adjusted and recorded.')
   }
 
