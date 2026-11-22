@@ -12,7 +12,7 @@ export default function Customers() {
   const [search, setSearch] = useState('');
 
   useEffect(() => {
-    setItems(JSON.parse(localStorage.getItem('smartledger-pro-customers') || '[]'));
+    try { const value = JSON.parse(localStorage.getItem('smartledger-pro-customers') || '[]'); setItems(Array.isArray(value) ? value : []); } catch { setItems([]); }
   }, []);
 
   function save() {
