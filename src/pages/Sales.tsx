@@ -43,7 +43,7 @@ export default function Sales() {
   const total = taxableValue + taxAmount;
 
   function saveSale() {
-    if (!selected || qty <= 0 || rate < 0 || paid < 0 || paid > total || qty > selected.stock) {
+    if (!selected || !Number.isFinite(qty) || qty <= 0 || !Number.isFinite(rate) || rate < 0 || !Number.isFinite(paid) || paid < 0 || !Number.isFinite(total) || paid > total || qty > selected.stock) {
       alert('Check product, quantity, stock and payment amount.');
       return;
     }
