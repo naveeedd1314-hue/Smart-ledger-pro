@@ -79,7 +79,7 @@ export default function Reports() {
 
 
   const productMarginRows = products.map((x, i) => {
-    const cost = num(x.purchase);
+    const cost = num(x.averageCost ?? x.purchase);
     const wholesale = num(x.wholesale);
     const retail = num(x.selling);
     const stock = num(x.stock);
@@ -145,7 +145,7 @@ export default function Reports() {
     <div className="rounded-xl bg-[var(--surface)] p-5 shadow-sm space-y-4">
       <div>
         <h2 className="text-lg font-semibold">Invoice-wise Profit &amp; Loss</h2>
-        <p className="text-sm text-[var(--text-2)]">Profit uses sale-time purchase costs, excludes GST from sales revenue and reverses known sales-return margin.</p>
+        <p className="text-sm text-[var(--text-2)]">Profit uses sale-time weighted average cost snapshots, excludes GST from sales revenue and reverses known sales-return margin.</p>
       </div>
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <div className="rounded-lg bg-[var(--surface-2)] p-3"><p className="text-sm text-[var(--text-2)]">Gross Profit</p><strong className="text-xl">{money(invoiceGrossProfit)}</strong></div>
@@ -177,7 +177,7 @@ export default function Reports() {
     <div className="rounded-xl bg-[var(--surface)] p-5 shadow-sm space-y-4">
       <div>
         <h2 className="text-lg font-semibold">Product-wise Margin Analysis</h2>
-        <p className="text-sm text-[var(--text-2)]">Margins are based on current product prices and recorded purchase costs.</p>
+        <p className="text-sm text-[var(--text-2)]">Margins use current selling prices and weighted average inventory cost.</p>
       </div>
       <div className="rounded-lg bg-[var(--surface-2)] p-3">
         <p className="text-sm text-[var(--text-2)]">Potential profit on current stock at retail prices</p>
@@ -186,7 +186,7 @@ export default function Reports() {
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead><tr className="border-b text-[var(--text-2)]">
-            <th className="p-2">Product</th><th className="p-2">Purchase</th><th className="p-2">Wholesale</th><th className="p-2">Retail</th><th className="p-2">Profit / Unit</th><th className="p-2">Margin</th><th className="p-2">Stock</th><th className="p-2">Stock Profit</th>
+            <th className="p-2">Product</th><th className="p-2">Average Cost</th><th className="p-2">Wholesale</th><th className="p-2">Retail</th><th className="p-2">Profit / Unit</th><th className="p-2">Margin</th><th className="p-2">Stock</th><th className="p-2">Stock Profit</th>
           </tr></thead>
           <tbody>
             {productMarginRows.map(x => <tr key={x.id} className="border-b">
