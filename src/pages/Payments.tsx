@@ -323,7 +323,7 @@ function exportOutstandingPdf() {
 
 
 return <section className="space-y-5">
-    <div><h1 className="text-2xl font-bold">Payments & Receipts</h1><p className="text-sm text-[var(--text-2)]">Record money received from customers and paid to suppliers.</p></div>
+    <div><h1 className="text-2xl font-bold">Payments & Receipts</h1><p className="text-sm text-[var(--text-2)]">Record money received from customers and paid to suppliers.</p><p className="mt-2 rounded-xl border border-[var(--amber)]/30 bg-[var(--amber)]/10 p-3 text-sm text-[var(--text)]">Accounting rule: enter the initial amount paid inside the sales or purchase invoice. Use this page only for later receipts or payments. Never record the same cash transaction twice.</p></div>
     <div className="grid gap-3 sm:grid-cols-3">
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">Customer Receipts</p><strong className="text-xl">{money(receipts)}</strong></div>
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">Supplier Payments</p><strong className="text-xl">{money(paid)}</strong></div>
