@@ -239,28 +239,30 @@ export default function Inventory() {
       return
     }
 
-    const next = [...items, {
+    const newProduct = {
       id: crypto.randomUUID(),
       name: name.trim(),
       sku: sku.trim(),
       category: group.trim() || 'General',
       hsn: hsn.trim(),
-      gstRate: Number(gstRate),
-      purchase: Number(purchase),
-      selling: Number(selling),
-      wholesale: Number(wholesale) || 0,
-      stock: Number(qty)
-    }]
+      gstRate: gstValue,
+      purchase: purchaseValue,
+      selling: sellingValue,
+      wholesale: wholesaleValue,
+      stock: stockValue
+    }
+    const next = [...items, newProduct]
     saveItems(next)
-    if (Number(qty) > 0) {
+    if (stockValue > 0) {
       saveAdjustments([{
         id: crypto.randomUUID(),
         date: new Date().toISOString().slice(0, 10),
-        product: name.trim(),
-        change: Number(qty),
+        productId: newProduct.id,
+        product: newProduct.name,
+        change: stockValue,
         reason: 'Opening stock',
         movement: 'Stock In',
-        stockAfter: Number(qty)
+        stockAfter: stockValue
       }, ...adjustments])
     }
     setName('')
