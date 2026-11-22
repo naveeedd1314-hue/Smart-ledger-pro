@@ -22,7 +22,7 @@ function get(item: any, keys: string[]) {
 export default function BusinessAdvisor() {
   const advice = useMemo(() => {
     const products = read(["smartledger-products", "products"]);
-    const bills = read(["smartledger-bills", "bills"]);
+    const bills = read(["smartledger-pro-sales", "smartledger-bills", "bills"]);
     const sales = new Map<string, number>();
 
     for (const bill of bills) {
@@ -38,7 +38,7 @@ export default function BusinessAdvisor() {
     const rows = products.map(p => {
       const name = String(p.name || p.productName || p.itemName || "Unnamed product");
       const cost = get(p, ["purchase", "purchasePrice", "costPrice", "buyPrice"]);
-      const retail = get(p, ["sellingPrice", "salePrice", "retail", "price", "rate"]);
+      const retail = get(p, ["selling", "sellingPrice", "salePrice", "retail", "price", "rate"]);
       const wholesale = get(p, ["wholesale", "wholesalePrice"]);
       const stock = get(p, ["stock", "quantity", "qty", "closingStock"]);
       const sold = sales.get(name.toLowerCase()) || 0;
