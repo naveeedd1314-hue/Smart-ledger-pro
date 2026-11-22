@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { localDateISO } from '../lib/dateUtils';
 import { jsPDF } from 'jspdf';
 
@@ -22,6 +22,7 @@ export default function Payments() {
   const [returns, setReturns] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
   const [suppliers, setSuppliers] = useState<any[]>([]);
+  const savingRef = useRef(false);
   const [invoiceId, setInvoiceId] = useState('');
 
   useEffect(() => {
@@ -69,16 +70,19 @@ export default function Payments() {
   };
 
   function save() {
-    if (!Number.isFinite(amount) || amount <= 0 || !date) return alert('Enter a valid date and amount.');
+    if (savingRef.current) return;
+    savingRef.current = true;
+    const reject = (message: string) => { savingRef.current = false; alert(message); };
+    if (!Number.isFinite(amount) || amount <= 0 || !date) return reject('Enter a valid date and amount.');
     const selectedInvoice = invoiceOptions.find((x: any) => x.id === invoiceId);
-    if (invoiceId && !selectedInvoice) return alert('Selected invoice is no longer available or is already settled.');
+    if (invoiceId && !selectedInvoice) return reject('Selected invoice is no longer available or is already settled.');
     const selectedParty = selectedInvoice
       ? (type === 'Customer Receipt' ? selectedInvoice.customer : selectedInvoice.supplier)
       : party.trim();
-    if (!selectedParty) return alert('Enter a party name or select an invoice.');
-    if (type === 'Customer Refund' && amount > customerCredit(selectedParty) + 0.01) return alert(`Refund exceeds the available customer credit of ₹${customerCredit(selectedParty).toLocaleString('en-IN',{maximumFractionDigits:2})}.`);
-    if (type === 'Supplier Refund' && amount > supplierCredit(selectedParty) + 0.01) return alert(`Refund exceeds the available supplier credit of ₹${supplierCredit(selectedParty).toLocaleString('en-IN',{maximumFractionDigits:2})}.`);
-    if (selectedInvoice && amount > selectedInvoice.dueNow) return alert('Payment cannot exceed the selected invoice balance.');
+    if (!selectedParty) return reject('Enter a party name or select an invoice.');
+    if (type === 'Customer Refund' && amount > customerCredit(selectedParty) + 0.01) return reject(`Refund exceeds the available customer credit of ₹${customerCredit(selectedParty).toLocaleString('en-IN',{maximumFractionDigits:2})}.`);
+    if (type === 'Supplier Refund' && amount > supplierCredit(selectedParty) + 0.01) return reject(`Refund exceeds the available supplier credit of ₹${supplierCredit(selectedParty).toLocaleString('en-IN',{maximumFractionDigits:2})}.`);
+    if (selectedInvoice && amount > selectedInvoice.dueNow) return reject('Payment cannot exceed the selected invoice balance.');
     const id = crypto.randomUUID();
     const payment: any = { id, date, type, party: selectedParty, amount, method, reference, note };
     if (selectedInvoice) payment.allocations = [{ invoiceId: selectedInvoice.id, invoice: selectedInvoice.invoice || selectedInvoice.id, amount }];
@@ -86,6 +90,7 @@ export default function Payments() {
     setItems(next);
     localStorage.setItem('smartledger-pro-payments', JSON.stringify(next));
     setParty(''); setAmount(0); setReference(''); setNote(''); setInvoiceId('');
+    savingRef.current = false;
   }
 
   const receipts = items.filter(x=>x.type==='Customer Receipt').reduce((s,x)=>s+x.amount,0);
