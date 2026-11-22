@@ -14,6 +14,10 @@ type ReturnItem = {
   taxAmount?: number;
   totalAmount?: number;
   gstRate?: number;
+  cgst?: number;
+  sgst?: number;
+  utgst?: number;
+  igst?: number;
   purchasePrice?: number | null;
   date: string;
   reason: string;
@@ -51,7 +55,12 @@ export default function Returns() {
   const rate=Number(source?.rate)||0;
   const amount=qty*rate;
   const gstRate=Number(source?.gstRate)||0;
-  const taxAmount=amount*gstRate/100;
+  const returnRatio = source && Number(source.qty) > 0 ? qty / Number(source.qty) : 0;
+  const taxAmount = source?.taxAmount !== undefined ? (Number(source.taxAmount) || 0) * returnRatio : amount * gstRate / 100;
+  const cgst = (Number(source?.cgst) || 0) * returnRatio;
+  const sgst = (Number(source?.sgst) || 0) * returnRatio;
+  const utgst = (Number(source?.utgst) || 0) * returnRatio;
+  const igst = (Number(source?.igst) || 0) * returnRatio;
   const totalAmount=amount+taxAmount;
   const money=(n:number)=>`₹${n.toLocaleString('en-IN',{maximumFractionDigits:2})}`;
 
@@ -95,6 +104,10 @@ export default function Returns() {
       taxAmount,
       totalAmount,
       gstRate,
+      cgst,
+      sgst,
+      utgst,
+      igst,
       purchasePrice: type === 'Sales Return' ? (source.purchasePrice !== undefined && source.purchasePrice !== null && Number.isFinite(Number(source.purchasePrice)) ? Number(source.purchasePrice) : null) : undefined,
       date,
       reason
