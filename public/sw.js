@@ -1,5 +1,5 @@
 const CACHE_NAME = 'smartledger-pro-shell-v1';
-const SHELL_URLS = ['/', '/index.html', '/favicon.svg', '/manifest.webmanifest'];
+const SHELL_URLS = ['/', '/index.html', '/favicon.svg', '/icon-192.svg', '/icon-512.svg', '/manifest.webmanifest'];
 
 self.addEventListener('install', event => {
   event.waitUntil(
