@@ -57,11 +57,11 @@ function analyse(){
  const supplierBalanceMap=new Map<string,{name:string;amount:number}>();
  const addBalance=(map:Map<string,{name:string;amount:number}>,rawName:unknown,amount:number)=>{const name=String(rawName||"").trim();if(!name)return;const key=name.toLowerCase();const row=map.get(key)||{name,amount:0};row.amount+=amount;map.set(key,row);};
  customers.forEach(x=>addBalance(customerBalanceMap,field(x,"name"),n(field(x,"opening","balance","outstanding","due"))));
- bills.forEach(x=>addBalance(customerBalanceMap,field(x,"customer","party"),Math.max(0,n(field(x,"total","grandTotal"))-n(field(x,"paid")))));
+ bills.forEach(x=>{const total=field(x,"total","grandTotal");addBalance(customerBalanceMap,field(x,"customer","party"),total!==undefined?Math.max(0,n(total)-n(field(x,"paid"))):n(field(x,"balance")));});
  payments.filter(x=>x.type==="Customer Receipt").forEach(x=>addBalance(customerBalanceMap,x.party,-n(field(x,"amount"))));
  returns.filter(x=>x.type==="Sales Return").forEach(x=>addBalance(customerBalanceMap,x.party,-n(field(x,"totalAmount","amount"))));
  suppliers.forEach(x=>addBalance(supplierBalanceMap,field(x,"name"),n(field(x,"opening","balance","outstanding","due"))));
- purchases.forEach(x=>addBalance(supplierBalanceMap,field(x,"supplier"),Math.max(0,n(field(x,"total","grandTotal","amount"))-n(field(x,"paid")))));
+ purchases.forEach(x=>{const total=field(x,"total","grandTotal","amount");addBalance(supplierBalanceMap,field(x,"supplier"),total!==undefined?Math.max(0,n(total)-n(field(x,"paid"))):n(field(x,"balance")));});
  payments.filter(x=>x.type==="Supplier Payment").forEach(x=>addBalance(supplierBalanceMap,x.party,-n(field(x,"amount"))));
  returns.filter(x=>x.type==="Purchase Return").forEach(x=>addBalance(supplierBalanceMap,x.party,-n(field(x,"totalAmount","amount"))));
  const customerDueRows=Array.from(customerBalanceMap.values()).map(x=>({...x,due:Math.max(0,x.amount)})).filter(x=>x.due>0).sort((a,b)=>b.due-a.due);
