@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
+import { localDateISO } from '../lib/dateUtils';
 
 type Expense = { id: string; date: string; category: string; description: string; amount: number };
 
 export default function Expenses() {
   const [items, setItems] = useState<Expense[]>([]);
-  const [date, setDate] = useState(new Date().toISOString().slice(0,10));
+  const [date, setDate] = useState(localDateISO());
   const [category, setCategory] = useState('General');
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState(0);
