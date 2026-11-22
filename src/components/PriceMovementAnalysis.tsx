@@ -78,10 +78,10 @@ export default function PriceMovementAnalysis() {
     <section className="my-4 space-y-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 text-[var(--text)] shadow-sm">
       <div>
         <h2 className="text-lg font-semibold">Price Movement Analysis</h2>
-        <p className="text-sm text-[var(--text-2)]">Supplier invoice rates and independently recorded market quotations are analysed separately. At least two dated records are required to calculate a movement.</p>
+        <p className="text-sm text-[var(--text-2)]">Supplier purchase rates, selling rates, manual price changes and independently recorded market quotations are tracked separately. Two dated observations are required to calculate a movement.</p>
       </div>
       {movements.length === 0 ? (
-        <p className="text-sm text-[var(--text-2)]">No dated purchase rates or market quotations available yet.</p>
+        <p className="text-sm text-[var(--text-2)]">No dated purchase, sales, manual price-change or market quotation records are available yet.</p>
       ) : movements.map((item, index) => (
         <div key={`${item.kind}-${item.productId ?? item.product}-${index}`} className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -102,7 +102,7 @@ export default function PriceMovementAnalysis() {
           <p className="mt-1 text-xs text-[var(--text-2)]">{item.source} · {item.date} · {item.observations} records</p>
         </div>
       ))}
-      <p className="text-xs text-[var(--text-2)]">These calculations use saved supplier invoices and market quotations. They do not claim to fetch live market prices.</p>
+      <p className="text-xs text-[var(--text-2)]">These calculations use saved invoices, manual price updates and verified quotations. They do not claim to fetch live market prices.</p>
     </section>
   );
 }
