@@ -19,7 +19,7 @@ export default function MarketRateIntelligence() {
 
   const product = products.find((p: any) => String(p.id ?? p.name) === selected);
   const cost = toNumber(product?.purchase ?? product?.purchasePrice ?? product?.costPrice);
-  const retail = toNumber(product?.sellingPrice ?? product?.salePrice ?? product?.retail ?? product?.price);
+  const retail = toNumber(product?.selling ?? product?.sellingPrice ?? product?.salePrice ?? product?.retail ?? product?.price);
   const wholesale = toNumber(product?.wholesale ?? product?.wholesalePrice);
   const market = toNumber(marketRate);
   const marketMargin = market !== null && cost !== null ? calculateMargin(market, cost) : null;
@@ -74,6 +74,7 @@ export default function MarketRateIntelligence() {
         <button
           type="button"
           onClick={() => {
+            if (!checkedAt || !source.trim() || market === null || market < 0) { window.alert('Enter a valid market rate, source and date checked.'); return; }
             try {
               const key = "smartledger-market-quotes";
               const existing = JSON.parse(localStorage.getItem(key) || "[]");
