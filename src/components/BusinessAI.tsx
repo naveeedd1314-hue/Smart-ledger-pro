@@ -30,7 +30,7 @@ function analyse(){
   const retail=n(field(p,"selling","price","sellingPrice","salePrice","retail"));
   const wholesale=n(field(p,"wholesale","wholesalePrice"));
   const stock=n(field(p,"stock","quantity","qty"));
-  return {name:String(field(p,"name","productName","title")||"Unnamed product"),cost,retail,wholesale,stock,profit:retail-cost,margin:retail>0?(retail-cost)/retail*100:0};
+  return {name:String(field(p,"name","productName","title")||"Unnamed product"),cost,lastPurchase:n(field(p,"purchase","lastPurchaseRate")),retail,wholesale,stock,profit:retail-cost,margin:retail>0?(retail-cost)/retail*100:0};
  });
  const known=productRows.filter(p=>p.cost>0&&p.retail>0);
  const low=productRows.filter(p=>p.stock<=5&&p.stock>=0);
@@ -76,7 +76,7 @@ function answer(q:string,d:ReturnType<typeof analyse>){
   const changes=d.rateMovements.filter((x:any)=>x.name.toLowerCase()===matchedProduct.name.toLowerCase()).slice(0,4);
   const history=changes.map((x:any)=>x.previous===null?`${x.kind}: latest ₹${x.rate.toFixed(2)} on ${x.date}`:`${x.kind}: ₹${x.previous.toFixed(2)} → ₹${x.rate.toFixed(2)} (${x.change>0?"up":x.change<0?"down":"unchanged"} ${Math.abs(x.percent||0).toFixed(2)}%)`).join("; ");
   const priceStatus=matchedProduct.profit<0?"Selling below recorded purchase cost":matchedProduct.profit===0?"No gross profit at current price":"Positive gross profit before overheads";
-  return `${matchedProduct.name} business review — Purchase cost: ${money(matchedProduct.cost)}; Wholesale: ${matchedProduct.wholesale>0?money(matchedProduct.wholesale):"not recorded"}; Retail: ${money(matchedProduct.retail)}; Gross profit per unit: ${money(matchedProduct.profit)}; Margin: ${matchedProduct.margin.toFixed(2)}%; Stock: ${matchedProduct.stock}. Assessment: ${priceStatus}. Rate history: ${history||"No dated purchase, selling or market rate comparisons available yet."} These are recorded rates, not live market quotes.`;
+  return `${matchedProduct.name} business review — Weighted average cost: ${money(matchedProduct.cost)}; Latest purchase rate: ${money(matchedProduct.lastPurchase)}; Wholesale: ${matchedProduct.wholesale>0?money(matchedProduct.wholesale):"not recorded"}; Retail: ${money(matchedProduct.retail)}; Gross profit per unit: ${money(matchedProduct.profit)}; Margin: ${matchedProduct.margin.toFixed(2)}%; Stock: ${matchedProduct.stock}. Assessment: ${priceStatus}. Rate history: ${history||"No dated purchase, selling or market rate comparisons available yet."} These are recorded rates, not live market quotes.`;
  }
  if(/\b(rate|rates|increase|decrease|price change|pricing|badha|ghata|mehnga|sasta)\b/.test(s)){
   const movements=d.rateMovements.filter((x:any)=>x.previous!==null).slice(0,10);
