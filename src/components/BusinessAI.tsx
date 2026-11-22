@@ -97,6 +97,8 @@ function answer(q:string,d:ReturnType<typeof analyse>){
   if(Number.isFinite(before)&&Number.isFinite(after)&&before>0){const change=after-before;const percent=change/before*100;return `Rate change: ${money(before)} → ${money(after)}; difference ${money(Math.abs(change))} (${change>=0?"increase":"decrease"} of ${Math.abs(percent).toFixed(2)}%).`;}
  }
  const percentFirst=s.match(/(\d+(?:\.\d+)?)\s*%\s*(increase|decrease|discount|markup)\s*(?:on|of|from)\s*(?:₹|rs\.?\s*)?([\d,]+(?:\.\d+)?)/);
+ const percentOf=s.match(/(\\d+(?:\\.\\d+)?)\\s*%\\s*of\\s*(?:₹|rs\\.?\\s*)?([\\d,]+(?:\\.\\d+)?)/);
+ if(percentOf&&!/(increase|decrease|discount|markup)/.test(s)){const base=parseMoney(percentOf[2]),percent=Number(percentOf[1]);return `${percent.toFixed(2)}% of ${money(base)} = ${money(base*percent/100)}.`;}
  const amountFirst=s.match(/(?:₹|rs\.?\s*)?([\d,]+(?:\.\d+)?)\s*(?:by|with)\s*(\d+(?:\.\d+)?)\s*%/);
  const calculation=percentFirst?{base:parseMoney(percentFirst[3]),percent:Number(percentFirst[1]),action:percentFirst[2]}:amountFirst?{base:parseMoney(amountFirst[1]),percent:Number(amountFirst[2]),action:/decrease|discount/.test(s)?"decrease":"increase"}:null;
  if(calculation&&/(increase|decrease|discount|markup)/.test(s)&&calculation.base>=0&&calculation.percent>=0){
