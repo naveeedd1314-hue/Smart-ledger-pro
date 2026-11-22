@@ -122,13 +122,19 @@ export function validateBusinessRecords() {
     else if (stock < 0) warnings.push("Product " + (i + 1) + ": negative stock.");
     const cost = p.purchase ?? p.purchasePrice ?? p.costPrice;
     if (cost !== undefined && cost !== null && !validAmount(cost)) warnings.push("Product " + (i + 1) + ": purchase cost is invalid.");
+    const selling = p.selling ?? p.sellingPrice ?? p.salePrice;
+    if (selling !== undefined && selling !== null && (!validAmount(selling) || Number(selling) <= 0)) warnings.push("Product " + (i + 1) + ": selling price is invalid.");
+    const gstRate = p.gstRate ?? p.gst;
+    if (gstRate !== undefined && gstRate !== null && (!validAmount(gstRate) || Number(gstRate) > 100)) warnings.push("Product " + (i + 1) + ": GST rate is invalid.");
   });
   sales.forEach((sale: any, i: number) => {
     const total = Number(sale.total ?? sale.grandTotal ?? sale.amount);
     const qty = Number(sale.qty ?? sale.quantity);
     const paid = Number(sale.paid ?? 0);
     if (!Number.isFinite(total) || total < 0) warnings.push("Sale " + (i + 1) + ": total missing or invalid.");
+    const rate = Number(sale.rate ?? sale.sellingPrice);
     if (!Number.isFinite(qty) || qty <= 0) warnings.push("Sale " + (i + 1) + ": quantity missing or invalid.");
+    if (!Number.isFinite(rate) || rate < 0) warnings.push("Sale " + (i + 1) + ": selling rate is missing or invalid.");
     if (!Number.isFinite(paid) || paid < 0 || (Number.isFinite(total) && paid > total + 0.01)) warnings.push("Sale " + (i + 1) + ": payment exceeds invoice total or is invalid.");
   });
   purchases.forEach((purchase: any, i: number) => {
@@ -136,7 +142,9 @@ export function validateBusinessRecords() {
     const qty = Number(purchase.qty ?? purchase.quantity);
     const paid = Number(purchase.paid ?? 0);
     if (!Number.isFinite(total) || total < 0) warnings.push("Purchase " + (i + 1) + ": total missing or invalid.");
+    const rate = Number(purchase.rate ?? purchase.purchasePrice);
     if (!Number.isFinite(qty) || qty <= 0) warnings.push("Purchase " + (i + 1) + ": quantity missing or invalid.");
+    if (!Number.isFinite(rate) || rate <= 0) warnings.push("Purchase " + (i + 1) + ": purchase rate is missing or invalid.");
     if (!Number.isFinite(paid) || paid < 0 || (Number.isFinite(total) && paid > total + 0.01)) warnings.push("Purchase " + (i + 1) + ": payment exceeds invoice total or is invalid.");
   });
   expenses.forEach((expense: any, i: number) => {
