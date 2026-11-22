@@ -299,6 +299,7 @@ export default function Inventory() {
     saveAdjustments([{
       id: crypto.randomUUID(),
       date: localDateISO(),
+      productId: product.id,
       product: product.name,
       change,
  movement: change > 0 ? 'Stock In' : 'Stock Out',
