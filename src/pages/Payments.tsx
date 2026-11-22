@@ -20,6 +20,8 @@ export default function Payments() {
   const [salesInvoices, setSalesInvoices] = useState<any[]>([]);
   const [purchaseInvoices, setPurchaseInvoices] = useState<any[]>([]);
   const [returns, setReturns] = useState<any[]>([]);
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [suppliers, setSuppliers] = useState<any[]>([]);
   const [invoiceId, setInvoiceId] = useState('');
 
   useEffect(() => {
@@ -31,6 +33,8 @@ export default function Payments() {
     setSalesInvoices(read('smartledger-pro-sales'));
     setPurchaseInvoices(read('smartledger-pro-purchases'));
     setReturns(read('smartledger-pro-returns'));
+    setCustomers(read('smartledger-pro-customers'));
+    setSuppliers(read('smartledger-pro-suppliers'));
   }, []);
 
   const invoiceList = type === 'Customer Receipt' ? salesInvoices : type === 'Supplier Payment' ? purchaseInvoices : [];
@@ -45,6 +49,25 @@ export default function Payments() {
     return { ...invoice, id, paidNow: originalPaid + allocated, returnCredit, dueNow: Math.max(0, total - originalPaid - allocated - returnCredit) };
   }).filter((invoice: any) => invoice.dueNow > 0);
 
+  const customerCredit = (name: string) => {
+    const key = name.trim().toLowerCase();
+    const opening = customers.filter(x => String(x.name || '').trim().toLowerCase() === key).reduce((sum, x) => sum + (Number(x.opening) || 0), 0);
+    const invoiceDue = salesInvoices.filter(x => String(x.customer || '').trim().toLowerCase() === key).reduce((sum, x) => sum + Math.max(0, (Number(x.total) || 0) - (Number(x.paid) || 0)), 0);
+    const received = items.filter(x => x.type === 'Customer Receipt' && String(x.party || '').trim().toLowerCase() === key).reduce((sum, x) => sum + (Number(x.amount) || 0), 0);
+    const refunded = items.filter(x => x.type === 'Customer Refund' && String(x.party || '').trim().toLowerCase() === key).reduce((sum, x) => sum + (Number(x.amount) || 0), 0);
+    const returned = returns.filter(x => x.type === 'Sales Return' && String(x.party || '').trim().toLowerCase() === key).reduce((sum, x) => sum + (Number(x.totalAmount ?? x.amount) || 0), 0);
+    return Math.max(0, -(opening + invoiceDue + refunded - received - returned));
+  };
+  const supplierCredit = (name: string) => {
+    const key = name.trim().toLowerCase();
+    const opening = suppliers.filter(x => String(x.name || '').trim().toLowerCase() === key).reduce((sum, x) => sum + (Number(x.opening) || 0), 0);
+    const invoiceDue = purchaseInvoices.filter(x => String(x.supplier || '').trim().toLowerCase() === key).reduce((sum, x) => sum + Math.max(0, (Number(x.total) || 0) - (Number(x.paid) || 0)), 0);
+    const paid = items.filter(x => x.type === 'Supplier Payment' && String(x.party || '').trim().toLowerCase() === key).reduce((sum, x) => sum + (Number(x.amount) || 0), 0);
+    const refunded = items.filter(x => x.type === 'Supplier Refund' && String(x.party || '').trim().toLowerCase() === key).reduce((sum, x) => sum + (Number(x.amount) || 0), 0);
+    const returned = returns.filter(x => x.type === 'Purchase Return' && String(x.party || '').trim().toLowerCase() === key).reduce((sum, x) => sum + (Number(x.totalAmount ?? x.amount) || 0), 0);
+    return Math.max(0, -(opening + invoiceDue + refunded - paid - returned));
+  };
+
   function save() {
     if (!Number.isFinite(amount) || amount <= 0 || !date) return alert('Enter a valid date and amount.');
     const selectedInvoice = invoiceOptions.find((x: any) => x.id === invoiceId);
@@ -53,6 +76,8 @@ export default function Payments() {
       ? (type === 'Customer Receipt' ? selectedInvoice.customer : selectedInvoice.supplier)
       : party.trim();
     if (!selectedParty) return alert('Enter a party name or select an invoice.');
+    if (type === 'Customer Refund' && amount > customerCredit(selectedParty) + 0.01) return alert(`Refund exceeds the available customer credit of ₹${customerCredit(selectedParty).toLocaleString('en-IN',{maximumFractionDigits:2})}.`);
+    if (type === 'Supplier Refund' && amount > supplierCredit(selectedParty) + 0.01) return alert(`Refund exceeds the available supplier credit of ₹${supplierCredit(selectedParty).toLocaleString('en-IN',{maximumFractionDigits:2})}.`);
     if (selectedInvoice && amount > selectedInvoice.dueNow) return alert('Payment cannot exceed the selected invoice balance.');
     const id = crypto.randomUUID();
     const payment: any = { id, date, type, party: selectedParty, amount, method, reference, note };
