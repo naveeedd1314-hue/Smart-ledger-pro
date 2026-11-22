@@ -89,7 +89,7 @@ export default function Reports() {
       name: String(x.name || 'Unnamed product'),
       cost, wholesale, retail, stock, unitProfit,
       margin: retail > 0 ? unitProfit / retail * 100 : 0,
-      stockProfit: unitProfit * stock
+      stockProfit: unitProfit * Math.max(0, stock)
     };
   });
   const totalPotentialStockProfit = productMarginRows.reduce((sum, x) => sum + x.stockProfit, 0);
