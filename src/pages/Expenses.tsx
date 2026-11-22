@@ -10,17 +10,21 @@ export default function Expenses() {
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState(0);
   const [search, setSearch] = useState('');
+  const savingRef = useRef(false);
 
   useEffect(() => {
     try { const value = JSON.parse(localStorage.getItem('smartledger-pro-expenses') || '[]'); setItems(Array.isArray(value) ? value : []); } catch { setItems([]); }
   }, []);
 
   function save() {
-    if (!date || !description.trim() || !Number.isFinite(amount) || amount <= 0) return alert('Enter a date, description and valid amount.');
+    if (savingRef.current) return;
+    savingRef.current = true;
+    if (!date || !description.trim() || !Number.isFinite(amount) || amount <= 0) { savingRef.current = false; return alert('Enter a date, description and valid amount.'); }
     const next = [{ id: crypto.randomUUID(), date, category, description: description.trim(), amount }, ...items];
     setItems(next);
     localStorage.setItem('smartledger-pro-expenses', JSON.stringify(next));
     setDescription(''); setAmount(0);
+    savingRef.current = false;
   }
 
   const filtered = items.filter(x => `${x.category} ${x.description} ${x.date}`.toLowerCase().includes(search.toLowerCase()));
