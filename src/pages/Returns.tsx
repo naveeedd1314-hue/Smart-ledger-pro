@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { localDateISO } from '../lib/dateUtils';
 
 type RecordItem = Record<string, any>;
@@ -35,6 +35,7 @@ export default function Returns() {
   const [qty,setQty] = useState(1);
   const [reason,setReason] = useState('Damaged goods');
   const [date,setDate] = useState(localDateISO());
+  const savingRef = useRef(false);
 
   const read = (key:string) => {
     try {
@@ -73,21 +74,15 @@ export default function Returns() {
   }
 
   function saveReturn() {
-    if(!date || !source || qty<=0 || qty>remaining) {
-      alert('Enter a return date, select an invoice and enter a valid return quantity.');
-      return;
-    }
+    if (savingRef.current) return;
+    savingRef.current = true;
+    const reject = (message: string) => { savingRef.current = false; alert(message); };
+    if(!date || !source || qty<=0 || qty>remaining) return reject('Enter a return date, select an invoice and enter a valid return quantity.');
 
     const product=products.find(p=>source.productId ? String(p.id)===String(source.productId) : p.name===source.product);
-    if(!product) {
-      alert('The original product was not found in inventory. No changes were made.');
-      return;
-    }
+    if(!product) return reject('The original product was not found in inventory. No changes were made.');
 
-    if(type==='Purchase Return' && Number(product.stock)<qty) {
-      alert('Insufficient stock for this purchase return.');
-      return;
-    }
+    if(type==='Purchase Return' && Number(product.stock)<qty) return reject('Insufficient stock for this purchase return.');
 
     const updatedProducts=products.map(p=>{
       if(p.id!==product.id) return p;
@@ -138,6 +133,7 @@ export default function Returns() {
     setReturns(updatedReturns);
     setSourceId('');
     setQty(1);
+    savingRef.current = false;
     alert('Return recorded and inventory adjusted.');
   }
 
