@@ -1,75 +1,55 @@
-# React + TypeScript + Vite
+# SmartLedger Pro 5.0
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+SmartLedger Pro is a mobile-first business management application for retail and wholesale shops. The 5.0 release is being developed as one consolidated release.
 
-Currently, two official plugins are available:
+## Current capabilities
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Sales and purchase invoices with GST calculations.
+- Retail and wholesale selling-rate presets.
+- Inventory, barcode support, stock movement history and bulk CSV import/export.
+- Weighted average inventory costing, with sale-time cost snapshots for profit reporting.
+- Customer and supplier accounts, ledgers, outstanding balances and invoice-level payment allocations.
+- Sales and purchase returns with stock and party-balance adjustments.
+- Reports, product margins, customer profitability, business analytics and strategy recommendations.
+- Market quotation and recorded price-movement tracking.
+- Local JSON backup and restore, plus a data-quality audit.
+- Configurable minimum gross-margin alerts.
+- Installable web-app manifest and offline app-shell caching.
 
-## React Compiler
+## Development
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Requirements: Node.js 22 or later.
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+npm ci
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+Production checks:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+npm run build
+npm run lint
 ```
+
+GitHub Actions runs the production build and ESLint checks on pushes to `main`.
+
+## Android installation
+
+The application includes a web-app manifest and service worker. Deploy it over HTTPS, open it in Chrome on Android, then use **Install app** or **Add to Home screen** from the browser menu. The app shell and previously loaded assets are cached for offline reopening after the first successful visit.
+
+This creates an installable web app (PWA), not an Android APK or a Google Play Store release.
+
+## Data and privacy
+
+Business records are currently stored in the browser's local storage on the device. Backup files should be exported regularly and stored somewhere safe. Restoring a backup overwrites matching SmartLedger data sections on that device.
+
+There is currently no cloud synchronisation or multi-device database.
+
+## SmartLedger AI
+
+The in-app assistant uses deterministic calculations and business rules over saved SmartLedger records. It can summarize recorded sales, costs, margins, outstanding balances, stock and saved price movements. It does not currently connect to an external language model or a live market-price feed; market quotations must be entered or imported.
+
+## Release status
+
+SmartLedger Pro 5.0 remains under development. A successful build and lint run do not replace real-device testing, accounting reconciliation, backup/restore testing and final release validation.
