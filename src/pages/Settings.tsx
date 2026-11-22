@@ -1,11 +1,14 @@
 import { useState } from 'react';
 
+const BACKUP_PREFIX = 'smartledger-';
+
 export default function Settings() {
   const [business, setBusiness] = useState(() => {
     const defaults = { name: 'SmartLedger Business', phone: '', email: '', address: '', gstin: '', state: 'Jammu and Kashmir', invoicePrefix: 'SL', financialYear: '2026-27' };
     try { return { ...defaults, ...JSON.parse(localStorage.getItem('smartledger-pro-settings') || '{}') }; }
     catch { return defaults; }
   });
+  const [backupStatus, setBackupStatus] = useState('');
 
   function save() {
     localStorage.setItem('smartledger-pro-settings', JSON.stringify(business));
@@ -13,35 +16,59 @@ export default function Settings() {
   }
 
   function backup() {
-    const data: Record<string, unknown> = {};
-    Object.keys(localStorage).filter(k => k.startsWith('smartledger-')).forEach(k => {
-      try { data[k] = JSON.parse(localStorage.getItem(k) || 'null'); } catch {}
+    const data: Record<string, string> = {};
+    Object.keys(localStorage).filter(key => key.startsWith(BACKUP_PREFIX)).forEach(key => {
+      const value = localStorage.getItem(key);
+      if (value !== null) data[key] = value;
     });
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    if (!Object.keys(data).length) {
+      setBackupStatus('No SmartLedger records were found on this device.');
+      return;
+    }
+    const payload = { app: 'SmartLedger', version: 1, createdAt: new Date().toISOString(), data };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'SmartLedger-Backup.json';
-    a.click();
-    URL.revokeObjectURL(url);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `SmartLedger-Backup-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    setBackupStatus(`Backup prepared with ${Object.keys(data).length} data sections.`);
   }
 
   function restore(file?: File) {
     if (!file) return;
+    setBackupStatus('Checking backup file…');
     const reader = new FileReader();
     reader.onload = () => {
       try {
-        const data = JSON.parse(String(reader.result));
-        if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error();
-        if (!confirm('Restore this backup? Existing SmartLedger data may be overwritten.')) return;
-        Object.entries(data).forEach(([key, value]) => {
-          if (key.startsWith('smartledger-')) localStorage.setItem(key, JSON.stringify(value));
+        const parsed: unknown = JSON.parse(String(reader.result));
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('Invalid backup structure.');
+        const root = parsed as Record<string, unknown>;
+        const source = root.app === 'SmartLedger' && root.data && typeof root.data === 'object' && !Array.isArray(root.data)
+          ? root.data as Record<string, unknown>
+          : root;
+        const entries = Object.entries(source).filter(([key, value]) =>
+          key.startsWith(BACKUP_PREFIX) && (typeof value === 'string' || value === null || typeof value === 'number' || typeof value === 'boolean' || Array.isArray(value) || (typeof value === 'object' && value !== null))
+        );
+        if (!entries.length) throw new Error('No valid SmartLedger data was found in this file.');
+        if (!window.confirm(`Restore ${entries.length} SmartLedger data sections? Matching current sections will be overwritten. Other device data will remain unchanged.`)) {
+          setBackupStatus('Restore cancelled.');
+          return;
+        }
+        entries.forEach(([key, value]) => {
+          const stored = typeof value === 'string' ? value : JSON.stringify(value);
+          if (stored !== undefined) localStorage.setItem(key, stored);
         });
-        alert('Backup restored. Reload the app to refresh all screens.');
-      } catch {
-        alert('Invalid backup file.');
+        setBackupStatus(`Restored ${entries.length} data sections. Reload the app to refresh all screens.`);
+        window.alert('Backup restored. Reload the app to refresh all screens.');
+      } catch (error) {
+        setBackupStatus(error instanceof Error ? error.message : 'Invalid backup file.');
       }
     };
+    reader.onerror = () => setBackupStatus('Could not read this file. Try selecting the backup again.');
     reader.readAsText(file);
   }
 
@@ -59,16 +86,17 @@ export default function Settings() {
           ['state','State'],
           ['invoicePrefix','Invoice prefix'],
           ['financialYear','Financial year']
-        ] as const).map(([key,label])=><label key={key} className="text-sm">{label}<input className="mt-1 w-full rounded-lg border p-3" value={business[key]} onChange={e=>setBusiness({...business,[key]:e.target.value})}/></label>)}
+        ] as const).map(([key,label])=><label key={key} className="text-sm">{label}<input className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] p-3 text-[var(--text)]" value={business[key]} onChange={e=>setBusiness({...business,[key]:e.target.value})}/></label>)}
       </div>
       <button onClick={save} className="rounded-xl bg-[var(--indigo)] px-5 py-3 font-semibold text-white shadow-sm transition hover:bg-[var(--indigo-ink)]">Save Settings</button>
     </div>
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm space-y-3">
       <h2 className="text-lg font-semibold">Data Backup & Restore</h2>
-      <p className="text-sm text-[var(--text-2)]">Download your locally stored SmartLedger records or restore from a backup JSON file.</p>
+      <p className="text-sm text-[var(--text-2)]">Export all SmartLedger local records to a portable JSON backup, or restore a backup created by SmartLedger. Existing matching sections are overwritten; unrelated device data is preserved.</p>
       <button onClick={backup} className="rounded-xl bg-[var(--indigo)] px-5 py-3 font-semibold text-white shadow-sm transition hover:bg-[var(--indigo-ink)]">Download Backup</button>
-      <div><label className="block text-sm font-medium">Restore backup<input type="file" accept=".json,application/json" className="mt-2 block w-full text-sm" onChange={e=>restore(e.target.files?.[0])}/></label></div>
+      <div><label className="block text-sm font-medium">Restore backup<input type="file" accept=".json,application/json" className="mt-2 block w-full text-sm" onChange={e=>{ restore(e.target.files?.[0]); e.currentTarget.value = ''; }}/></label></div>
+      {backupStatus && <p role="status" aria-live="polite" className="text-sm text-[var(--text-2)]">{backupStatus}</p>}
     </div>
-    <div className="rounded-xl bg-amber-50 p-4 text-sm text-amber-900">Keep backup files secure. Restoring can overwrite existing records. This is local-device backup, not cloud synchronisation.</div>
+    <div className="rounded-xl border border-[var(--amber)]/30 bg-[var(--amber)]/10 p-4 text-sm text-[var(--text)]">Keep backup files secure. Store a copy outside this device. Restoring overwrites matching SmartLedger sections and does not provide cloud synchronisation.</div>
   </section>;
 }
