@@ -11,7 +11,7 @@ export default function Expenses() {
   const [search, setSearch] = useState('');
 
   useEffect(() => {
-    setItems(JSON.parse(localStorage.getItem('smartledger-pro-expenses') || '[]'));
+    try { const value = JSON.parse(localStorage.getItem('smartledger-pro-expenses') || '[]'); setItems(Array.isArray(value) ? value : []); } catch { setItems([]); }
   }, []);
 
   function save() {
