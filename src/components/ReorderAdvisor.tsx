@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { toNumber } from "../lib/businessCalculations";
 
 const read = (keys: string[]) => {
@@ -31,10 +31,10 @@ const dateOf = (obj: any) => {
 };
 
 export default function ReorderAdvisor() {
+  const [now] = useState(() => Date.now());
   const result = useMemo(() => {
     const products = read(["smartledger-products", "products"]);
     const bills = read(["smartledger-pro-sales", "smartledger-bills", "bills"]);
-    const now = Date.now();
     const cutoff = now - 30 * 86400000;
     const sold = new Map<string, number>();
     let undatedInvoices = 0;
