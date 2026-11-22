@@ -15,7 +15,7 @@ export default function Expenses() {
   }, []);
 
   function save() {
-    if (!date || !description.trim() || amount <= 0) return alert('Enter a date, description and valid amount.');
+    if (!date || !description.trim() || !Number.isFinite(amount) || amount <= 0) return alert('Enter a date, description and valid amount.');
     const next = [{ id: crypto.randomUUID(), date, category, description: description.trim(), amount }, ...items];
     setItems(next);
     localStorage.setItem('smartledger-pro-expenses', JSON.stringify(next));
