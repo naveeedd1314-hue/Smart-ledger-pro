@@ -25,3 +25,5 @@ jobs:
         run: npm ci
       - name: TypeScript and Vite production build
         run: npm run build
+      - name: ESLint code quality check
+        run: npm run lint
