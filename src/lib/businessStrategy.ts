@@ -56,8 +56,11 @@ export function calculateBusinessStrategy(): {
   lowMarginProducts: number;
   slowMovingProducts: number;
   negativeStockProducts: number;
+  targetMarginPercent: number;
   warnings: string[];
 } {
+  let targetMarginPercent = 3.5;
+  try { const settings = JSON.parse(localStorage.getItem("smartledger-pro-settings") || "{}"); const configured = Number(settings.targetMarginPercent); if (Number.isFinite(configured) && configured >= 0 && configured <= 100) targetMarginPercent = configured; } catch {}
   const rawProducts = readArray("smartledger-products");
   const bills = readArray("smartledger-pro-sales").concat(readArray("smartledger-bills").filter(old => !readArray("smartledger-pro-sales").some(current => current.invoice && current.invoice === old.invoice)));
   const salesByProduct = new Map<string, number>();
@@ -115,7 +118,7 @@ export function calculateBusinessStrategy(): {
     let status = "Normal";
     if (stock < 0) status = "Negative stock";
     else if (!cost) status = "Missing purchase cost";
-    else if (margin !== null && margin < 5) status = "Low margin";
+    else if (margin !== null && margin < targetMarginPercent) status = "Low margin";
     else if (stock > 0 && sold === 0) status = "No recorded sales";
     else if (days !== null && days > 60) status = "Slow-moving stock";
     else if (stock <= 5 && sold > 0) status = "Low stock";
@@ -140,9 +143,10 @@ export function calculateBusinessStrategy(): {
     products,
     totalStockInvestment: products.reduce((sum, p) => sum + p.stockValue, 0),
     productsMissingCost: products.filter(p => !p.cost).length,
-    lowMarginProducts: products.filter(p => p.margin !== null && p.margin < 5).length,
+    lowMarginProducts: products.filter(p => p.margin !== null && p.margin < targetMarginPercent).length,
     slowMovingProducts: products.filter(p => p.status === "Slow-moving stock" || p.status === "No recorded sales").length,
     negativeStockProducts: products.filter(p => p.stock < 0).length,
+    targetMarginPercent,
     warnings
   };
 }
@@ -162,7 +166,7 @@ export function generateStrategyRecommendations() {
       recommendation = "Record and verify the purchase cost before relying on profit figures.";
     } else if (product.status === "Low margin") {
       priority = "High";
-      recommendation = "Review supplier cost and selling price. Check competitor rates before changing prices.";
+      recommendation = `Review supplier cost and selling price. Current margin is below your ${result.targetMarginPercent.toFixed(2)}% minimum target. Check competitor rates before changing prices.`;
     } else if (product.status === "Low stock") {
       priority = "High";
       recommendation = "Review recent demand, pending orders and supplier availability before reordering.";
