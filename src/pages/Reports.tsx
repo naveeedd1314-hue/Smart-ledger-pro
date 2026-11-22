@@ -39,11 +39,13 @@ export default function Reports() {
   const expenseTotal = expenses.reduce((s,x)=>s+num(x.amount),0);
   const received = payments.filter(x=>x.type==='Customer Receipt').reduce((s,x)=>s+num(x.amount),0);
   const supplierPaid = payments.filter(x=>x.type==='Supplier Payment').reduce((s,x)=>s+num(x.amount),0);
+const customerRefunds = payments.filter(x=>x.type==='Customer Refund').reduce((s,x)=>s+num(x.amount),0);
+const supplierRefunds = payments.filter(x=>x.type==='Supplier Refund').reduce((s,x)=>s+num(x.amount),0);
   const salesPaid = sales.reduce((s,x)=>s+num(x.paid),0);
   const purchasePaid = purchases.reduce((s,x)=>s+num(x.paid),0);
-  const customerDue = Math.max(0, sales.reduce((s,x)=>s+(x.total !== undefined && x.total !== null ? Math.max(0,num(x.total)-num(x.paid)) : num(x.balance)),0) - received - salesReturnTotal);
-  const supplierDue = Math.max(0, purchases.reduce((s,x)=>s+(x.total !== undefined && x.total !== null ? Math.max(0,num(x.total)-num(x.paid)) : (x.amount !== undefined ? Math.max(0,num(x.amount)-num(x.paid)) : Math.max(0,num(x.qty)*num(x.rate)-num(x.paid)))),0) - supplierPaid - purchaseReturnTotal);
-  const netMovement = salesPaid + received - purchasePaid - supplierPaid - expenseTotal;
+  const customerDue = Math.max(0, sales.reduce((s,x)=>s+(x.total !== undefined && x.total !== null ? Math.max(0,num(x.total)-num(x.paid)) : num(x.balance)),0) + customerRefunds - received - salesReturnTotal);
+  const supplierDue = Math.max(0, purchases.reduce((s,x)=>s+(x.total !== undefined && x.total !== null ? Math.max(0,num(x.total)-num(x.paid)) : (x.amount !== undefined ? Math.max(0,num(x.amount)-num(x.paid)) : Math.max(0,num(x.qty)*num(x.rate)-num(x.paid)))),0) + supplierRefunds - supplierPaid - purchaseReturnTotal);
+  const netMovement = salesPaid + received + supplierRefunds - purchasePaid - supplierPaid - customerRefunds - expenseTotal;
   const money = (n:number)=>`₹${n.toLocaleString('en-IN',{maximumFractionDigits:2})}`;
 
 
