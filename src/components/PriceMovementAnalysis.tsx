@@ -1,4 +1,4 @@
-type RatePoint = { productId?: string | number; product?: string; productName?: string; rate: number; date: string; source: string; kind: 'Supplier purchase' | 'Market quotation' | 'Recorded selling rate' };
+type RatePoint = { productId?: string | number; product?: string; productName?: string; rate: number; date: string; source: string; kind: 'Supplier purchase' | 'Market quotation' | 'Recorded selling rate' | 'Purchase cost update' | 'Retail price update' };
 
 function read(key: string): any[] {
   try { const value = JSON.parse(localStorage.getItem(key) || '[]'); return Array.isArray(value) ? value : []; }
@@ -9,6 +9,13 @@ function buildSeries() {
   const products = read('smartledger-products');
   const productNames = new Map(products.map((p: any) => [String(p.id), String(p.name || p.productName || 'Product')]));
   const points: RatePoint[] = [];
+  read('smartledger-pro-price-history').forEach((change: any) => {
+    const rate = Number(change.newPrice);
+    const date = String(change.date || '');
+    if (!Number.isFinite(rate) || rate <= 0 || !date) return;
+    const field = change.field === 'purchase' ? 'Purchase cost update' : 'Retail price update';
+    points.push({ productId: change.productId, product: change.productName || 'Unknown product', rate, date, source: change.source || 'Manual price update', kind: field });
+  });
   read('smartledger-pro-sales').forEach((sale: any) => {
     const rate = Number(sale.rate);
     const date = String(sale.date || '');
