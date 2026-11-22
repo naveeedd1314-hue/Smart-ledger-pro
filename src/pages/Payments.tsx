@@ -52,7 +52,7 @@ export default function Payments() {
   const customerCredit = (name: string) => {
     const key = name.trim().toLowerCase();
     const opening = customers.filter(x => String(x.name || '').trim().toLowerCase() === key).reduce((sum, x) => sum + (Number(x.opening) || 0), 0);
-    const invoiceDue = salesInvoices.filter(x => String(x.customer || '').trim().toLowerCase() === key).reduce((sum, x) => sum + Math.max(0, (Number(x.total) || 0) - (Number(x.paid) || 0)), 0);
+    const invoiceDue = salesInvoices.filter(x => String(x.customer || '').trim().toLowerCase() === key).reduce((sum, x) => sum + (x.total !== undefined && x.total !== null && Number.isFinite(Number(x.total)) ? Math.max(0, Number(x.total) - (Number(x.paid) || 0)) : Math.max(0, Number(x.balance) || 0)), 0);
     const received = items.filter(x => x.type === 'Customer Receipt' && String(x.party || '').trim().toLowerCase() === key).reduce((sum, x) => sum + (Number(x.amount) || 0), 0);
     const refunded = items.filter(x => x.type === 'Customer Refund' && String(x.party || '').trim().toLowerCase() === key).reduce((sum, x) => sum + (Number(x.amount) || 0), 0);
     const returned = returns.filter(x => x.type === 'Sales Return' && String(x.party || '').trim().toLowerCase() === key).reduce((sum, x) => sum + (Number(x.totalAmount ?? x.amount) || 0), 0);
@@ -61,7 +61,7 @@ export default function Payments() {
   const supplierCredit = (name: string) => {
     const key = name.trim().toLowerCase();
     const opening = suppliers.filter(x => String(x.name || '').trim().toLowerCase() === key).reduce((sum, x) => sum + (Number(x.opening) || 0), 0);
-    const invoiceDue = purchaseInvoices.filter(x => String(x.supplier || '').trim().toLowerCase() === key).reduce((sum, x) => sum + Math.max(0, (Number(x.total) || 0) - (Number(x.paid) || 0)), 0);
+    const invoiceDue = purchaseInvoices.filter(x => String(x.supplier || '').trim().toLowerCase() === key).reduce((sum, x) => sum + (x.total !== undefined && x.total !== null && Number.isFinite(Number(x.total)) ? Math.max(0, Number(x.total) - (Number(x.paid) || 0)) : Math.max(0, Number(x.balance) || 0)), 0);
     const paid = items.filter(x => x.type === 'Supplier Payment' && String(x.party || '').trim().toLowerCase() === key).reduce((sum, x) => sum + (Number(x.amount) || 0), 0);
     const refunded = items.filter(x => x.type === 'Supplier Refund' && String(x.party || '').trim().toLowerCase() === key).reduce((sum, x) => sum + (Number(x.amount) || 0), 0);
     const returned = returns.filter(x => x.type === 'Purchase Return' && String(x.party || '').trim().toLowerCase() === key).reduce((sum, x) => sum + (Number(x.totalAmount ?? x.amount) || 0), 0);
