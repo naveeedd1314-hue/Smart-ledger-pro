@@ -1,6 +1,7 @@
 :root {
   color-scheme: light;
   --bg:#F5F7FB; --surface:#FFFFFF; --surface-2:#EDF1F7;
+  --card:var(--surface); --muted:var(--surface-2); --text-muted:var(--text-2);
   --border:#D5DCE8; --text:#0F172A; --text-2:#475569;
   --on-accent:#FFFFFF; --btn-top:#625BEA;
   --edge:rgba(255,255,255,.85);
@@ -18,6 +19,7 @@
 [data-theme="dark"] {
   color-scheme:dark;
   --bg:#0B1220; --surface:#111A2E; --surface-2:#18233A;
+  --card:var(--surface); --muted:var(--surface-2); --text-muted:var(--text-2);
   --border:#26324A; --text:#F1F5F9; --text-2:#A7B3C6;
   --on-accent:#0B1220; --btn-top:#9AA6FF;
   --edge:rgba(255,255,255,.07);
@@ -526,4 +528,63 @@ main .card [class*="font-bold"] {
 }
 @media (prefers-reduced-motion:reduce) {
   [data-sl-dashboard] * { transition:none !important; }
+}
+
+
+/* Dark-mode compatibility tokens for older analysis widgets */
+[data-theme="dark"] {
+  --card: var(--surface);
+  --muted: var(--surface-2);
+  --text-muted: var(--text-2);
+}
+
+/* Sidebar contrast, active state and mobile drawer behaviour */
+[data-sl-dashboard] > aside {
+  background: var(--surface);
+  color: var(--text);
+  border-right: 1px solid var(--border);
+  box-shadow: 12px 0 30px rgba(0,0,0,.08);
+}
+[data-sl-dashboard] > aside nav button {
+  color: var(--text-2);
+  background: transparent;
+  border: 1px solid transparent;
+  text-align: left;
+}
+[data-sl-dashboard] > aside nav button:hover {
+  color: var(--text);
+  background: var(--surface-2);
+  border-color: var(--border);
+}
+[data-sl-dashboard] > aside nav button[class*="bg-[var(--indigo-tint)]"] {
+  color: var(--indigo-ink);
+  background: var(--indigo-tint);
+  border-color: color-mix(in srgb,var(--indigo) 28%,var(--border));
+  box-shadow: inset 3px 0 0 var(--indigo), var(--shadow-1);
+}
+[data-theme="dark"] [data-sl-dashboard] > aside {
+  background: #101A2D;
+  border-color: #2A3852;
+  box-shadow: 12px 0 34px rgba(0,0,0,.34);
+}
+[data-theme="dark"] [data-sl-dashboard] > aside nav button {
+  color: #B8C4D8;
+}
+[data-theme="dark"] [data-sl-dashboard] > aside nav button:hover {
+  color: #F1F5F9;
+  background: #1B2942;
+  border-color: #34435F;
+}
+[data-theme="dark"] [data-sl-dashboard] > aside nav button[class*="bg-[var(--indigo-tint)]"] {
+  color: #C7D2FE;
+  background: rgba(99,102,241,.20);
+  border-color: rgba(129,140,248,.42);
+  box-shadow: inset 3px 0 0 #A5B4FC, 0 4px 14px rgba(0,0,0,.18);
+}
+[data-theme="dark"] [data-sl-dashboard] > aside nav p {
+  color: #8998B2;
+}
+[data-theme="dark"] [data-sl-dashboard] > aside h1,
+[data-theme="dark"] [data-sl-dashboard] > aside p {
+  color: inherit;
 }
