@@ -47,8 +47,10 @@ try {
   const taxableValue = qty * rate;
 const gstRate = applyGST ? Number(selected?.gstRate) || 0 : 0;
 const taxAmount = taxableValue * gstRate / 100;
-const sameState = placeOfSupply.trim().toLowerCase() === businessState.trim().toLowerCase();
-const isJammuKashmir = businessState.trim().toLowerCase().includes('jammu');
+const normalizeState = (value: string) => { const compact = value.trim().toLowerCase().replace(/[^a-z]/g, ''); return compact === 'jk' || compact === 'jammukashmir' ? 'jammuandkashmir' : compact; };
+  const normalizedBusinessState = normalizeState(businessState);
+  const sameState = normalizeState(placeOfSupply) === normalizedBusinessState;
+  const isJammuKashmir = normalizedBusinessState === 'jammuandkashmir';
 const cgst = applyGST && sameState ? taxAmount / 2 : 0;
 const sgst = applyGST && sameState && !isJammuKashmir ? taxAmount / 2 : 0;
 const utgst = applyGST && sameState && isJammuKashmir ? taxAmount / 2 : 0;
