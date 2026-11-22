@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { localDateISO } from '../lib/dateUtils';
 import { downloadInvoicePdf } from '../utils/invoicePdf';
 
 type Product = { id: string; name: string; purchase: number; selling: number; averageCost?: number | null; stock: number; sku?: string; category?: string; gstRate?: number; hsn?: string; };
@@ -14,7 +15,7 @@ export default function Purchases() {
   const [suppliersList,setSuppliersList] = useState<any[]>([]);
   const [supplier,setSupplier] = useState('');
   const [invoice,setInvoice] = useState('');
-  const [date,setDate] = useState(new Date().toISOString().slice(0,10));
+  const [date,setDate] = useState(localDateISO());
   const [productId,setProductId] = useState('');
   const [qty,setQty] = useState(1);
   const [rate,setRate] = useState(0);
