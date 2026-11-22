@@ -53,6 +53,19 @@ function analyse(){
  bills.forEach(b=>{const name=String(field(b,"customer","party")||"Walk-in Customer");const qty=n(field(b,"qty","quantity"));const rate=n(field(b,"rate","sellingPrice"));const revenue=field(b,"taxableValue")!==undefined?n(field(b,"taxableValue")):qty*rate;const rawCost=field(b,"purchasePrice");const hasCost=rawCost!==undefined&&rawCost!==null&&rawCost!==""&&Number.isFinite(Number(rawCost))&&Number(rawCost)>=0;const row=customerProfitMap.get(name)||{revenue:0,profit:0,invoices:0,missingCost:0};row.revenue+=revenue;row.invoices++;if(hasCost)row.profit+=revenue-qty*Number(rawCost);else row.missingCost++;customerProfitMap.set(name,row);});
  returns.filter(x=>x.type==="Sales Return").forEach(item=>{const name=String(field(item,"party")||"Walk-in Customer");const row=customerProfitMap.get(name)||{revenue:0,profit:0,invoices:0,missingCost:0};const rawCost=field(item,"purchasePrice");const hasCost=rawCost!==undefined&&rawCost!==null&&rawCost!==""&&Number.isFinite(Number(rawCost))&&Number(rawCost)>=0;row.revenue-=n(field(item,"amount"));if(hasCost)row.profit-=(n(field(item,"rate"))-Number(rawCost))*n(field(item,"qty","quantity"));else row.missingCost++;customerProfitMap.set(name,row);});
  const customerProfitRows=Array.from(customerProfitMap.entries()).map(([name,row])=>({name,...row})).sort((a,b)=>b.profit-a.profit);
+ const customerBalanceMap=new Map<string,{name:string;amount:number}>();
+ const supplierBalanceMap=new Map<string,{name:string;amount:number}>();
+ const addBalance=(map:Map<string,{name:string;amount:number}>,rawName:unknown,amount:number)=>{const name=String(rawName||"").trim();if(!name)return;const key=name.toLowerCase();const row=map.get(key)||{name,amount:0};row.amount+=amount;map.set(key,row);};
+ customers.forEach(x=>addBalance(customerBalanceMap,field(x,"name"),n(field(x,"opening","balance","outstanding","due"))));
+ bills.forEach(x=>addBalance(customerBalanceMap,field(x,"customer","party"),Math.max(0,n(field(x,"total","grandTotal"))-n(field(x,"paid")))));
+ payments.filter(x=>x.type==="Customer Receipt").forEach(x=>addBalance(customerBalanceMap,x.party,-n(field(x,"amount"))));
+ returns.filter(x=>x.type==="Sales Return").forEach(x=>addBalance(customerBalanceMap,x.party,-n(field(x,"totalAmount","amount"))));
+ suppliers.forEach(x=>addBalance(supplierBalanceMap,field(x,"name"),n(field(x,"opening","balance","outstanding","due"))));
+ purchases.forEach(x=>addBalance(supplierBalanceMap,field(x,"supplier"),Math.max(0,n(field(x,"total","grandTotal","amount"))-n(field(x,"paid")))));
+ payments.filter(x=>x.type==="Supplier Payment").forEach(x=>addBalance(supplierBalanceMap,x.party,-n(field(x,"amount"))));
+ returns.filter(x=>x.type==="Purchase Return").forEach(x=>addBalance(supplierBalanceMap,x.party,-n(field(x,"totalAmount","amount"))));
+ const customerDueRows=Array.from(customerBalanceMap.values()).map(x=>({...x,due:Math.max(0,x.amount)})).filter(x=>x.due>0).sort((a,b)=>b.due-a.due);
+ const supplierDueRows=Array.from(supplierBalanceMap.values()).map(x=>({...x,due:Math.max(0,x.amount)})).filter(x=>x.due>0).sort((a,b)=>b.due-a.due);
  const missingCostInvoices=invoiceProfit.filter(x=>!x.hasCost).length;
  const returnsMissingCost=returnProfit.filter(x=>!x.hasCost).length;
  const estimatedAfterExpenses=knownGrossProfit-expenseTotal;
@@ -67,7 +80,7 @@ function analyse(){
  const rateGroups=new Map<string,typeof rateRecords>();
  rateRecords.forEach(p=>{const key=p.kind+"|"+p.key;if(!rateGroups.has(key))rateGroups.set(key,[]);rateGroups.get(key)!.push(p);});
  const rateMovements=Array.from(rateGroups.values()).map(rows=>{const sorted=[...rows].sort((a,b)=>a.date.localeCompare(b.date)||String(a.sortAt||'').localeCompare(String(b.sortAt||'')));const previous=sorted.length>1?sorted[sorted.length-2]:null;const latest=sorted[sorted.length-1];return {...latest,previous:previous?.rate??null,change:previous?latest.rate-previous.rate:0,percent:previous&&previous.rate>0?(latest.rate-previous.rate)/previous.rate*100:null,observations:sorted.length};}).sort((a,b)=>b.date.localeCompare(a.date));
- return {products,bills,purchases,payments,expenses,customers,suppliers,productRows,known,low,negative,sales,expenseTotal,purchaseTotal,receivable,payable,stockValue,missingCost,marginAvg,rateMovements,knownGrossProfit,estimatedAfterExpenses,missingCostInvoices,returnsMissingCost,customerProfitRows};
+ return {products,bills,purchases,payments,expenses,customers,suppliers,productRows,known,low,negative,sales,expenseTotal,purchaseTotal,receivable,payable,stockValue,missingCost,marginAvg,rateMovements,knownGrossProfit,estimatedAfterExpenses,missingCostInvoices,returnsMissingCost,customerProfitRows,customerDueRows,supplierDueRows};
 }
 function answer(q:string,d:ReturnType<typeof analyse>){
  const s=q.toLowerCase();
@@ -85,6 +98,16 @@ function answer(q:string,d:ReturnType<typeof analyse>){
  }
  if(/stock|inventory|shortage|reorder|fast|slow/.test(s))
   return `Stock review: ${d.products.length} products recorded. ${d.low.length} products have stock of 5 units or less. ${d.negative.length} products show negative stock. Estimated stock value at recorded purchase cost: ${money(d.stockValue)}. Low-stock items: ${d.low.slice(0,8).map(p=>`${p.name} (${p.stock})`).join(", ")||"None detected"}.`;
+ if(/customer|party/.test(s)&&/(due|outstanding|owe|collect|balance)/.test(s)){
+  const matched=d.customerDueRows.find((x:any)=>s.includes(x.name.toLowerCase()));
+  if(matched)return `${matched.name} outstanding balance: ${money(matched.due)} after recorded receipts and sales returns.`;
+  return `Customers with highest outstanding balances:\\n${d.customerDueRows.slice(0,10).map((x:any,i:number)=>`${i+1}. ${x.name}: ${money(x.due)}`).join("\\n")||"No customer outstanding balances found."}`;
+ }
+ if(/supplier|vendor/.test(s)&&/(due|outstanding|owe|pay|balance)/.test(s)){
+  const matched=d.supplierDueRows.find((x:any)=>s.includes(x.name.toLowerCase()));
+  if(matched)return `${matched.name} payable balance: ${money(matched.due)} after recorded supplier payments and purchase returns.`;
+  return `Suppliers with highest outstanding balances:\\n${d.supplierDueRows.slice(0,10).map((x:any,i:number)=>`${i+1}. ${x.name}: ${money(x.due)}`).join("\\n")||"No supplier outstanding balances found."}`;
+ }
  if(/customer|party/.test(s)&&/profit|margin|loss|munafa|nuksan/.test(s)){
   const matched=d.customerProfitRows.find((x:any)=>s.includes(x.name.toLowerCase()));
   if(matched)return `${matched.name} profit review — Sales revenue after sales returns (taxable basis): ${money(matched.revenue)}; known gross profit after costed returns: ${money(matched.profit)}; invoices: ${matched.invoices}; missing cost records: ${matched.missingCost}. Expenses are not allocated to individual customers.`;
