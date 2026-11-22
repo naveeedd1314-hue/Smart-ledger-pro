@@ -86,8 +86,8 @@ function getDashboardMetrics() {
   const purchaseReturnCredit = sum(returns.filter(x => x.type === 'Purchase Return').map(x => ({ amount: Number(x.totalAmount ?? x.amount) || 0 })), 'amount')
 
   return [
-    { label: 'Total Sales', value: money(sum(sales, 'total')), change: 'Sales revenue', icon: ShoppingCart },
-    { label: 'Total Purchases', value: money(sum(purchases, 'total')), change: 'Purchase value', icon: ShoppingBag },
+    { label: 'Net Sales', value: money(Math.max(0, sum(sales, 'total') - salesReturnCredit)), change: 'Invoice value after sales returns', icon: ShoppingCart },
+    { label: 'Net Purchases', value: money(Math.max(0, sum(purchases, 'total') - purchaseReturnCredit)), change: 'Invoice value after purchase returns', icon: ShoppingBag },
     { label: 'To Collect', value: money(Math.max(0, sum(customers, 'opening') + salesDue - collected - salesReturnCredit)), change: 'Customer receivables', icon: ArrowDownRight },
     { label: 'To Pay', value: money(Math.max(0, sum(suppliers, 'opening') + purchaseDue - supplierPaid - purchaseReturnCredit)), change: 'Supplier payables', icon: ArrowUpRight },
   ]
