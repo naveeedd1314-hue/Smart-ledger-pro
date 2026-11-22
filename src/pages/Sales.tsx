@@ -19,16 +19,16 @@ const readBusinessState = () => {
 export default function Sales() {
   const [products, setProducts] = useState<Product[]>(() => readArray<Product>('smartledger-products'));
   const [sales, setSales] = useState<Sale[]>(() => readArray<Sale>('smartledger-pro-sales'));
-  const [payments, setPayments] = useState<any[]>(() => readArray<any>('smartledger-pro-payments'));
-  const [returns, setReturns] = useState<any[]>(() => readArray<any>('smartledger-pro-returns'));
-  const [customers, setCustomers] = useState<any[]>(() => readArray<any>('smartledger-pro-customers'));
+  const [payments] = useState<any[]>(() => readArray<any>('smartledger-pro-payments'));
+  const [returns] = useState<any[]>(() => readArray<any>('smartledger-pro-returns'));
+  const [customers] = useState<any[]>(() => readArray<any>('smartledger-pro-customers'));
   const [customer, setCustomer] = useState('Walk-in Customer');
   const [productId, setProductId] = useState('');
   const [qty, setQty] = useState(1);
   const [rate, setRate] = useState(0);
   const [paid, setPaid] = useState(0);
   const [applyGST, setApplyGST] = useState(false);
-  const [businessState, setBusinessState] = useState(readBusinessState);
+  const [businessState] = useState(readBusinessState);
   const [placeOfSupply, setPlaceOfSupply] = useState(readBusinessState);
 
   const selected = products.find(p => p.id === productId);
