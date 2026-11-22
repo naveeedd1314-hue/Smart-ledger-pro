@@ -102,7 +102,7 @@ export default function Sales() {
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="text-sm">Customer name<input className="mt-1 w-full rounded-lg border p-3" value={customer} onChange={e => setCustomer(e.target.value)} /></label>
         <label className="text-sm">Product<select className="mt-1 w-full rounded-lg border p-3" value={productId} onChange={e => { const p = products.find(x => x.id === e.target.value); setProductId(e.target.value); setRate(p?.selling || 0); }}><option value="">Select product</option>{products.map(p => <option key={p.id} value={p.id}>{p.name} — Stock: {p.stock}</option>)}</select></label>
-        <label className="text-sm">Quantity<input type="number" min="1" className="mt-1 w-full rounded-lg border p-3" value={qty} onChange={e => setQty(Number(e.target.value))} /></label>
+        <label className="text-sm">Quantity<input type="number" min="0.01" step="any" className="mt-1 w-full rounded-lg border p-3" value={qty} onChange={e => setQty(Number(e.target.value))} /></label>
         <label className="text-sm">Selling rate<input type="number" min="0" className="mt-1 w-full rounded-lg border p-3" value={rate} onChange={e => setRate(Number(e.target.value))} /></label>
         <label className="text-sm">Amount received<input type="number" min="0" className="mt-1 w-full rounded-lg border p-3" value={paid} onChange={e => setPaid(Number(e.target.value))} /></label>
         <label className="flex items-center gap-2 text-sm">
