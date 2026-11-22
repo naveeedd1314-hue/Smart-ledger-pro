@@ -176,16 +176,16 @@ export function validateBusinessRecords() {
   payments.forEach((payment: any, i: number) => {
     const amount = Number(payment.amount);
     if (!Number.isFinite(amount) || amount <= 0) warnings.push("Payment " + (i + 1) + ": amount missing or invalid.");
-    if (!["Customer Receipt", "Supplier Payment"].includes(String(payment.type))) warnings.push("Payment " + (i + 1) + ": transaction type is invalid.");
+    if (!["Customer Receipt", "Supplier Payment", "Customer Refund", "Supplier Refund"].includes(String(payment.type))) warnings.push("Payment " + (i + 1) + ": transaction type is invalid.");
     if (Array.isArray(payment.allocations)) {
       const allocated = payment.allocations.reduce((sum: number, item: any) => sum + (Number(item.amount) || 0), 0);
       if (payment.allocations.some((item: any) => !item.invoiceId || !Number.isFinite(Number(item.amount)) || Number(item.amount) <= 0)) warnings.push("Payment " + (i + 1) + ": an invoice allocation is missing its invoice link or has an invalid amount.");
       if (allocated > amount + 0.01) warnings.push("Payment " + (i + 1) + ": allocated amount exceeds the payment total.");
-      const invoiceIds = payment.type === "Customer Receipt" ? salesIds : purchaseIds;
+      const invoiceIds = payment.type === "Customer Receipt" ? salesIds : payment.type === "Supplier Payment" ? purchaseIds : new Set<string>();
       payment.allocations.forEach((item: any) => {
         if (item.invoiceId && !invoiceIds.has(String(item.invoiceId))) warnings.push("Payment " + (i + 1) + ": allocation points to an invoice that cannot be found.");
-        const target = payment.type === "Customer Receipt" ? sales.find((invoice: any) => String(invoice.id) === String(item.invoiceId)) : purchases.find((invoice: any) => String(invoice.id) === String(item.invoiceId));
-        const targetParty = payment.type === "Customer Receipt" ? target?.customer : target?.supplier;
+        const target = payment.type === "Customer Receipt" ? sales.find((invoice: any) => String(invoice.id) === String(item.invoiceId)) : payment.type === "Supplier Payment" ? purchases.find((invoice: any) => String(invoice.id) === String(item.invoiceId)) : undefined;
+        const targetParty = payment.type === "Customer Receipt" ? target?.customer : payment.type === "Supplier Payment" ? target?.supplier : undefined;
         if (targetParty && String(targetParty).trim().toLowerCase() !== String(payment.party || "").trim().toLowerCase()) warnings.push("Payment " + (i + 1) + ": allocated invoice belongs to a different party.");
         if (target && Number.isFinite(Number(target.total))) {
           const totalAllocated = payments.filter((record: any) => record.type === payment.type).reduce((sum: number, record: any) => sum + (Array.isArray(record.allocations) ? record.allocations.filter((allocation: any) => String(allocation.invoiceId) === String(item.invoiceId)).reduce((part: number, allocation: any) => part + (Number(allocation.amount) || 0), 0) : 0), 0);
