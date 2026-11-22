@@ -11,6 +11,7 @@ type ReturnItem = {
   qty: number;
   rate: number;
   amount: number;
+  purchasePrice?: number;
   date: string;
   reason: string;
 };
@@ -85,6 +86,7 @@ export default function Returns() {
       qty,
       rate,
       amount,
+      purchasePrice: type === 'Sales Return' ? Number(source.purchasePrice ?? product.purchase) || 0 : undefined,
       date,
       reason
     };
