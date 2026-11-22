@@ -21,6 +21,7 @@ function analyse(){
  const purchases=read("smartledger-pro-purchases");
  const payments=read("smartledger-pro-payments");
  const expenses=read("smartledger-pro-expenses");
+ const returns=read("smartledger-pro-returns");
  const customers=read("smartledger-pro-customers");
  const suppliers=read("smartledger-pro-suppliers");
  const stockValue= sum(products.map(p=>n(field(p,"stock","quantity","qty"))*n(field(p,"purchase","purchasePrice","cost"))));
@@ -43,6 +44,12 @@ function analyse(){
  const payable=Math.max(0,sum(suppliers.map(s=>n(field(s,"opening","balance","outstanding","closingBalance","due"))))+sum(purchases.map(p=>n(field(p,"balance"))))-supplierPaid);
  const missingCost=productRows.filter(p=>p.retail>0&&p.cost<=0);
  const marginAvg=known.length?sum(known.map(p=>p.margin))/known.length:0;
+ const invoiceProfit=bills.map(b=>{const qty=n(field(b,"qty","quantity"));const rate=n(field(b,"rate","sellingPrice"));const revenue=field(b,"taxableValue")!==undefined?n(field(b,"taxableValue")):qty*rate;const rawCost=field(b,"purchasePrice");const hasCost=rawCost!==undefined&&rawCost!==null&&rawCost!==""&&Number.isFinite(Number(rawCost))&&Number(rawCost)>=0;return {profit:revenue-(hasCost?qty*Number(rawCost):0),hasCost};});
+ const returnProfit=returns.filter(x=>x.type==="Sales Return").map(x=>{const rawCost=field(x,"purchasePrice");const hasCost=rawCost!==undefined&&rawCost!==null&&rawCost!==""&&Number.isFinite(Number(rawCost))&&Number(rawCost)>=0;return {profit:(n(field(x,"rate"))-Number(rawCost||0))*n(field(x,"qty","quantity")),hasCost};});
+ const knownGrossProfit=sum(invoiceProfit.filter(x=>x.hasCost).map(x=>x.profit))-sum(returnProfit.filter(x=>x.hasCost).map(x=>x.profit));
+ const missingCostInvoices=invoiceProfit.filter(x=>!x.hasCost).length;
+ const returnsMissingCost=returnProfit.filter(x=>!x.hasCost).length;
+ const estimatedAfterExpenses=knownGrossProfit-expenseTotal;
  const marketQuotes=read("smartledger-market-quotes");
  const rateRecords=[
   ...purchases.filter(p=>n(field(p,"rate","purchaseRate"))>0&&field(p,"date")).map(p=>({key:String(field(p,"productId","product")||field(p,"productName","product")||"unknown"),name:String(field(p,"product","productName")||"Unknown product"),rate:n(field(p,"rate","purchaseRate")),date:String(p.date).slice(0,10),source:String(field(p,"supplier")||"Supplier"),kind:"Supplier purchase"})),
@@ -51,7 +58,7 @@ function analyse(){
  const rateGroups=new Map<string,typeof rateRecords>();
  rateRecords.forEach(p=>{const key=p.kind+"|"+p.key;if(!rateGroups.has(key))rateGroups.set(key,[]);rateGroups.get(key)!.push(p);});
  const rateMovements=Array.from(rateGroups.values()).map(rows=>{const sorted=[...rows].sort((a,b)=>a.date.localeCompare(b.date));const previous=sorted.length>1?sorted[sorted.length-2]:null;const latest=sorted[sorted.length-1];return {...latest,previous:previous?.rate??null,change:previous?latest.rate-previous.rate:0,percent:previous&&previous.rate>0?(latest.rate-previous.rate)/previous.rate*100:null,observations:sorted.length};}).sort((a,b)=>b.date.localeCompare(a.date));
- return {products,bills,purchases,payments,expenses,customers,suppliers,productRows,known,low,negative,sales,expenseTotal,purchaseTotal,receivable,payable,stockValue,missingCost,marginAvg,rateMovements};
+ return {products,bills,purchases,payments,expenses,customers,suppliers,productRows,known,low,negative,sales,expenseTotal,purchaseTotal,receivable,payable,stockValue,missingCost,marginAvg,rateMovements,knownGrossProfit,estimatedAfterExpenses,missingCostInvoices,returnsMissingCost};
 }
 function answer(q:string,d:ReturnType<typeof analyse>){
  const s=q.toLowerCase();
@@ -63,7 +70,7 @@ function answer(q:string,d:ReturnType<typeof analyse>){
  if(/stock|inventory|shortage|reorder|fast|slow/.test(s))
   return `Stock review: ${d.products.length} products recorded. ${d.low.length} products have stock of 5 units or less. ${d.negative.length} products show negative stock. Estimated stock value at recorded purchase cost: ${money(d.stockValue)}. Low-stock items: ${d.low.slice(0,8).map(p=>`${p.name} (${p.stock})`).join(", ")||"None detected"}.`;
  if(/profit|margin|loss|munafa|nuksan/.test(s))
-  return `Recorded sales total: ${money(d.sales)}. Recorded expenses: ${money(d.expenseTotal)}. Average listed product margin: ${d.marginAvg.toFixed(2)}%. ${d.missingCost.length} products lack a recorded purchase cost. This is not yet a verified net-profit figure: invoice-level cost of goods sold and expense-period matching must be checked before declaring actual profit.`;
+  return `Recorded taxable sales: ${money(d.sales)}. Known gross profit from invoices with saved item costs, less costed sales returns: ${money(d.knownGrossProfit)}. Recorded expenses: ${money(d.expenseTotal)}. Estimated profit after expenses on costed invoices only: ${money(d.estimatedAfterExpenses)}. Missing cost snapshots: ${d.missingCostInvoices} sales invoices and ${d.returnsMissingCost} sales returns. Average listed product margin: ${d.marginAvg.toFixed(2)}%. This is an incomplete estimate, not a finalized P&L; missing costs, opening stock, overhead timing and tax treatment must be reconciled.`;
  if(/customer|collect|receivable|udhaar/.test(s))
   return `Recorded customer receivables: ${money(d.receivable)} across ${d.customers.length} customer records.`;
  if(/supplier|payable|pay|due/.test(s))
@@ -95,7 +102,7 @@ export default function BusinessAI(){
    <div style={{padding:14,overflowY:"auto",fontSize:13}}>
     <strong>Automatic business review</strong>
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,margin:"10px 0"}}>
-     {[["Sales",money(data.sales)],["Purchases",money(data.purchaseTotal)],["Expenses",money(data.expenseTotal)],["Stock value",money(data.stockValue)],["To collect",money(data.receivable)],["To pay",money(data.payable)]].map(([k,v])=><div key={k} style={{background:"var(--sl-surface-muted,#f1f0ea)",padding:10,borderRadius:12}}><div style={{color:"var(--text-2, #475569)",fontSize:11}}>{k}</div><strong>{v}</strong></div>)}
+     {[["Sales",money(data.sales)],["Purchases",money(data.purchaseTotal)],["Gross profit (known)",money(data.knownGrossProfit)],["After expenses (estimate)",money(data.estimatedAfterExpenses)],["Expenses",money(data.expenseTotal)],["Stock value",money(data.stockValue)],["To collect",money(data.receivable)],["To pay",money(data.payable)]].map(([k,v])=><div key={k} style={{background:"var(--sl-surface-muted,#f1f0ea)",padding:10,borderRadius:12}}><div style={{color:"var(--text-2, #475569)",fontSize:11}}>{k}</div><strong>{v}</strong></div>)}
     </div>
     <strong>Detected points</strong>
     {insights.map((x,i)=><p key={i} style={{margin:"7px 0",padding:"8px 10px",background:"var(--sl-surface-muted,#f1f0ea)",borderRadius:10}}>{x}</p>)}
