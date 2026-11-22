@@ -7,6 +7,7 @@ type Sale = { id: string; productId?: string; invoice: string; date: string; cus
 export default function Sales() {
   const [products, setProducts] = useState<Product[]>([]);
   const [sales, setSales] = useState<Sale[]>([]);
+  const [payments, setPayments] = useState<any[]>([]);
   const [customer, setCustomer] = useState('Walk-in Customer');
   const [productId, setProductId] = useState('');
   const [qty, setQty] = useState(1);
@@ -19,6 +20,7 @@ export default function Sales() {
   useEffect(() => {
     setProducts(JSON.parse(localStorage.getItem('smartledger-products') || '[]'));
     setSales(JSON.parse(localStorage.getItem('smartledger-pro-sales') || '[]'));
+    try { const savedPayments = JSON.parse(localStorage.getItem('smartledger-pro-payments') || '[]'); setPayments(Array.isArray(savedPayments) ? savedPayments : []); } catch { setPayments([]); }
     try {
       const settings = JSON.parse(localStorage.getItem('smartledger-pro-settings') || '{}');
       const state = settings.state || 'Jammu and Kashmir';
@@ -68,6 +70,9 @@ export default function Sales() {
       customerAddress: customerDetails.address || ''
     };
     const updatedProducts = products.map(p => p.id === selected.id ? { ...p, stock: p.stock - qty } : p);
+    const stockLog = (() => { try { const saved = JSON.parse(localStorage.getItem('smartledger-pro-stock-adjustments') || '[]'); return Array.isArray(saved) ? saved : []; } catch { return []; } })();
+    stockLog.unshift({ id: crypto.randomUUID(), date: sale.date, productId: selected.id, product: selected.name, change: -qty, movement: 'Stock Out', stockAfter: selected.stock - qty, reason: `Sales invoice ${sale.invoice}` });
+    localStorage.setItem('smartledger-pro-stock-adjustments', JSON.stringify(stockLog));
     const updatedSales = [sale, ...sales];
     localStorage.setItem('smartledger-products', JSON.stringify(updatedProducts));
     localStorage.setItem('smartledger-pro-sales', JSON.stringify(updatedSales));
@@ -80,14 +85,17 @@ export default function Sales() {
     setPaid(0);
   }
 
+  const allocatedReceipts = payments.filter(p => p.type === 'Customer Receipt').reduce((sum, p) => sum + (Array.isArray(p.allocations) ? p.allocations.reduce((part: number, a: any) => part + (Number(a.amount) || 0), 0) : 0), 0);
+  const totalReceipts = payments.filter(p => p.type === 'Customer Receipt').reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+  const invoiceDue = (sale: Sale) => Math.max(0, Number(sale.balance) - payments.filter(p => p.type === 'Customer Receipt').reduce((sum, p) => sum + (Array.isArray(p.allocations) ? p.allocations.filter((a: any) => String(a.invoiceId) === String(sale.id)).reduce((part: number, a: any) => part + (Number(a.amount) || 0), 0) : 0), 0));
   const money = (n: number) => `₹${n.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
 
   return <section className="space-y-6">
     <div><h1 className="text-2xl font-bold">Sales & Invoices</h1><p className="text-sm text-[var(--text-2)]">Create sales invoices and track customer balances.</p></div>
     <div className="grid gap-3 sm:grid-cols-3">
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">Total Sales</p><strong className="text-xl">{money(sales.reduce((s, x) => s + x.total, 0))}</strong></div>
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">Received</p><strong className="text-xl">{money(sales.reduce((s, x) => s + x.paid, 0))}</strong></div>
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">To Collect</p><strong className="text-xl">{money(sales.reduce((s, x) => s + x.balance, 0))}</strong></div>
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">Received</p><strong className="text-xl">{money(sales.reduce((sum, x) => sum + x.paid, 0) + totalReceipts)}</strong></div>
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">To Collect</p><strong className="text-xl">{money(Math.max(0, sales.reduce((sum, x) => sum + x.balance, 0) - totalReceipts))}</strong></div>
     </div>
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm space-y-4">
       <h2 className="font-semibold text-lg">New Sales Invoice</h2>
@@ -125,7 +133,7 @@ export default function Sales() {
       <h2 className="mb-4 font-semibold text-lg">Recent Sales</h2>
       <div className="overflow-x-auto"><table className="w-full text-left text-sm">
         <thead><tr className="border-b text-[var(--text-2)]"><th className="p-2">Invoice</th><th className="p-2">Date</th><th className="p-2">Customer</th><th className="p-2">Product</th><th className="p-2">Total</th><th className="p-2">Paid</th><th className="p-2">Due</th><th className="p-2">PDF</th></tr></thead>
-        <tbody>{sales.map(s => <tr key={s.id} className="border-b border-[#eee9dd] hover:bg-[var(--surface-2)]"><td className="p-2">{s.invoice}</td><td className="p-2">{s.date}</td><td className="p-2">{s.customer}</td><td className="p-2">{s.product} × {s.qty}</td><td className="p-2">{money(s.total)}</td><td className="p-2">{money(s.paid)}</td><td className="p-2">{money(s.balance)}</td><td className="p-2"><button onClick={() => { let b = {}; try { b = JSON.parse(localStorage.getItem('smartledger-pro-settings') || '{}'); } catch {} downloadInvoicePdf(s, b, 'sales'); }} className="rounded sl-primary px-3 py-2 text-white">Download PDF</button></td></tr>)}</tbody>
+        <tbody>{sales.map(s => <tr key={s.id} className="border-b border-[#eee9dd] hover:bg-[var(--surface-2)]"><td className="p-2">{s.invoice}</td><td className="p-2">{s.date}</td><td className="p-2">{s.customer}</td><td className="p-2">{s.product} × {s.qty}</td><td className="p-2">{money(s.total)}</td><td className="p-2">{money(s.total - invoiceDue(s))}</td><td className="p-2">{money(invoiceDue(s))}</td><td className="p-2"><button onClick={() => { let b = {}; try { b = JSON.parse(localStorage.getItem('smartledger-pro-settings') || '{}'); } catch {} downloadInvoicePdf(s, b, 'sales'); }} className="rounded sl-primary px-3 py-2 text-white">Download PDF</button></td></tr>)}</tbody>
       </table></div>
       {sales.length === 0 && <p className="py-6 text-center text-[var(--text-2)]">No sales invoices yet.</p>}
     </div>
