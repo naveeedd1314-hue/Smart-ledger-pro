@@ -40,8 +40,8 @@ export default function Reports() {
   const supplierPaid = payments.filter(x=>x.type==='Supplier Payment').reduce((s,x)=>s+num(x.amount),0);
   const salesPaid = sales.reduce((s,x)=>s+num(x.paid),0);
   const purchasePaid = purchases.reduce((s,x)=>s+num(x.paid),0);
-  const customerDue = Math.max(0, sales.reduce((s,x)=>s+num(x.balance),0) - received - salesReturnTotal);
-  const supplierDue = Math.max(0, purchases.reduce((s,x)=>s+(num(x.balance) || Math.max(0,num(x.total || x.amount || num(x.qty)*num(x.rate))-num(x.paid))),0) - supplierPaid - purchaseReturnTotal);
+  const customerDue = Math.max(0, sales.reduce((s,x)=>s+(x.balance !== undefined && x.balance !== null ? num(x.balance) : Math.max(0,num(x.total)-num(x.paid))),0) - received - salesReturnTotal);
+  const supplierDue = Math.max(0, purchases.reduce((s,x)=>s+(x.balance !== undefined && x.balance !== null ? num(x.balance) : Math.max(0,num(x.total || x.amount || num(x.qty)*num(x.rate))-num(x.paid))),0) - supplierPaid - purchaseReturnTotal);
   const netMovement = salesPaid + received - purchasePaid - supplierPaid - expenseTotal;
   const money = (n:number)=>`₹${n.toLocaleString('en-IN',{maximumFractionDigits:2})}`;
 
