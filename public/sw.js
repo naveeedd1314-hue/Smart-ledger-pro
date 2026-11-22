@@ -13,7 +13,7 @@ self.addEventListener('install', event => {
         const index = await cache.match(`${appRoot()}index.html`);
         if (index) {
           const html = await index.text();
-          const assets = Array.from(html.matchAll(/(?:src|href)="([^"]*\/assets\/[^"]+)"/g), match => new URL(match[1], self.location.origin).href);
+          const assets = Array.from(html.matchAll(/(?:src|href)="([^"]*\/assets\/[^"]+)"/g), match => new URL(match[1], new URL('./', self.registration.scope)).href);
           if (assets.length) await cache.addAll(assets);
         }
       })
