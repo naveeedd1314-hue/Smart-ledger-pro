@@ -7,6 +7,7 @@ export type StrategyProduct = {
   quantity?: number | string;
   qty?: number | string;
   purchase?: number | string;
+  averageCost?: number | string | null;
   purchasePrice?: number | string;
   costPrice?: number | string;
   price?: number | string;
