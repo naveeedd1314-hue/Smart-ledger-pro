@@ -104,7 +104,7 @@ const total = taxableValue + taxAmount;
   }
 
   return <section className="space-y-5">
-    <div><h1 className="text-2xl font-bold">Purchases</h1><p className="text-sm text-[var(--text-2)]">Supplier invoices, stock inward and payments.</p></div>
+    <div><h1 className="text-2xl font-bold">Purchases</h1><p className="text-sm text-[var(--text-2)]">Supplier invoices, stock inward and payments. Each purchase recalculates weighted average cost while retaining the latest purchase rate.</p></div>
     <div className="grid gap-3 sm:grid-cols-3">
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">Purchase Value</p><strong className="text-xl">{money(items.reduce((s,x)=>s+x.total,0))}</strong></div>
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">Paid</p><strong className="text-xl">{money(items.reduce((sum,x)=>sum+x.paid,0)+totalPayments)}</strong></div>
