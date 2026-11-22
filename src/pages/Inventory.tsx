@@ -221,7 +221,12 @@ export default function Inventory() {
   }).sort((a, b) => b.date.localeCompare(a.date))
 
   function addProduct() {
-    if (!name.trim() || Number(selling) <= 0 || Number(purchase) < 0 || Number(qty) < 0) {
+    const purchaseValue = Number(purchase);
+    const sellingValue = Number(selling);
+    const wholesaleValue = Number(wholesale || 0);
+    const stockValue = Number(qty);
+    const gstValue = Number(gstRate);
+    if (!name.trim() || !Number.isFinite(sellingValue) || sellingValue <= 0 || !Number.isFinite(purchaseValue) || purchaseValue < 0 || !Number.isFinite(wholesaleValue) || wholesaleValue < 0 || !Number.isFinite(stockValue) || stockValue < 0 || !Number.isFinite(gstValue) || gstValue < 0 || gstValue > 100) {
       alert('Enter a product name, valid prices and opening stock.')
       return
     }
@@ -276,7 +281,7 @@ export default function Inventory() {
       alert('Select a product and enter a non-zero stock change.')
       return
     }
-    if (Number(product.stock) + change < 0) {
+    if (!Number.isFinite(Number(product.stock)) || Number(product.stock) + change < 0) {
       alert('Stock cannot become negative.')
       return
     }
