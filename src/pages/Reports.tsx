@@ -27,14 +27,15 @@ export default function Reports() {
 
   const num = (v: unknown) => Number(v) || 0;
   const salesTotal = sales.reduce((s,x)=>s+(x.taxableValue !== undefined && x.taxableValue !== null ? num(x.taxableValue) : (num(x.qty)*num(x.rate) || num(x.total))),0);
-  const purchaseTotal = purchases.reduce((s,x)=>s+(num(x.total || x.amount) || num(x.qty)*num(x.rate)),0);
+  const purchaseTotal = purchases.reduce((s,x)=>s+(x.taxableValue !== undefined && x.taxableValue !== null ? num(x.taxableValue) : (num(x.qty)*num(x.rate) || num(x.total || x.amount))),0);
   const salesReturns = returns.filter(x=>x.type==='Sales Return');
   const purchaseReturns = returns.filter(x=>x.type==='Purchase Return');
   const salesReturnTotal = salesReturns.reduce((s,x)=>s+num(x.totalAmount ?? x.amount),0);
   const salesReturnRevenue = salesReturns.reduce((s,x)=>s+num(x.amount),0);
   const purchaseReturnTotal = purchaseReturns.reduce((s,x)=>s+num(x.totalAmount ?? x.amount),0);
+  const purchaseReturnValue = purchaseReturns.reduce((s,x)=>s+num(x.amount),0);
   const netSales = Math.max(0,salesTotal-salesReturnRevenue);
-  const netPurchases = Math.max(0,purchaseTotal-purchaseReturnTotal);
+  const netPurchases = Math.max(0,purchaseTotal-purchaseReturnValue);
   const expenseTotal = expenses.reduce((s,x)=>s+num(x.amount),0);
   const received = payments.filter(x=>x.type==='Customer Receipt').reduce((s,x)=>s+num(x.amount),0);
   const supplierPaid = payments.filter(x=>x.type==='Supplier Payment').reduce((s,x)=>s+num(x.amount),0);
