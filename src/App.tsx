@@ -25,7 +25,7 @@ import {
   Users, Truck, Wallet, ChartNoAxesCombined, FileText,
   Settings, Bell, Search, Menu, Plus, ArrowUpRight,
   ArrowDownRight, Boxes, CreditCard,
-  Receipt, ChevronDown, BookOpen, Sun, Moon
+  Receipt, ChevronDown, BookOpen, Sun, Moon, X
 } from 'lucide-react'
 
 const navigation = [
@@ -148,15 +148,16 @@ function App() {
 
 
       <aside className={`${menuOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-[var(--border)] bg-[var(--surface)] text-[var(--text)] transition-transform md:translate-x-0`}>
-        <div className="flex h-20 items-center gap-3 border-b border-[var(--border)] px-6">
+        <div className="flex h-20 shrink-0 items-center gap-3 border-b border-[var(--border)] px-5">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--indigo-tint)] text-xl font-black text-[var(--indigo-ink)]">S</div>
           <div>
             <h1 className="text-lg font-bold tracking-wide"><PremiumIcon name="dashboard" tone="emerald" size={38} />SmartLedger</h1>
             <p className="text-[10px] uppercase tracking-[3px] text-[var(--text-2)]">PRO BUSINESS ERP</p>
           </div>
+          <button type="button" aria-label="Close navigation menu" onClick={() => setMenuOpen(false)} className="ml-auto rounded-lg p-2 text-[var(--text-2)] hover:bg-[var(--surface-2)] hover:text-[var(--text)] md:hidden"><X size={19}/></button>
         </div>
 
-        <nav className="flex-1 space-y-7 overflow-y-auto px-4 py-7">
+        <nav aria-label="Main navigation" className="min-h-0 flex-1 space-y-6 overflow-y-auto overscroll-contain px-3 py-5">
           {navigation.map(group => (
             <div key={group.title}>
               <p className="mb-3 px-3 text-[10px] font-bold tracking-[2px] text-[var(--text-2)]">{group.title}</p>
@@ -165,7 +166,7 @@ function App() {
                   const Icon = item.icon
                   return (
                     <button key={item.name} onClick={() => { setActive(item.name); setMenuOpen(false) }}
-                      className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm transition ${active === item.name ? 'bg-[var(--indigo-tint)] font-semibold text-[var(--indigo-ink)]' : 'text-[var(--text-2)] hover:bg-[var(--surface)]/10'}`}>
+                      className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm transition ${active === item.name ? 'border-[var(--indigo)]/20 bg-[var(--indigo-tint)] font-semibold text-[var(--indigo-ink)] shadow-sm' : 'border-transparent text-[var(--text-2)] hover:border-[var(--border)] hover:bg-[var(--surface-2)] hover:text-[var(--text)]'}`}>
                       <Icon size={18} /> {item.name}
                     </button>
                   )
@@ -183,7 +184,7 @@ function App() {
       <main className="min-h-screen md:ml-64">
         <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-[var(--border)] bg-[var(--bg)]/95 px-4 backdrop-blur md:px-8">
           <div className="flex items-center gap-3">
-            <button className="md:hidden" onClick={() => setMenuOpen(!menuOpen)}><Menu /></button>
+            <button type="button" aria-label="Open navigation menu" aria-expanded={menuOpen} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2 text-[var(--text)] md:hidden" onClick={() => setMenuOpen(!menuOpen)}><Menu size={20}/></button>
             <div>
               <p className="text-xs text-[var(--text-2)]">Business management / {active}</p>
               <h2 className="text-lg font-bold">{active}</h2>
@@ -302,7 +303,7 @@ function App() {
         </div>
         )}
       </main>
-      {menuOpen && <button aria-label="Close menu" onClick={() => setMenuOpen(false)} className="fixed inset-0 z-30 bg-black/30 md:hidden"/>}
+      {menuOpen && <button aria-label="Close menu" onClick={() => setMenuOpen(false)} className="fixed inset-0 z-30 bg-black/55 backdrop-blur-[2px] md:hidden"/>}
     <BusinessAI />
 <BusinessIntelligence />
 <PriceAnalysis />
