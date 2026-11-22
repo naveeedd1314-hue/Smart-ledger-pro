@@ -9,6 +9,7 @@ export default function Purchases() {
   const [products,setProducts] = useState<Product[]>([]);
   const [suppliers,setSuppliers] = useState<Supplier[]>([]);
   const [items,setItems] = useState<Purchase[]>([]);
+  const [payments,setPayments] = useState<any[]>([]);
   const [supplier,setSupplier] = useState('');
   const [invoice,setInvoice] = useState('');
   const [date,setDate] = useState(new Date().toISOString().slice(0,10));
@@ -29,6 +30,7 @@ export default function Purchases() {
     setProducts(read<Product>('smartledger-products'));
     setSuppliers(read<Supplier>('smartledger-pro-suppliers'));
     setItems(read<Purchase>('smartledger-pro-purchases'));
+    setPayments(read<any>('smartledger-pro-payments'));
 try {
   const settings = JSON.parse(localStorage.getItem('smartledger-pro-settings') || '{}');
   const state = settings.state || 'Jammu and Kashmir';
@@ -48,6 +50,8 @@ const sgst = applyGST && sameState && !isJammuKashmir ? taxAmount / 2 : 0;
 const utgst = applyGST && sameState && isJammuKashmir ? taxAmount / 2 : 0;
 const igst = applyGST && !sameState ? taxAmount : 0;
 const total = taxableValue + taxAmount;
+  const totalPayments=payments.filter(x=>x.type==='Supplier Payment').reduce((sum,x)=>sum+(Number(x.amount)||0),0);
+  const invoiceDue=(item:Purchase)=>Math.max(0,Number(item.balance)-payments.filter(x=>x.type==='Supplier Payment').reduce((sum,x)=>sum+(Array.isArray(x.allocations)?x.allocations.filter((a:any)=>String(a.invoiceId)===String(item.id)).reduce((part:number,a:any)=>part+(Number(a.amount)||0),0):0),0));
   const money=(n:number)=>`₹${n.toLocaleString('en-IN',{maximumFractionDigits:2})}`;
 
   function save() {
@@ -61,8 +65,11 @@ const total = taxableValue + taxAmount;
       x.name.trim().toLowerCase() === supplier.trim().toLowerCase()
     );
     const updatedProducts=products.map(p=>p.id===productId?{...p,stock:p.stock+qty,purchase:rate}:p);
-    const record:Purchase={id:Date.now().toString(),productId:selected.id,supplier,invoice:invoice.trim(),date,product:selected.name,qty,rate,total,paid,balance:total-paid,taxableValue,gstRate,taxAmount,cgst,sgst,utgst,igst,placeOfSupply:applyGST?placeOfSupply:'',hsn:selected.hsn||'',supplierGstin:supplierDetails?.gstin||'',supplierAddress:supplierDetails?.address||''};
+    const record:Purchase={id:crypto.randomUUID(),productId:selected.id,supplier,invoice:invoice.trim(),date,product:selected.name,qty,rate,total,paid,balance:total-paid,taxableValue,gstRate,taxAmount,cgst,sgst,utgst,igst,placeOfSupply:applyGST?placeOfSupply:'',hsn:selected.hsn||'',supplierGstin:supplierDetails?.gstin||'',supplierAddress:supplierDetails?.address||''};
     const updatedItems=[record,...items];
+    const stockLog=read<any>('smartledger-pro-stock-adjustments');
+    stockLog.unshift({id:crypto.randomUUID(),date,productId:selected.id,product:selected.name,change:qty,movement:'Stock In',stockAfter:selected.stock+qty,reason:`Purchase invoice ${record.invoice}`});
+    localStorage.setItem('smartledger-pro-stock-adjustments',JSON.stringify(stockLog));
 
     localStorage.setItem('smartledger-products',JSON.stringify(updatedProducts));
     localStorage.setItem('smartledger-pro-purchases',JSON.stringify(updatedItems));
@@ -80,8 +87,8 @@ const total = taxableValue + taxAmount;
     <div><h1 className="text-2xl font-bold">Purchases</h1><p className="text-sm text-[var(--text-2)]">Supplier invoices, stock inward and payments.</p></div>
     <div className="grid gap-3 sm:grid-cols-3">
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">Purchase Value</p><strong className="text-xl">{money(items.reduce((s,x)=>s+x.total,0))}</strong></div>
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">Paid</p><strong className="text-xl">{money(items.reduce((s,x)=>s+x.paid,0))}</strong></div>
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">Outstanding</p><strong className="text-xl">{money(items.reduce((s,x)=>s+x.balance,0))}</strong></div>
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">Paid</p><strong className="text-xl">{money(items.reduce((sum,x)=>sum+x.paid,0)+totalPayments)}</strong></div>
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">Outstanding</p><strong className="text-xl">{money(Math.max(0,items.reduce((sum,x)=>sum+x.balance,0)-totalPayments))}</strong></div>
     </div>
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm space-y-5">
       <h2 className="font-semibold">Record Purchase Invoice</h2>
@@ -108,7 +115,7 @@ const total = taxableValue + taxAmount;
     </div>
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
       <h2 className="mb-4 font-semibold">Purchase History ({items.length})</h2>
-      <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="border-b text-[var(--text-2)]"><th className="p-2">Date</th><th className="p-2">Invoice</th><th className="p-2">Supplier</th><th className="p-2">Product</th><th className="p-2">Qty</th><th className="p-2">Total</th><th className="p-2">Paid</th><th className="p-2">Due</th><th className="p-2">PDF</th></tr></thead><tbody>{items.map(x=><tr className="border-b border-[var(--border)] hover:bg-[var(--surface-2)]" key={x.id}><td className="p-2">{x.date}</td><td className="p-2">{x.invoice}</td><td className="p-2">{x.supplier}</td><td className="p-2">{x.product}</td><td className="p-2">{x.qty}</td><td className="p-2">{money(x.total)}</td><td className="p-2">{money(x.paid)}</td><td className="p-2">{money(x.balance)}</td><td className="p-2"><button onClick={() => { let b = {}; try { b = JSON.parse(localStorage.getItem('smartledger-pro-settings') || '{}'); } catch {} downloadInvoicePdf(x, b, 'purchase'); }} className="rounded-lg bg-[var(--indigo)] px-3 py-2 text-white transition hover:bg-[var(--indigo-ink)]">Download PDF</button></td></tr>)}</tbody></table></div>
+      <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="border-b text-[var(--text-2)]"><th className="p-2">Date</th><th className="p-2">Invoice</th><th className="p-2">Supplier</th><th className="p-2">Product</th><th className="p-2">Qty</th><th className="p-2">Total</th><th className="p-2">Paid</th><th className="p-2">Due</th><th className="p-2">PDF</th></tr></thead><tbody>{items.map(x=><tr className="border-b border-[var(--border)] hover:bg-[var(--surface-2)]" key={x.id}><td className="p-2">{x.date}</td><td className="p-2">{x.invoice}</td><td className="p-2">{x.supplier}</td><td className="p-2">{x.product}</td><td className="p-2">{x.qty}</td><td className="p-2">{money(x.total)}</td><td className="p-2">{money(x.total-invoiceDue(x))}</td><td className="p-2">{money(invoiceDue(x))}</td><td className="p-2"><button onClick={() => { let b = {}; try { b = JSON.parse(localStorage.getItem('smartledger-pro-settings') || '{}'); } catch {} downloadInvoicePdf(x, b, 'purchase'); }} className="rounded-lg bg-[var(--indigo)] px-3 py-2 text-white transition hover:bg-[var(--indigo-ink)]">Download PDF</button></td></tr>)}</tbody></table></div>
       {items.length===0&&<p className="py-5 text-center text-[var(--text-2)]">No purchases recorded yet.</p>}
     </div>
   </section>;
