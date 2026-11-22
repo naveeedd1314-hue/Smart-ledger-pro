@@ -23,7 +23,7 @@ export default function BusinessIntelligence() {
   ];
 
   return (
-    <section style={{ margin: "18px 0", padding: 18, borderRadius: 18, background: "var(--card, #fff)", border: "1px solid var(--border, #ddd)" }}>
+    <section style={{ margin: "18px 0", padding: 18, borderRadius: 18, background: "var(--surface, #fff)", color: "var(--text, #0F172A)", border: "1px solid var(--border, #ddd)" }}>
       <h2 style={{ margin: "0 0 6px", fontSize: 20 }}>Business Intelligence</h2>
       <p style={{ margin: "0 0 16px", opacity: .7, fontSize: 13 }}>Calculated from records saved in this SmartLedger device.</p>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(135px,1fr))", gap: 10 }}>

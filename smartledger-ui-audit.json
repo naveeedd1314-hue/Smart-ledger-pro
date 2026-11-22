@@ -1,0 +1,20 @@
+{
+  "styles": [
+    "src/index.css",
+    "src/App.css",
+    "src/styles/smartledger-theme.css"
+  ],
+  "components": 12,
+  "pages": 30,
+  "app_exists": true,
+  "dependencies": [
+    "@tailwindcss/vite",
+    "date-fns",
+    "jspdf",
+    "lucide-react",
+    "react",
+    "react-dom",
+    "recharts",
+    "tailwindcss"
+  ]
+}

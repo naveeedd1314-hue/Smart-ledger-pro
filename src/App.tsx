@@ -3,7 +3,6 @@ import BusinessAdvisor from "./components/BusinessAdvisor";
 import PriceAnalysis from "./components/PriceAnalysis";
 import BusinessIntelligence from "./components/BusinessIntelligence";
 import BusinessAI from "./components/BusinessAI";
-import ThemeSwitcher from './components/ThemeSwitcher';
 import GST from './pages/GST'
 import SettingsPage from './pages/Settings'
 import Ledger from './pages/Ledger'
@@ -144,10 +143,10 @@ function App() {
 
   return (
     <div data-sl-dashboard="true" className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
-<ThemeSwitcher />
 
-      <aside className={`${menuOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-[var(--border)] bg-[var(--surface)] text-white transition-transform md:translate-x-0`}>
-        <div className="flex h-20 items-center gap-3 border-b border-white/10 px-6">
+
+      <aside className={`${menuOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-[var(--border)] bg-[var(--surface)] text-[var(--text)] transition-transform md:translate-x-0`}>
+        <div className="flex h-20 items-center gap-3 border-b border-[var(--border)] px-6">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--indigo-tint)] text-xl font-black text-[var(--indigo-ink)]">S</div>
           <div>
             <h1 className="text-lg font-bold tracking-wide"><PremiumIcon name="dashboard" tone="emerald" size={38} />SmartLedger</h1>
@@ -173,9 +172,9 @@ function App() {
             </div>
           ))}
         </nav>
-        <div className="m-4 rounded-xl border border-white/10 bg-[var(--surface)]/5 p-4">
+        <div className="m-4 rounded-xl border border-[var(--border)] bg-[var(--surface)]/5 p-4">
           <p className="text-xs font-semibold">SmartLedger Pro</p>
-          <p className="mt-1 text-[11px] text-[#c1d0c3]">Your business. Under control.</p>
+          <p className="mt-1 text-[11px] text-[var(--text-2)]">Your business. Under control.</p>
         </div>
       </aside>
 
@@ -210,7 +209,7 @@ function App() {
               <h2 className="mt-1 text-2xl font-bold">Business overview</h2>
               <p className="mt-1 text-sm text-[var(--text-2)]">Monitor your business performance from one place.</p>
             </div>
-            <button onClick={() => setActive('Sales')} className="flex items-center gap-2 rounded-xl bg-[var(--surface)] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[var(--indigo-ink)]">
+            <button onClick={() => setActive('Sales')} className="flex items-center gap-2 rounded-xl bg-[var(--indigo)] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[var(--indigo-ink)]">
               <Plus size={17}/> New transaction
             </button>
           </div>

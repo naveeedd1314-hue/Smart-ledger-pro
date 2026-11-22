@@ -407,3 +407,38 @@ html:root {
   --sl-text-muted: var(--text-2) !important;
   --sl-border: var(--border) !important;
 }
+
+
+/* Compatibility bridge: legacy component tokens mapped to Pro theme tokens */
+:root {
+  --sl-bg: var(--bg);
+  --sl-surface: var(--surface);
+  --sl-surface-muted: var(--surface-2);
+  --sl-card: var(--surface);
+  --sl-text: var(--text);
+  --sl-text-muted: var(--text-2);
+  --sl-border: var(--border);
+  --sl-primary: var(--indigo);
+  --sl-primary-hover: var(--indigo-ink);
+  --sl-primary-soft: var(--indigo-tint);
+  --sl-success: var(--emerald);
+  --sl-danger: var(--rose);
+  --sl-warning: var(--amber);
+  --sl-shadow: var(--shadow-2);
+}
+[data-theme="dark"] {
+  --sl-bg: var(--bg);
+  --sl-surface: var(--surface);
+  --sl-surface-muted: var(--surface-2);
+  --sl-card: var(--surface);
+  --sl-text: var(--text);
+  --sl-text-muted: var(--text-2);
+  --sl-border: var(--border);
+  --sl-primary: var(--indigo);
+  --sl-primary-hover: var(--indigo-ink);
+  --sl-primary-soft: var(--indigo-tint);
+  --sl-success: var(--emerald);
+  --sl-danger: var(--rose);
+  --sl-warning: var(--amber);
+  --sl-shadow: var(--shadow-2);
+}

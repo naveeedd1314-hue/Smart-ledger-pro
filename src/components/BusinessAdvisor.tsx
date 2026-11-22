@@ -71,7 +71,7 @@ export default function BusinessAdvisor() {
   );
 
   return (
-    <section style={{ margin: "18px 0", padding: 18, borderRadius: 18, background: "var(--card, #fff)", border: "1px solid var(--border, #ddd)" }}>
+    <section style={{ margin: "18px 0", padding: 18, borderRadius: 18, background: "var(--surface, #fff)", color: "var(--text, #0F172A)", border: "1px solid var(--border, #ddd)" }}>
       <h2 style={{ margin: "0 0 5px", fontSize: 20 }}>Smart Business Advisor</h2>
       <p style={{ margin: "0 0 10px", fontSize: 13, opacity: .7 }}>Inventory diagnostics based on saved product and invoice records. No automatic price or stock changes.</p>
       <strong>{advice.total} products examined</strong>

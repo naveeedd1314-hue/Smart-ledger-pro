@@ -1,0 +1,39 @@
+{
+  "root": "/workspaces/Smart-ledger-pro-",
+  "dashboard": "/workspaces/Smart-ledger-pro-/src/App.tsx",
+  "score": 7,
+  "candidates": [
+    {
+      "file": "src/App.tsx",
+      "score": 7
+    },
+    {
+      "file": "src/components/BusinessAI.tsx",
+      "score": 3
+    },
+    {
+      "file": "src/pages/Sales.tsx",
+      "score": 2
+    },
+    {
+      "file": "src/pages/Sales.backup.tsx",
+      "score": 2
+    },
+    {
+      "file": "src/pages/Payments.backup.tsx",
+      "score": 1
+    },
+    {
+      "file": "src/pages/Reports.backup.tsx",
+      "score": 1
+    },
+    {
+      "file": "src/pages/BusinessCommandCentre.tsx",
+      "score": 1
+    },
+    {
+      "file": "src/pages/Reports.tsx",
+      "score": 1
+    }
+  ]
+}
