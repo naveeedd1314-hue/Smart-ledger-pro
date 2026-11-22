@@ -91,13 +91,13 @@ function analyse(){
 function answer(q:string,d:ReturnType<typeof analyse>){
  const s=q.toLowerCase();
  const parseMoney=(value:string)=>Number(value.replace(/,/g,""));
- const twoRates=s.match(/(?:₹|rs\\.?\\s*)?([\\d,]+(?:\\.\\d+)?)\\s*(?:to|→)\\s*(?:₹|rs\\.?\\s*)?([\\d,]+(?:\\.\\d+)?)/);
+ const twoRates=s.match(/(?:₹|rs\.?\s*)?([\d,]+(?:\.\d+)?)\s*(?:to|→)\s*(?:₹|rs\.?\s*)?([\d,]+(?:\.\d+)?)/);
  if(twoRates&&/(change|increase|decrease|rate|difference|badha|ghata)/.test(s)){
   const before=parseMoney(twoRates[1]),after=parseMoney(twoRates[2]);
   if(Number.isFinite(before)&&Number.isFinite(after)&&before>0){const change=after-before;const percent=change/before*100;return `Rate change: ${money(before)} → ${money(after)}; difference ${money(Math.abs(change))} (${change>=0?"increase":"decrease"} of ${Math.abs(percent).toFixed(2)}%).`;}
  }
- const percentFirst=s.match(/(\\d+(?:\\.\\d+)?)\\s*%\\s*(increase|decrease|discount|markup)\\s*(?:on|of|from)\\s*(?:₹|rs\\.?\\s*)?([\\d,]+(?:\\.\\d+)?)/);
- const amountFirst=s.match(/(?:₹|rs\\.?\\s*)?([\\d,]+(?:\\.\\d+)?)\\s*(?:by|with)\\s*(\\d+(?:\\.\\d+)?)\\s*%/);
+ const percentFirst=s.match(/(\d+(?:\.\d+)?)\s*%\s*(increase|decrease|discount|markup)\s*(?:on|of|from)\s*(?:₹|rs\.?\s*)?([\d,]+(?:\.\d+)?)/);
+ const amountFirst=s.match(/(?:₹|rs\.?\s*)?([\d,]+(?:\.\d+)?)\s*(?:by|with)\s*(\d+(?:\.\d+)?)\s*%/);
  const calculation=percentFirst?{base:parseMoney(percentFirst[3]),percent:Number(percentFirst[1]),action:percentFirst[2]}:amountFirst?{base:parseMoney(amountFirst[1]),percent:Number(amountFirst[2]),action:/decrease|discount/.test(s)?"decrease":"increase"}:null;
  if(calculation&&/(increase|decrease|discount|markup)/.test(s)&&calculation.base>=0&&calculation.percent>=0){
   const direction=calculation.action==="decrease"||calculation.action==="discount"?-1:1;
