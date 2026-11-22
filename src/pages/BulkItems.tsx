@@ -203,7 +203,7 @@ export default function BulkItems() {
     <div className="grid gap-4 sm:grid-cols-3">
       <div className="rounded-2xl border bg-[var(--surface)] p-5"><p className="text-sm text-[var(--text-2)]">Products</p><p className="mt-2 text-2xl font-bold">{items.length}</p></div>
       <div className="rounded-2xl border bg-[var(--surface)] p-5"><p className="text-sm text-[var(--text-2)]">Stock units</p><p className="mt-2 text-2xl font-bold">{items.reduce((s,p)=>s+(Number(p.stock)||0),0).toLocaleString('en-IN')}</p></div>
-      <div className="rounded-2xl border bg-[var(--surface)] p-5"><p className="text-sm text-[var(--text-2)]">Stock value at cost</p><p className="mt-2 text-2xl font-bold">{money(items.reduce((s,p)=>s+(Number(p.stock)||0)*(Number(p.averageCost ?? p.purchase)||0),0))}</p></div>
+      <div className="rounded-2xl border bg-[var(--surface)] p-5"><p className="text-sm text-[var(--text-2)]">Stock value at cost</p><p className="mt-2 text-2xl font-bold">{money(items.reduce((s,p)=>s+Math.max(0,Number(p.stock)||0)*(Number(p.averageCost ?? p.purchase)||0),0))}</p></div>
     </div>
 
     <section className="rounded-2xl border bg-[var(--surface)] p-5">
