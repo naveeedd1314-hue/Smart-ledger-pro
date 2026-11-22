@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import DataQualityMonitor from '../components/DataQualityMonitor';
 
 const BACKUP_PREFIX = 'smartledger-';
 
@@ -98,5 +99,6 @@ export default function Settings() {
       {backupStatus && <p role="status" aria-live="polite" className="text-sm text-[var(--text-2)]">{backupStatus}</p>}
     </div>
     <div className="rounded-xl border border-[var(--amber)]/30 bg-[var(--amber)]/10 p-4 text-sm text-[var(--text)]">Keep backup files secure. Store a copy outside this device. Restoring overwrites matching SmartLedger sections and does not provide cloud synchronisation.</div>
+    <DataQualityMonitor />
   </section>;
 }
