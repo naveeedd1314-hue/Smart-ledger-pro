@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { localDateISO } from '../lib/dateUtils';
 import { downloadInvoicePdf } from '../utils/invoicePdf';
 
@@ -30,7 +30,13 @@ export default function Sales() {
   const [applyGST, setApplyGST] = useState(false);
   const [businessState] = useState(readBusinessState);
   const [placeOfSupply, setPlaceOfSupply] = useState(readBusinessState);
+  const [barcodeInput, setBarcodeInput] = useState('');
+  const [scanning, setScanning] = useState(false);
+  const [scanError, setScanError] = useState('');
   const savingRef = useRef(false);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const scanStreamRef = useRef<MediaStream | null>(null);
+  const scanFrameRef = useRef<number | null>(null);
 
   const selected = products.find(p => p.id === productId);
   const taxableValue = qty * rate;
@@ -48,6 +54,69 @@ export default function Sales() {
   const total = taxableValue + taxAmount;
   const saleCost = selected ? Number(selected.averageCost ?? selected.purchase) : 0;
   const estimatedGrossProfit = selected && Number.isFinite(saleCost) && saleCost > 0 && Number.isFinite(rate) ? (rate - saleCost) * qty : null;
+
+  function findProductByBarcode(rawCode: string) {
+    const code = rawCode.trim().toLowerCase();
+    if (!code) { setScanError('Enter a barcode or SKU.'); return; }
+    const match = products.find(p => String(p.sku || '').trim().toLowerCase() === code || String((p as any).barcode || '').trim().toLowerCase() === code);
+    if (!match) { setScanError(`No inventory item matches barcode/SKU: ${rawCode.trim()}`); return; }
+    setProductId(String(match.id));
+    setRate(Number(match.selling) || 0);
+    setBarcodeInput(rawCode.trim());
+    setScanError('');
+  }
+
+  function stopBarcodeScan() {
+    if (scanFrameRef.current !== null) cancelAnimationFrame(scanFrameRef.current);
+    scanFrameRef.current = null;
+    scanStreamRef.current?.getTracks().forEach(track => track.stop());
+    scanStreamRef.current = null;
+    if (videoRef.current) videoRef.current.srcObject = null;
+    setScanning(false);
+  }
+
+  async function startBarcodeScan() {
+    setScanError('');
+    const Detector = (window as any).BarcodeDetector;
+    if (!Detector) { setScanError('Camera barcode scanning is not supported by this browser. Enter the product SKU above.'); return; }
+    if (!navigator.mediaDevices?.getUserMedia) { setScanError('Camera access requires a secure HTTPS connection and browser permission.'); return; }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+      scanStreamRef.current = stream;
+      if (!videoRef.current) { stopBarcodeScan(); setScanError('Camera preview could not be opened.'); return; }
+      videoRef.current.srcObject = stream;
+      await videoRef.current.play();
+      setScanning(true);
+      const detector = new Detector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'qr_code'] });
+      const scan = async () => {
+        if (!videoRef.current || !scanStreamRef.current) return;
+        try {
+          const results = await detector.detect(videoRef.current);
+          if (results?.length && results[0]?.rawValue) {
+            const code = String(results[0].rawValue);
+            stopBarcodeScan();
+            findProductByBarcode(code);
+            return;
+          }
+        } catch {}
+        scanFrameRef.current = requestAnimationFrame(scan);
+      };
+      scanFrameRef.current = requestAnimationFrame(scan);
+    } catch (error) {
+      stopBarcodeScan();
+      const name = error instanceof Error ? error.name : '';
+      setScanError(name === 'NotAllowedError' || name === 'PermissionDeniedError'
+        ? 'Camera permission was denied. Allow camera access for this site in Chrome settings, then try again.'
+        : name === 'NotFoundError'
+          ? 'No camera was found on this device.'
+          : 'Camera could not start. Check HTTPS, camera permission and whether another app is using the camera.');
+    }
+  }
+
+  useEffect(() => () => {
+    if (scanFrameRef.current !== null) cancelAnimationFrame(scanFrameRef.current);
+    scanStreamRef.current?.getTracks().forEach(track => track.stop());
+  }, []);
 
   function saveSale() {
     if (savingRef.current) return;
@@ -120,7 +189,12 @@ export default function Sales() {
       <h2 className="font-semibold text-lg">New Sales Invoice</h2>
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="text-sm">Customer name<input className="mt-1 w-full rounded-lg border p-3" value={customer} onChange={e => setCustomer(e.target.value)} /></label>
-        <label className="text-sm">Product<select className="mt-1 w-full rounded-lg border p-3" value={productId} onChange={e => { const p = products.find(x => x.id === e.target.value); setProductId(e.target.value); setRate(p?.selling || 0); }}><option value="">Select product</option>{products.map(p => <option key={p.id} value={p.id}>{p.name} — Stock: {p.stock}</option>)}</select></label>
+        <div className="space-y-2 sm:col-span-2">
+        <div className="flex flex-wrap gap-2"><input className="min-w-0 flex-1 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3" placeholder="Enter barcode / SKU" value={barcodeInput} onChange={e=>setBarcodeInput(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();findProductByBarcode(barcodeInput);}}}/><button type="button" onClick={()=>findProductByBarcode(barcodeInput)} className="rounded-xl border border-[var(--border)] px-3 py-2 text-sm">Find SKU</button><button type="button" onClick={scanning?stopBarcodeScan:startBarcodeScan} className="rounded-xl bg-[var(--indigo)] px-3 py-2 text-sm font-semibold text-white">{scanning?'Stop camera':'Scan barcode'}</button></div>
+        <video ref={videoRef} autoPlay playsInline muted className={scanning?'w-full max-h-64 rounded-xl bg-black object-contain':'hidden'} />
+        {scanError && <p role="status" className="text-xs text-[var(--amber)]">{scanError}</p>}
+      </div>
+      <label className="text-sm">Product<select className="mt-1 w-full rounded-lg border p-3" value={productId} onChange={e => { const p = products.find(x => x.id === e.target.value); setProductId(e.target.value); setRate(p?.selling || 0); }}><option value="">Select product</option>{products.map(p => <option key={p.id} value={p.id}>{p.name} — Stock: {p.stock}</option>)}</select></label>
         <label className="text-sm">Quantity<input type="number" min="0.01" step="any" className="mt-1 w-full rounded-lg border p-3" value={qty} onChange={e => setQty(Number(e.target.value))} /></label>
         <label className="text-sm">Selling rate<input type="number" min="0" step="any" className="mt-1 w-full rounded-lg border p-3" value={rate} onChange={e => setRate(Number(e.target.value))} /></label>
         <div className="flex flex-wrap items-end gap-2"><button type="button" disabled={!selected} onClick={() => setRate(Number(selected?.selling) || 0)} className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm disabled:opacity-40">Retail ₹{money(Number(selected?.selling) || 0)}</button><button type="button" disabled={!selected || !(Number(selected.wholesale) > 0)} onClick={() => setRate(Number(selected?.wholesale) || 0)} className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm disabled:opacity-40">Wholesale ₹{money(Number(selected?.wholesale) || 0)}</button></div>
