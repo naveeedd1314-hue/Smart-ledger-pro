@@ -111,6 +111,10 @@ function getRecentTransactions() {
     ...readData('smartledger-pro-payments').map(x => ({
       date: x.date, title: `${x.type || 'Payment'} — ${x.party || ''}`,
       detail: x.method || 'Payment transaction', amount: Number(x.amount) || 0, kind: 'Payment'
+    })),
+    ...readData('smartledger-pro-returns').map(x => ({
+      date: x.date, title: `${x.type || 'Return'} — ${x.party || ''}`,
+      detail: `${x.invoice || 'Invoice'} · ${x.product || 'Product'}`, amount: Number(x.totalAmount ?? x.amount) || 0, kind: 'Return'
     }))
   ]
   return records.sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''))).slice(0, 8)
