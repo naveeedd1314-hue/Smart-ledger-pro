@@ -102,17 +102,23 @@ export default function BulkItems() {
 
   const applyImport = () => {
     const next = [...items]
+    const logs = read('smartledger-pro-stock-adjustments') as any[]
     let added = 0, updated = 0
     preview.forEach(p => {
       const index = next.findIndex(x =>
         (p.sku && x.sku && p.sku.toLowerCase() === x.sku.toLowerCase()) ||
         x.name.toLowerCase() === p.name.toLowerCase()
       )
+      const previous = index >= 0 ? next[index] : null
+      const previousStock = Number(previous?.stock || 0)
       if (index >= 0) { next[index] = { ...next[index], ...p, id: next[index].id }; updated++ }
       else { next.push(p); added++ }
+      const change = Number(p.stock || 0) - previousStock
+      if (change !== 0) logs.unshift({ id: crypto.randomUUID(), date: new Date().toISOString().slice(0,10), productId: previous?.id ?? p.id, product: p.name, change, movement: change > 0 ? 'Stock In' : 'Stock Out', stockAfter: Number(p.stock || 0), reason: 'Bulk CSV import' })
     })
+    localStorage.setItem('smartledger-pro-stock-adjustments', JSON.stringify(logs))
     save(next); setPreview([])
-    setMessage(`${added} items added; ${updated} existing items updated.`)
+    setMessage(`${added} items added; ${updated} existing items updated. Stock changes were added to the audit history.`)
   }
 
   const updatePrices = () => {
@@ -120,13 +126,18 @@ export default function BulkItems() {
     if (!selected.length || amount === '' || !Number.isFinite(n) || n < 0) {
       setMessage('Select items and enter a valid value.'); return
     }
-    save(items.map(p => {
+    const history = read('smartledger-pro-price-history') as any[]
+    const next = items.map(p => {
       if (!selected.includes(String(p.id))) return p
       const old = Number(p[field]) || 0
       const value = mode === 'set' ? n : mode === 'increase' ? old * (1+n/100) : old * (1-n/100)
-      return { ...p, [field]: Math.max(0, Number(value.toFixed(2))) }
-    }))
-    setAmount(''); setMessage('Selected item prices updated.')
+      const updated = Math.max(0, Number(value.toFixed(2)))
+      if (updated !== old) history.unshift({ id: crypto.randomUUID(), productId: p.id, productName: p.name, field, oldPrice: old, newPrice: updated, date: new Date().toISOString().slice(0,10), source: 'Bulk Items price update' })
+      return { ...p, [field]: updated }
+    })
+    localStorage.setItem('smartledger-pro-price-history', JSON.stringify(history))
+    save(next)
+    setAmount(''); setMessage('Selected item prices updated and dated price history recorded.')
   }
 
   const updateStock = () => {
@@ -137,8 +148,15 @@ export default function BulkItems() {
     if (items.some(p => selected.includes(String(p.id)) && Number(p.stock || 0) + n < 0)) {
       setMessage('Cancelled: this adjustment would create negative stock.'); return
     }
-    save(items.map(p => selected.includes(String(p.id)) ? { ...p, stock: Number(p.stock || 0) + n } : p))
-    setStockChange(''); setMessage('Selected item stock updated.')
+    const next = items.map(p => selected.includes(String(p.id)) ? { ...p, stock: Number(p.stock || 0) + n } : p)
+    const logs = read('smartledger-pro-stock-adjustments') as any[]
+    items.filter(p => selected.includes(String(p.id))).forEach(p => {
+      const after = Number(p.stock || 0) + n
+      logs.unshift({ id: crypto.randomUUID(), date: new Date().toISOString().slice(0,10), productId: p.id, product: p.name, change: n, movement: n > 0 ? 'Stock In' : 'Stock Out', stockAfter: after, reason: 'Bulk stock adjustment' })
+    })
+    localStorage.setItem('smartledger-pro-stock-adjustments', JSON.stringify(logs))
+    save(next)
+    setStockChange(''); setMessage('Selected item stock updated and audit history recorded.')
   }
 
   const toggle = (id: string) => setSelected(s => s.includes(id) ? s.filter(x => x !== id) : [...s,id])
