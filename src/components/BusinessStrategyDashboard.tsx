@@ -8,12 +8,12 @@ export default function BusinessStrategyDashboard() {
   const card = {
     padding: 14,
     borderRadius: 14,
-    background: "var(--card, #fff)",
+    background: "var(--surface)",
     border: "1px solid var(--border, #ddd)"
   } as const;
 
   return (
-    <section style={{ margin: "20px 0" }}>
+    <section data-sl-strategy="true" className="sl-strategy" style={{ margin: "20px 0" }}>
       <h2>Business Strategy Engine</h2>
       <p style={{ opacity: .7, fontSize: 13 }}>
         Product profitability, stock investment and inventory movement analysis.
@@ -60,7 +60,7 @@ export default function BusinessStrategyDashboard() {
       ))}
 
       {result.warnings.map((warning, i) => (
-        <p key={i} style={{ fontSize: 13, color: "#B66A35" }}>{warning}</p>
+        <p key={i} style={{ fontSize: 13, color: "var(--amber)" }}>{warning}</p>
       ))}
 
       <p style={{ fontSize: 12, opacity: .65, marginTop: 14 }}>
