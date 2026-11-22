@@ -432,3 +432,98 @@ main .card [class*="font-bold"] {
   --sl-warning: var(--amber);
   --sl-shadow: var(--shadow-2);
 }
+
+
+/* Pro dashboard finish: layered matte surfaces and stronger visual hierarchy */
+[data-sl-dashboard] aside {
+  background:linear-gradient(180deg,var(--surface) 0%,var(--surface-2) 100%);
+  box-shadow:8px 0 28px rgba(15,23,42,.055);
+}
+[data-sl-dashboard] aside > div:first-child {
+  min-height:88px;
+  border-bottom:1px solid var(--border);
+}
+[data-sl-dashboard] aside > div:first-child > div:first-child {
+  border:1px solid color-mix(in srgb,var(--indigo) 24%,transparent);
+  border-radius:14px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.65),0 5px 14px rgba(79,70,229,.15);
+}
+[data-sl-dashboard] aside nav button {
+  min-height:44px;
+  border:1px solid transparent;
+}
+[data-sl-dashboard] aside nav button:hover {
+  border-color:var(--border);
+  background:var(--surface);
+}
+[data-sl-dashboard] aside nav button[class*="bg-[var(--indigo-tint)]"] {
+  border-color:color-mix(in srgb,var(--indigo) 22%,var(--border));
+  box-shadow:inset 3px 0 0 var(--indigo),var(--shadow-1);
+}
+[data-sl-dashboard] main > header {
+  box-shadow:0 4px 18px rgba(15,23,42,.045);
+}
+[data-sl-dashboard] main > div > section:first-of-type > div {
+  position:relative;
+  overflow:hidden;
+  min-height:142px;
+  border-radius:18px;
+  background:linear-gradient(145deg,var(--surface) 0%,var(--surface-2) 150%);
+  box-shadow:0 8px 22px rgba(15,23,42,.065),inset 0 1px 0 var(--edge);
+  transition:transform .18s ease,box-shadow .18s ease;
+}
+[data-sl-dashboard] main > div > section:first-of-type > div:hover {
+  transform:translateY(-3px);
+  box-shadow:0 14px 28px rgba(15,23,42,.10),inset 0 1px 0 var(--edge);
+}
+[data-sl-dashboard] main > div > section:first-of-type > div:after {
+  content:"";
+  position:absolute;
+  width:110px;
+  height:110px;
+  right:-42px;
+  bottom:-58px;
+  border-radius:50%;
+  background:var(--indigo-tint);
+  opacity:.55;
+  pointer-events:none;
+}
+[data-sl-dashboard] main > div > section:first-of-type > div > div > span:last-child {
+  border:1px solid color-mix(in srgb,var(--indigo) 18%,var(--border));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 5px 12px rgba(79,70,229,.10);
+}
+[data-sl-dashboard] main > div > section:first-of-type > div > p:nth-of-type(1) {
+  font-size:clamp(1.45rem,2vw,1.85rem);
+  letter-spacing:-.045em;
+}
+[data-sl-dashboard] main > div > section:nth-of-type(2) > div,
+[data-sl-dashboard] main > div > section:nth-of-type(3) {
+  border-radius:18px;
+  background:linear-gradient(145deg,var(--surface) 0%,var(--surface-2) 160%);
+  box-shadow:var(--shadow-1),inset 0 1px 0 var(--edge);
+}
+[data-sl-dashboard] main > div > section:nth-of-type(2) button,
+[data-sl-dashboard] main > div > section:nth-of-type(3) button {
+  border-radius:12px;
+  transition:transform .16s ease,border-color .16s ease,background .16s ease;
+}
+[data-sl-dashboard] main > div > section:nth-of-type(2) button:hover,
+[data-sl-dashboard] main > div > section:nth-of-type(3) button:hover {
+  transform:translateY(-1px);
+  border-color:var(--indigo);
+  background:var(--indigo-tint);
+}
+[data-sl-dashboard] main > div > section:nth-of-type(3) table {
+  border-radius:12px;
+  overflow:hidden;
+}
+[data-sl-dashboard] main > div > section:nth-of-type(3) thead {
+  background:var(--surface-2);
+}
+@media (max-width:640px) {
+  [data-sl-dashboard] main > div { padding:16px; }
+  [data-sl-dashboard] main > div > section:first-of-type > div { min-height:126px; }
+}
+@media (prefers-reduced-motion:reduce) {
+  [data-sl-dashboard] * { transition:none !important; }
+}
