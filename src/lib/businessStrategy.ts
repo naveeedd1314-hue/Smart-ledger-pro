@@ -102,7 +102,7 @@ export function calculateBusinessStrategy(): {
   const products: StrategyResult[] = rawProducts.map((p: StrategyProduct) => {
     const id = String(p.id ?? p.name ?? p.productName ?? "");
     const stock = num(p.stock ?? p.quantity ?? p.qty);
-    const cost = firstPositive(p.purchasePrice, p.purchase, p.costPrice);
+    const cost = firstPositive(p.averageCost, p.purchasePrice, p.purchase, p.costPrice);
     const selling = firstPositive(p.sellingPrice, p.salePrice, p.price);
     const productName = String(p.name ?? p.productName ?? "").trim().toLowerCase();
     const grossSold = salesByProduct.get(id) || salesByProduct.get(productName) || 0;
