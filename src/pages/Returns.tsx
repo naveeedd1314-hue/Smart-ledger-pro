@@ -219,7 +219,7 @@ export default function Returns() {
         Save Return
       </button>
       <p className="text-xs text-[var(--text-2)]">
-        This records the return against the original invoice, adjusts inventory and reflects the return credit in the party ledger. Cash refunds or cash settlements are not recorded automatically.
+        This records the return against the original invoice, adjusts inventory and reflects the return credit in the party ledger. Cash refunds are not recorded automatically. Use Payments → Customer Refund when returning cash to a customer, or Supplier Refund when receiving cash back from a supplier; refunds are limited to the available party credit.
       </p>
     </div>
 
