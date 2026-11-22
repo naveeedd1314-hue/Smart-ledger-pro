@@ -47,13 +47,17 @@ export default function Sales() {
       alert('Check product, quantity, stock and payment amount.');
       return;
     }
+    const customerName = customer.trim() || 'Walk-in Customer';
     let customerDetails: { gstin?: string; address?: string } = {};
     try {
-      const customers = JSON.parse(localStorage.getItem('smartledger-pro-customers') || '[]');
-      const match = Array.isArray(customers)
-        ? customers.find((x: any) => x.name?.trim().toLowerCase() === customer.trim().toLowerCase())
-        : undefined;
-      if (match) customerDetails = { gstin: match.gstin || '', address: match.address || '' };
+      const saved = JSON.parse(localStorage.getItem('smartledger-pro-customers') || '[]');
+      const customers = Array.isArray(saved) ? saved : [];
+      let match = customers.find((x: any) => x.name?.trim().toLowerCase() === customerName.toLowerCase());
+      if (!match) {
+        match = { id: crypto.randomUUID(), name: customerName, phone: '', address: '', opening: 0 };
+        localStorage.setItem('smartledger-pro-customers', JSON.stringify([match, ...customers]));
+      }
+      customerDetails = { gstin: match.gstin || '', address: match.address || '' };
     } catch {}
 
     const sale: Sale = {
@@ -61,7 +65,7 @@ export default function Sales() {
       productId: selected.id,
       invoice: `SL-${Date.now().toString().slice(-8)}`,
       date: new Date().toISOString().slice(0, 10),
-      customer: customer.trim() || 'Walk-in Customer',
+      customer: customerName,
       product: selected.name,
       qty, rate, total, paid, balance: total - paid, purchasePrice: Number.isFinite(Number(selected.purchase)) && Number(selected.purchase) > 0 ? Number(selected.purchase) : null,
       taxableValue, gstRate, taxAmount, cgst, sgst, utgst, igst,
