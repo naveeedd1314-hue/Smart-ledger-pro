@@ -31,14 +31,14 @@ export default function PriceAnalysis() {
   );
 
   return (
-    <section className="my-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 text-[var(--text)] shadow-[var(--shadow-1)] sm:p-5">
+    <section data-sl-pricing="true" className="my-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 text-[var(--text)] shadow-[var(--shadow-1)] sm:p-5">
       <div className="mb-5">
         <p className="text-xs font-bold uppercase tracking-[.16em] text-[var(--indigo)]">Pricing tools</p>
         <h2 className="mt-1 text-xl font-bold text-[var(--text)]">Pricing &amp; Margin Analysis</h2>
         <p className="mt-1 text-sm text-[var(--text-2)]">Compare rate changes and calculate product-level profitability.</p>
       </div>
 
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)]/60 p-4">
+      <div className="sl-pricing-panel rounded-xl border border-[var(--border)] bg-[var(--surface-2)]/60 p-4">
         <h3 className="mb-3 font-semibold text-[var(--text)]">Price change</h3>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {field("Previous price (₹)", oldPrice, setOldPrice)}
@@ -61,7 +61,7 @@ export default function PriceAnalysis() {
         )}
       </div>
 
-      <div className="mt-4 rounded-xl border border-[var(--border)] bg-[var(--surface-2)]/60 p-4">
+      <div className="sl-pricing-panel mt-4 rounded-xl border border-[var(--border)] bg-[var(--surface-2)]/60 p-4">
         <h3 className="mb-3 font-semibold text-[var(--text)]">Product profit and margin</h3>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {field("Purchase cost per unit (₹)", cost, setCost)}
@@ -69,7 +69,7 @@ export default function PriceAnalysis() {
         </div>
         {margin && (
           <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3">
+            <div className="sl-profit-metric rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3">
               <p className="text-xs text-[var(--text-2)]">Profit per unit</p>
               <p className={`mt-1 text-lg font-bold ${margin.profit >= 0 ? "text-[var(--emerald)]" : "text-[var(--rose)]"}`}>{money(margin.profit)}</p>
             </div>
