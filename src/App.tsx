@@ -80,8 +80,8 @@ function getDashboardMetrics() {
 
   const collected = sum(payments.filter(x => x.type === 'Customer Receipt'), 'amount')
   const supplierPaid = sum(payments.filter(x => x.type === 'Supplier Payment'), 'amount')
-  const salesDue = sales.reduce((total, item) => total + (item.total !== undefined && item.total !== null ? Math.max(0, Number(item.total) - (Number(item.paid) || 0)) : Math.max(0, Number(item.balance) || 0)), 0)
-  const purchaseDue = purchases.reduce((total, item) => total + (item.total !== undefined && item.total !== null ? Math.max(0, Number(item.total) - (Number(item.paid) || 0)) : Math.max(0, Number(item.balance) || 0)), 0)
+  const salesDue = sales.reduce((total, item) => { const invoiceTotal = Number(item.total); const due = item.total !== undefined && item.total !== null && Number.isFinite(invoiceTotal) ? Math.max(0, invoiceTotal - (Number(item.paid) || 0)) : Math.max(0, Number(item.balance) || 0); return total + due; }, 0)
+  const purchaseDue = purchases.reduce((total, item) => { const invoiceTotal = Number(item.total); const due = item.total !== undefined && item.total !== null && Number.isFinite(invoiceTotal) ? Math.max(0, invoiceTotal - (Number(item.paid) || 0)) : Math.max(0, Number(item.balance) || 0); return total + due; }, 0)
   const salesReturnCredit = sum(returns.filter(x => x.type === 'Sales Return').map(x => ({ amount: Number(x.totalAmount ?? x.amount) || 0 })), 'amount')
   const purchaseReturnCredit = sum(returns.filter(x => x.type === 'Purchase Return').map(x => ({ amount: Number(x.totalAmount ?? x.amount) || 0 })), 'amount')
 
