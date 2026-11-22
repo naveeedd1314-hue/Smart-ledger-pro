@@ -1,82 +1,93 @@
-type Quote = {
-  productId?: string | number;
-  productName?: string;
-  marketRate?: number | string;
-  source?: string;
-  checkedAt?: string;
-  savedAt?: string;
-};
+type RatePoint = { productId?: string | number; product?: string; productName?: string; rate: number; date: string; source: string; kind: 'Supplier purchase' | 'Market quotation' };
+
+function read(key: string): any[] {
+  try { const value = JSON.parse(localStorage.getItem(key) || '[]'); return Array.isArray(value) ? value : []; }
+  catch { return []; }
+}
+
+function buildSeries() {
+  const products = read('smartledger-products');
+  const productNames = new Map(products.map((p: any) => [String(p.id), String(p.name || p.productName || 'Product')]));
+  const points: RatePoint[] = [];
+  read('smartledger-pro-purchases').forEach((p: any) => {
+    const rate = Number(p.rate);
+    const date = String(p.date || '');
+    if (!Number.isFinite(rate) || rate <= 0 || !date) return;
+    points.push({
+      productId: p.productId,
+      product: p.product || productNames.get(String(p.productId)) || 'Unknown product',
+      rate,
+      date,
+      source: p.supplier || 'Supplier not recorded',
+      kind: 'Supplier purchase'
+    });
+  });
+  read('smartledger-market-quotes').forEach((q: any) => {
+    const rate = Number(q.marketRate);
+    const date = String(q.checkedAt || q.savedAt || '').slice(0, 10);
+    if (!Number.isFinite(rate) || rate <= 0 || !date) return;
+    points.push({
+      productId: q.productId,
+      product: q.productName || productNames.get(String(q.productId)) || 'Unknown product',
+      rate,
+      date,
+      source: q.source || 'Source not recorded',
+      kind: 'Market quotation'
+    });
+  });
+  const groups = new Map<string, RatePoint[]>();
+  points.forEach(point => {
+    const identity = String(point.productId ?? point.product ?? 'unknown');
+    const key = point.kind + '|' + identity;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key)!.push(point);
+  });
+  return Array.from(groups.values()).map(series => {
+    const sorted = [...series].sort((a, b) => a.date.localeCompare(b.date));
+    const previous = sorted.length > 1 ? sorted[sorted.length - 2] : null;
+    const current = sorted[sorted.length - 1];
+    const change = previous ? current.rate - previous.rate : 0;
+    return {
+      ...current,
+      previous: previous?.rate ?? null,
+      change,
+      percent: previous && previous.rate > 0 ? change / previous.rate * 100 : null,
+      observations: sorted.length
+    };
+  }).sort((a, b) => b.date.localeCompare(a.date));
+}
 
 export default function PriceMovementAnalysis() {
-  const movements = (() => {
-    try {
-      const data: Quote[] = JSON.parse(
-        localStorage.getItem("smartledger-market-quotes") || "[]"
-      );
-      if (!Array.isArray(data)) return [];
-
-      const groups = new Map<string, Quote[]>();
-
-      data.forEach((quote) => {
-        const key = String(quote.productId ?? quote.productName ?? "unknown");
-        if (!groups.has(key)) groups.set(key, []);
-        groups.get(key)!.push(quote);
-      });
-
-      return Array.from(groups.values()).map((quotes) => {
-        const sorted = [...quotes].sort((a, b) =>
-          String(a.savedAt || a.checkedAt || "").localeCompare(
-            String(b.savedAt || b.checkedAt || "")
-          )
-        );
-        const previous = Number(sorted.at(-2)?.marketRate);
-        const current = Number(sorted.at(-1)?.marketRate);
-        const valid = sorted.length >= 2 &&
-          Number.isFinite(previous) && previous > 0 &&
-          Number.isFinite(current) && current >= 0;
-        const change = valid ? current - previous : 0;
-
-        return {
-          name: sorted.at(-1)?.productName || "Unnamed product",
-          source: sorted.at(-1)?.source || "Source not recorded",
-          date: sorted.at(-1)?.checkedAt || sorted.at(-1)?.savedAt || "Date unavailable",
-          previous,
-          current,
-          change,
-          percent: valid ? (change / previous) * 100 : 0,
-          valid,
-        };
-      }).reverse();
-    } catch {
-      return [];
-    }
-  })();
-
+  const movements = buildSeries();
   return (
-    <section style={{ padding: 18, borderRadius: 16, background: "var(--card, #fff)", margin: "16px 0" }}>
-      <h3>Price Movement Analysis</h3>
-      <p style={{ fontSize: 13, opacity: 0.7 }}>
-        Comparisons use saved quotations only. At least two quotations are required.
-      </p>
+    <section className="my-4 space-y-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 text-[var(--text)] shadow-sm">
+      <div>
+        <h2 className="text-lg font-semibold">Price Movement Analysis</h2>
+        <p className="text-sm text-[var(--text-2)]">Supplier invoice rates and independently recorded market quotations are analysed separately. At least two dated records are required to calculate a movement.</p>
+      </div>
       {movements.length === 0 ? (
-        <p>No saved market quotations available.</p>
+        <p className="text-sm text-[var(--text-2)]">No dated purchase rates or market quotations available yet.</p>
       ) : movements.map((item, index) => (
-        <div key={index} style={{ padding: "12px 0", borderBottom: "1px solid var(--border, #ddd)" }}>
-          <strong>{item.name}</strong>
-          {item.valid ? (
+        <div key={`${item.kind}-${item.productId ?? item.product}-${index}`} className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <strong>{item.product}</strong>
+            <span className="rounded-full border border-[var(--border)] px-2 py-1 text-xs text-[var(--text-2)]">{item.kind}</span>
+          </div>
+          {item.previous === null ? (
+            <p className="mt-2 text-sm text-[var(--text-2)]">Only one dated record — add another to calculate a change. Latest: ₹{item.rate.toFixed(2)}</p>
+          ) : (
             <>
-              <p>Previous: ₹{item.previous.toFixed(2)} → Latest: ₹{item.current.toFixed(2)}</p>
-              <strong>
-                {item.change > 0 ? "↑ Increase" : item.change < 0 ? "↓ Decrease" : "→ No change"}
-                {" "}₹{Math.abs(item.change).toFixed(2)} ({item.percent.toFixed(2)}%)
+              <p className="mt-2 text-sm text-[var(--text-2)]">₹{item.previous.toFixed(2)} → ₹{item.rate.toFixed(2)}</p>
+              <strong className={item.change > 0 ? "text-[var(--rose)]" : item.change < 0 ? "text-[var(--emerald)]" : "text-[var(--text)]"}>
+                {item.change > 0 ? "↑ Increased" : item.change < 0 ? "↓ Decreased" : "→ Unchanged"} ₹{Math.abs(item.change).toFixed(2)}
+                {item.percent === null ? "" : ` (${Math.abs(item.percent).toFixed(2)}%)`}
               </strong>
             </>
-          ) : (
-            <p>Insufficient valid quotation history for comparison.</p>
           )}
-          <p style={{ fontSize: 12, opacity: 0.65 }}>{item.source} · {item.date}</p>
+          <p className="mt-1 text-xs text-[var(--text-2)]">{item.source} · {item.date} · {item.observations} records</p>
         </div>
       ))}
+      <p className="text-xs text-[var(--text-2)]">These calculations use saved supplier invoices and market quotations. They do not claim to fetch live market prices.</p>
     </section>
   );
 }
