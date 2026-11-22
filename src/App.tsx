@@ -119,20 +119,33 @@ function getRecentTransactions() {
 
 
 function getMonthlyPerformance() {
-  const groups: Record<string, { month: string; sales: number; purchases: number; expenses: number }> = {}
+  const groups: Record<string, { month: string; sales: number; purchases: number; expenses: number; salesReturns: number; purchaseReturns: number }> = {}
   const add = (key: string, field: 'sales' | 'purchases' | 'expenses', amount: (x: any) => number) => {
     readData(key).forEach(x => {
       const date = String(x.date || '')
-      if (!/^\d{4}-\d{2}/.test(date)) return
+      if (!/^\\d{4}-\\d{2}/.test(date)) return
       const month = date.slice(0, 7)
-      groups[month] ||= { month, sales: 0, purchases: 0, expenses: 0 }
+      groups[month] ||= { month, sales: 0, purchases: 0, expenses: 0, salesReturns: 0, purchaseReturns: 0 }
       groups[month][field] += amount(x)
     })
   }
-  add('smartledger-pro-sales', 'sales', x => Number(x.total) || 0)
-  add('smartledger-pro-purchases', 'purchases', x => Number(x.total) || Number(x.qty) * Number(x.rate) || 0)
+  const taxable = (x: any) => x.taxableValue !== undefined && x.taxableValue !== null ? Number(x.taxableValue) || 0 : ((Number(x.qty) || 0) * (Number(x.rate) || 0) || Number(x.total) || 0)
+  add('smartledger-pro-sales', 'sales', taxable)
+  add('smartledger-pro-purchases', 'purchases', taxable)
   add('smartledger-pro-expenses', 'expenses', x => Number(x.amount) || 0)
-  return Object.values(groups).sort((a, b) => a.month.localeCompare(b.month)).slice(-6)
+  readData('smartledger-pro-returns').forEach(x => {
+    const date = String(x.date || '')
+    if (!/^\\d{4}-\\d{2}/.test(date)) return
+    const month = date.slice(0, 7)
+    groups[month] ||= { month, sales: 0, purchases: 0, expenses: 0, salesReturns: 0, purchaseReturns: 0 }
+    if (x.type === 'Sales Return') groups[month].salesReturns += Number(x.amount ?? x.totalAmount) || 0
+    if (x.type === 'Purchase Return') groups[month].purchaseReturns += Number(x.amount ?? x.totalAmount) || 0
+  })
+  return Object.values(groups).map(x => ({
+    ...x,
+    sales: Math.max(0, x.sales - x.salesReturns),
+    purchases: Math.max(0, x.purchases - x.purchaseReturns)
+  })).sort((a, b) => a.month.localeCompare(b.month)).slice(-6)
 }
 
 function App() {
@@ -258,8 +271,8 @@ function App() {
                     <YAxis />
                     <Tooltip formatter={(value) => `₹${Number(value).toLocaleString('en-IN')}`} />
                     <Legend />
-                    <Bar dataKey="sales" name="Sales" fill="var(--indigo)" />
-                    <Bar dataKey="purchases" name="Purchases" fill="var(--emerald)" />
+                    <Bar dataKey="sales" name="Net sales (before GST)" fill="var(--indigo)" />
+                    <Bar dataKey="purchases" name="Net purchases (before GST)" fill="var(--emerald)" />
                     <Bar dataKey="expenses" name="Expenses" fill="var(--rose)" />
                   </BarChart>
                 </ResponsiveContainer> : <p className="pt-20 text-center text-sm text-[var(--text-2)]">Add dated transactions to view performance.</p>}
