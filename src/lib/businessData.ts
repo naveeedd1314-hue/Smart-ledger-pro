@@ -189,7 +189,9 @@ export function validateBusinessRecords() {
         if (targetParty && String(targetParty).trim().toLowerCase() !== String(payment.party || "").trim().toLowerCase()) warnings.push("Payment " + (i + 1) + ": allocated invoice belongs to a different party.");
         if (target && Number.isFinite(Number(target.total))) {
           const totalAllocated = payments.filter((record: any) => record.type === payment.type).reduce((sum: number, record: any) => sum + (Array.isArray(record.allocations) ? record.allocations.filter((allocation: any) => String(allocation.invoiceId) === String(item.invoiceId)).reduce((part: number, allocation: any) => part + (Number(allocation.amount) || 0), 0) : 0), 0);
-          if (totalAllocated > Math.max(0, Number(target.total) - (Number(target.paid) || 0)) + 0.01) warnings.push("Invoice " + (target.invoice || target.id) + ": allocated payments exceed the invoice balance.");
+          const returnType = payment.type === "Customer Receipt" ? "Sales Return" : "Purchase Return";
+          const returnCredit = returns.filter((record: any) => record.type === returnType && String(record.originalId) === String(target.id)).reduce((sum: number, record: any) => sum + (Number(record.totalAmount ?? record.amount) || 0), 0);
+          if (totalAllocated > Math.max(0, Number(target.total) - (Number(target.paid) || 0) - returnCredit) + 0.01) warnings.push("Invoice " + (target.invoice || target.id) + ": allocated payments exceed the invoice balance after returns.");
         }
       });
     }
