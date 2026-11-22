@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { jsPDF } from 'jspdf';
 
-type Payment = { id: string; date: string; type: string; party: string; amount: number; method: string; reference: string; note: string };
+type Payment = { id: string; date: string; type: string; party: string; amount: number; method: string; reference: string; note: string; allocations?: { invoiceId: string; invoice: string; amount: number }[] };
 
 export default function Payments() {
   const [items, setItems] = useState<Payment[]>([]);
