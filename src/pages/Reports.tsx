@@ -65,7 +65,7 @@ export default function Reports() {
     };
   });
   const salesReturnProfitRows = salesReturns.map(x => {
-    const hasCost = x.purchasePrice !== undefined && x.purchasePrice !== null && x.purchasePrice !== '';
+    const hasCost = x.purchasePrice !== undefined && x.purchasePrice !== null && x.purchasePrice !== '' && Number.isFinite(Number(x.purchasePrice)) && Number(x.purchasePrice) > 0;
     const qty = num(x.qty);
     const rate = num(x.rate);
     return { profit: hasCost ? (rate - num(x.purchasePrice)) * qty : 0, hasCost };
