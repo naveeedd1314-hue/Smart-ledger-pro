@@ -70,6 +70,7 @@ function getDashboardMetrics() {
   const customers = readData('smartledger-pro-customers')
   const suppliers = readData('smartledger-pro-suppliers')
   const payments = readData('smartledger-pro-payments')
+  const returns = readData('smartledger-pro-returns')
 
   const sum = (items: any[], field: string) =>
     items.reduce((total, item) => total + (Number(item[field]) || 0), 0)
@@ -79,12 +80,16 @@ function getDashboardMetrics() {
 
   const collected = sum(payments.filter(x => x.type === 'Customer Receipt'), 'amount')
   const supplierPaid = sum(payments.filter(x => x.type === 'Supplier Payment'), 'amount')
+  const salesDue = sales.reduce((total, item) => total + (item.total !== undefined && item.total !== null ? Math.max(0, Number(item.total) - (Number(item.paid) || 0)) : Math.max(0, Number(item.balance) || 0)), 0)
+  const purchaseDue = purchases.reduce((total, item) => total + (item.total !== undefined && item.total !== null ? Math.max(0, Number(item.total) - (Number(item.paid) || 0)) : Math.max(0, Number(item.balance) || 0)), 0)
+  const salesReturnCredit = sum(returns.filter(x => x.type === 'Sales Return').map(x => ({ amount: Number(x.totalAmount ?? x.amount) || 0 })), 'amount')
+  const purchaseReturnCredit = sum(returns.filter(x => x.type === 'Purchase Return').map(x => ({ amount: Number(x.totalAmount ?? x.amount) || 0 })), 'amount')
 
   return [
     { label: 'Total Sales', value: money(sum(sales, 'total')), change: 'Sales revenue', icon: ShoppingCart },
     { label: 'Total Purchases', value: money(sum(purchases, 'total')), change: 'Purchase value', icon: ShoppingBag },
-    { label: 'To Collect', value: money(Math.max(0, sum(customers, 'opening') + sum(sales, 'balance') - collected)), change: 'Customer receivables', icon: ArrowDownRight },
-    { label: 'To Pay', value: money(Math.max(0, sum(suppliers, 'opening') + sum(purchases, 'balance') - supplierPaid)), change: 'Supplier payables', icon: ArrowUpRight },
+    { label: 'To Collect', value: money(Math.max(0, sum(customers, 'opening') + salesDue - collected - salesReturnCredit)), change: 'Customer receivables', icon: ArrowDownRight },
+    { label: 'To Pay', value: money(Math.max(0, sum(suppliers, 'opening') + purchaseDue - supplierPaid - purchaseReturnCredit)), change: 'Supplier payables', icon: ArrowUpRight },
   ]
 }
 
