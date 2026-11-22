@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { localDateISO } from '../lib/dateUtils';
 
 type RecordItem = Record<string, any>;
 type ReturnItem = {
@@ -33,7 +34,7 @@ export default function Returns() {
   const [sourceId,setSourceId] = useState('');
   const [qty,setQty] = useState(1);
   const [reason,setReason] = useState('Damaged goods');
-  const [date,setDate] = useState(new Date().toISOString().slice(0,10));
+  const [date,setDate] = useState(localDateISO());
 
   const read = (key:string) => {
     try {
