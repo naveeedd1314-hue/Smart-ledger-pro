@@ -58,6 +58,8 @@ const sgst = applyGST && sameState && !isJammuKashmir ? taxAmount / 2 : 0;
 const utgst = applyGST && sameState && isJammuKashmir ? taxAmount / 2 : 0;
 const igst = applyGST && !sameState ? taxAmount : 0;
 const total = taxableValue + taxAmount;
+  const currentAverageCost = selected ? Number(selected.averageCost ?? selected.purchase) || 0 : 0;
+  const previewAverageCost = selected && qty > 0 && rate > 0 ? (selected.stock > 0 && currentAverageCost > 0 ? ((selected.stock * currentAverageCost) + (qty * rate)) / (selected.stock + qty) : rate) : 0;
   const totalPayments=payments.filter(x=>x.type==='Supplier Payment').reduce((sum,x)=>sum+(Number(x.amount)||0),0);
   const purchaseReturnCredits=returns.filter(x=>x.type==='Purchase Return').reduce((sum,x)=>sum+(Number(x.totalAmount??x.amount)||0),0);
   const basePayable=items.reduce((sum,x)=>sum+(Number.isFinite(Number(x.total))?Math.max(0,Number(x.total)-Number(x.paid||0)):Math.max(0,Number(x.balance)||0)),0);
@@ -131,7 +133,7 @@ const total = taxableValue + taxAmount;
 {!isJammuKashmir && sameState && <p>SGST: <strong>{money(sgst)}</strong></p>}
 {!sameState && <p>IGST: <strong>{money(igst)}</strong></p>}
 <p>Total GST: <strong>{money(taxAmount)}</strong></p></>}
-<p>Invoice total: <strong>{money(total)}</strong></p><p>Remaining payable: <strong>{money(total-paid)}</strong></p><p>Stock after purchase: <strong>{(selected?.stock||0)+qty}</strong></p></div>
+<p>Invoice total: <strong>{money(total)}</strong></p><p>Remaining payable: <strong>{money(total-paid)}</strong></p><p>Stock after purchase: <strong>{(selected?.stock||0)+qty}</strong></p>{selected && <p>Weighted average cost: <strong>{money(currentAverageCost)} → {money(previewAverageCost)}</strong></p>}</div>
       <button onClick={save} className="rounded-xl bg-[var(--indigo)] px-5 py-3 font-semibold text-white shadow-sm transition hover:bg-[var(--indigo-ink)]">Save Purchase</button>
     </div>
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
