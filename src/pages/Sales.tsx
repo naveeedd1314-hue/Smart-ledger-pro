@@ -8,6 +8,7 @@ export default function Sales() {
   const [products, setProducts] = useState<Product[]>([]);
   const [sales, setSales] = useState<Sale[]>([]);
   const [payments, setPayments] = useState<any[]>([]);
+  const [returns, setReturns] = useState<any[]>([]);
   const [customer, setCustomer] = useState('Walk-in Customer');
   const [productId, setProductId] = useState('');
   const [qty, setQty] = useState(1);
@@ -22,6 +23,7 @@ export default function Sales() {
     setProducts(readArray('smartledger-products'));
     setSales(readArray('smartledger-pro-sales'));
     setPayments(readArray('smartledger-pro-payments'));
+    setReturns(readArray('smartledger-pro-returns'));
     try {
       const settings = JSON.parse(localStorage.getItem('smartledger-pro-settings') || '{}');
       const state = settings.state || 'Jammu and Kashmir';
@@ -91,6 +93,7 @@ export default function Sales() {
   }
 
   const totalReceipts = payments.filter(p => p.type === 'Customer Receipt').reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+  const salesReturnCredits = returns.filter(x => x.type === 'Sales Return').reduce((sum, x) => sum + (Number(x.totalAmount ?? x.amount) || 0), 0);
   const invoiceDue = (sale: Sale) => { const total = Number(sale.total); const storedDue = Number.isFinite(total) ? Math.max(0, total - Number(sale.paid || 0)) : Math.max(0, Number(sale.balance) || 0); const allocated = payments.filter(p => p.type === 'Customer Receipt').reduce((sum, p) => sum + (Array.isArray(p.allocations) ? p.allocations.filter((a: any) => String(a.invoiceId) === String(sale.id)).reduce((part: number, a: any) => part + (Number(a.amount) || 0), 0) : 0), 0); return Math.max(0, storedDue - allocated); };
   const money = (n: number) => `₹${n.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
 
@@ -99,7 +102,7 @@ export default function Sales() {
     <div className="grid gap-3 sm:grid-cols-3">
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">Total Sales</p><strong className="text-xl">{money(sales.reduce((s, x) => s + x.total, 0))}</strong></div>
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">Received</p><strong className="text-xl">{money(sales.reduce((sum, x) => sum + x.paid, 0) + totalReceipts)}</strong></div>
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">To Collect</p><strong className="text-xl">{money(Math.max(0, sales.reduce((sum, x) => sum + x.balance, 0) - totalReceipts))}</strong></div>
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">To Collect</p><strong className="text-xl">{money(Math.max(0, sales.reduce((sum, x) => sum + x.balance, 0) - totalReceipts - salesReturnCredits))}</strong></div>
     </div>
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm space-y-4">
       <h2 className="font-semibold text-lg">New Sales Invoice</h2>
