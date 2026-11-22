@@ -22,9 +22,9 @@ const pick = (item: any, keys: string[]) => {
 
 export function getBusinessSnapshot() {
   const products = read("smartledger-products", "products");
-  const bills = read("smartledger-bills", "bills");
-  const purchases = read("smartledger-purchases", "purchases");
-  const expenses = read("smartledger-expenses", "expenses");
+  const bills = read("smartledger-pro-sales", "smartledger-bills", "bills");
+  const purchases = read("smartledger-pro-purchases", "smartledger-purchases", "purchases");
+  const expenses = read("smartledger-pro-expenses", "smartledger-expenses", "expenses");
 
   const stock = calculateStockValue(products.map(p => ({
     stock: pick(p, ["stock", "quantity", "qty", "closingStock"]),
@@ -82,9 +82,9 @@ export function validateBusinessRecords() {
     }
   };
   const products = read("smartledger-products");
-  const bills = read("smartledger-bills");
-  const purchases = read("smartledger-purchases");
-  const expenses = read("smartledger-expenses");
+  const bills = read("smartledger-pro-sales", "smartledger-bills");
+  const purchases = read("smartledger-pro-purchases", "smartledger-purchases");
+  const expenses = read("smartledger-pro-expenses", "smartledger-expenses");
 
   if (!products.length) warnings.push("No product records found.");
   if (!bills.length) warnings.push("No sales records found.");
