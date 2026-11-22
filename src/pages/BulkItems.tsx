@@ -101,7 +101,7 @@ export default function BulkItems() {
       const tax = numeric(['gstrate','gst'], 'GST rate')
       if (tax > 100) errors.push(`Row ${i + 2}: GST rate cannot exceed 100%.`)
       const purchaseValue = numeric(['purchase','purchaseprice','cost'], 'purchase price')
-      const averageCostValue = get(r,['averagecost','weightedaveragecost']) ? numeric(['averagecost','weightedaveragecost'], 'average cost') : purchaseValue
+      const averageCostValue = get(r,['averagecost','weightedaveragecost']) ? numeric(['averagecost','weightedaveragecost'], 'average cost') : 0
       return {
         id: get(r,['id']) || crypto.randomUUID(),
         name: get(r,['name','product','item']),
@@ -142,9 +142,9 @@ export default function BulkItems() {
         const savedAt = new Date().toISOString()
         if (Number(current.purchase) !== Number(p.purchase)) priceHistory.unshift({ id: crypto.randomUUID(), productId: current.id, productName: p.name, field: 'purchase', oldPrice: Number(current.purchase) || 0, newPrice: p.purchase, date: savedAt.slice(0,10), savedAt, source: 'Bulk CSV import' })
         if (Number(current.selling) !== Number(p.selling)) priceHistory.unshift({ id: crypto.randomUUID(), productId: current.id, productName: p.name, field: 'selling', oldPrice: Number(current.selling) || 0, newPrice: p.selling, date: savedAt.slice(0,10), savedAt, source: 'Bulk CSV import' })
-        next[index] = { ...current, ...p, id: current.id }; updated++
+        next[index] = { ...current, ...p, averageCost: p.averageCost ?? current.averageCost ?? (Number(current.purchase) > 0 ? Number(current.purchase) : null), id: current.id }; updated++
       }
-      else { next.push(next.some(x => String(x.id) === String(p.id)) ? { ...p, id: crypto.randomUUID() } : p); added++ }
+      else { const imported = { ...p, averageCost: p.averageCost ?? (Number(p.purchase) > 0 ? Number(p.purchase) : null) }; next.push(next.some(x => String(x.id) === String(p.id)) ? { ...imported, id: crypto.randomUUID() } : imported); added++ }
       const change = Number(p.stock || 0) - previousStock
       if (change !== 0) logs.unshift({ id: crypto.randomUUID(), date: new Date().toISOString().slice(0,10), productId: previous?.id ?? p.id, product: p.name, change, movement: change > 0 ? 'Stock In' : 'Stock Out', stockAfter: Number(p.stock || 0), reason: 'Bulk CSV import' })
     })
