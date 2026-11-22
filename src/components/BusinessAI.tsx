@@ -34,6 +34,7 @@ function analyse(){
  });
  const known=productRows.filter(p=>p.cost>0&&p.retail>0);
  const low=productRows.filter(p=>p.stock<=5&&p.stock>=0);
+ const belowTargetMargin=known.filter(p=>p.margin<targetMargin);
  const negative=productRows.filter(p=>p.stock<0);
  const sales=sum(bills.map(b=>n(field(b,"taxableValue","total","grandTotal","netTotal","amount","totalAmount"))));
  const expenseTotal=sum(expenses.map(e=>n(field(e,"amount","total","value"))));
@@ -46,6 +47,7 @@ function analyse(){
  const payable=Math.max(0,sum(suppliers.map(s=>n(field(s,"opening","balance","outstanding","closingBalance","due"))))+sum(purchases.map(p=>field(p,"total","grandTotal","amount")!==undefined?Math.max(0,n(field(p,"total","grandTotal","amount"))-n(field(p,"paid"))):n(field(p,"balance"))))-supplierPaid-purchaseReturnCredit);
  const missingCost=productRows.filter(p=>p.retail>0&&p.cost<=0);
  const marginAvg=known.length?sum(known.map(p=>p.margin))/known.length:0;
+ let targetMargin=3.5;try{const settings=JSON.parse(localStorage.getItem("smartledger-pro-settings")||"{}");const value=Number(settings.targetMarginPercent);if(Number.isFinite(value)&&value>=0&&value<=100)targetMargin=value;}catch{}
  const invoiceProfit=bills.map(b=>{const qty=n(field(b,"qty","quantity"));const rate=n(field(b,"rate","sellingPrice"));const revenue=field(b,"taxableValue")!==undefined?n(field(b,"taxableValue")):qty*rate;const rawCost=field(b,"purchasePrice");const hasCost=rawCost!==undefined&&rawCost!==null&&rawCost!==""&&Number.isFinite(Number(rawCost))&&Number(rawCost)>=0;return {profit:revenue-(hasCost?qty*Number(rawCost):0),hasCost};});
  const returnProfit=returns.filter(x=>x.type==="Sales Return").map(x=>{const rawCost=field(x,"purchasePrice");const hasCost=rawCost!==undefined&&rawCost!==null&&rawCost!==""&&Number.isFinite(Number(rawCost))&&Number(rawCost)>=0;return {profit:(n(field(x,"rate"))-Number(rawCost||0))*n(field(x,"qty","quantity")),hasCost};});
  const knownGrossProfit=sum(invoiceProfit.filter(x=>x.hasCost).map(x=>x.profit))-sum(returnProfit.filter(x=>x.hasCost).map(x=>x.profit));
@@ -80,7 +82,7 @@ function analyse(){
  const rateGroups=new Map<string,typeof rateRecords>();
  rateRecords.forEach(p=>{const key=p.kind+"|"+p.key;if(!rateGroups.has(key))rateGroups.set(key,[]);rateGroups.get(key)!.push(p);});
  const rateMovements=Array.from(rateGroups.values()).map(rows=>{const sorted=[...rows].sort((a,b)=>a.date.localeCompare(b.date)||String(a.sortAt||'').localeCompare(String(b.sortAt||'')));const previous=sorted.length>1?sorted[sorted.length-2]:null;const latest=sorted[sorted.length-1];return {...latest,previous:previous?.rate??null,change:previous?latest.rate-previous.rate:0,percent:previous&&previous.rate>0?(latest.rate-previous.rate)/previous.rate*100:null,observations:sorted.length};}).sort((a,b)=>b.date.localeCompare(a.date));
- return {products,bills,purchases,payments,expenses,customers,suppliers,productRows,known,low,negative,sales,expenseTotal,purchaseTotal,receivable,payable,stockValue,missingCost,marginAvg,rateMovements,knownGrossProfit,estimatedAfterExpenses,missingCostInvoices,returnsMissingCost,customerProfitRows,customerDueRows,supplierDueRows};
+ return {products,bills,purchases,payments,expenses,customers,suppliers,productRows,known,low,negative,sales,expenseTotal,purchaseTotal,receivable,payable,stockValue,missingCost,marginAvg,targetMargin,belowTargetMargin,rateMovements,knownGrossProfit,estimatedAfterExpenses,missingCostInvoices,returnsMissingCost,customerProfitRows,customerDueRows,supplierDueRows};
 }
 function answer(q:string,d:ReturnType<typeof analyse>){
  const s=q.toLowerCase();
