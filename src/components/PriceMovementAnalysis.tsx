@@ -14,13 +14,13 @@ function buildSeries() {
     const date = String(change.date || '');
     if (!Number.isFinite(rate) || rate <= 0 || !date) return;
     const field = change.field === 'purchase' ? 'Purchase cost update' : 'Retail price update';
-    points.push({ productId: change.productId, product: change.productName || 'Unknown product', rate, date, source: change.source || 'Manual price update', kind: field });
+    points.push({ productId: change.productId, product: change.productName || 'Unknown product', rate, date, source: change.source || 'Manual price update', sortAt: change.savedAt || date, kind: field });
   });
   read('smartledger-pro-sales').forEach((sale: any) => {
     const rate = Number(sale.rate);
     const date = String(sale.date || '');
     if (!Number.isFinite(rate) || rate <= 0 || !date) return;
-    points.push({ productId: sale.productId, product: sale.product || 'Unknown product', rate, date, source: `Sales invoice ${sale.invoice || ''}`, kind: 'Recorded selling rate' });
+    points.push({ productId: sale.productId, product: sale.product || 'Unknown product', rate, date, source: `Sales invoice ${sale.invoice || ''}`, sortAt: date, kind: 'Recorded selling rate' });
   });
   read('smartledger-pro-purchases').forEach((p: any) => {
     const rate = Number(p.rate);
@@ -32,6 +32,7 @@ function buildSeries() {
       rate,
       date,
       source: p.supplier || 'Supplier not recorded',
+      sortAt: date,
       kind: 'Supplier purchase'
     });
   });
@@ -45,6 +46,7 @@ function buildSeries() {
       rate,
       date,
       source: q.source || 'Source not recorded',
+      sortAt: q.savedAt || date,
       kind: 'Market quotation'
     });
   });
@@ -56,7 +58,7 @@ function buildSeries() {
     groups.get(key)!.push(point);
   });
   return Array.from(groups.values()).map(series => {
-    const sorted = [...series].sort((a, b) => a.date.localeCompare(b.date));
+    const sorted = [...series].sort((a, b) => a.date.localeCompare(b.date) || String(a.sortAt || '').localeCompare(String(b.sortAt || '')));
     const previous = sorted.length > 1 ? sorted[sorted.length - 2] : null;
     const current = sorted[sorted.length - 1];
     const change = previous ? current.rate - previous.rate : 0;
