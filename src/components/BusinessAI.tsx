@@ -34,7 +34,6 @@ function analyse(){
  });
  const known=productRows.filter(p=>p.cost>0&&p.retail>0);
  const low=productRows.filter(p=>p.stock<=5&&p.stock>=0);
- const belowTargetMargin=known.filter(p=>p.margin<targetMargin);
  const negative=productRows.filter(p=>p.stock<0);
  const sales=sum(bills.map(b=>n(field(b,"taxableValue","total","grandTotal","netTotal","amount","totalAmount"))));
  const expenseTotal=sum(expenses.map(e=>n(field(e,"amount","total","value"))));
@@ -48,6 +47,7 @@ function analyse(){
  const missingCost=productRows.filter(p=>p.retail>0&&p.cost<=0);
  const marginAvg=known.length?sum(known.map(p=>p.margin))/known.length:0;
  let targetMargin=3.5;try{const settings=JSON.parse(localStorage.getItem("smartledger-pro-settings")||"{}");const value=Number(settings.targetMarginPercent);if(Number.isFinite(value)&&value>=0&&value<=100)targetMargin=value;}catch{}
+ const belowTargetMargin=known.filter(p=>p.margin<targetMargin);
  const invoiceProfit=bills.map(b=>{const qty=n(field(b,"qty","quantity"));const rate=n(field(b,"rate","sellingPrice"));const revenue=field(b,"taxableValue")!==undefined?n(field(b,"taxableValue")):qty*rate;const rawCost=field(b,"purchasePrice");const hasCost=rawCost!==undefined&&rawCost!==null&&rawCost!==""&&Number.isFinite(Number(rawCost))&&Number(rawCost)>=0;return {profit:revenue-(hasCost?qty*Number(rawCost):0),hasCost};});
  const returnProfit=returns.filter(x=>x.type==="Sales Return").map(x=>{const rawCost=field(x,"purchasePrice");const hasCost=rawCost!==undefined&&rawCost!==null&&rawCost!==""&&Number.isFinite(Number(rawCost))&&Number(rawCost)>=0;return {profit:(n(field(x,"rate"))-Number(rawCost||0))*n(field(x,"qty","quantity")),hasCost};});
  const knownGrossProfit=sum(invoiceProfit.filter(x=>x.hasCost).map(x=>x.profit))-sum(returnProfit.filter(x=>x.hasCost).map(x=>x.profit));
