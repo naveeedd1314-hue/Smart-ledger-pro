@@ -8,7 +8,7 @@ SmartLedger Pro is a mobile-first business management application for retail and
 - Retail and wholesale selling-rate presets.
 - Inventory, barcode support, stock movement history and bulk CSV import/export.
 - Weighted average inventory costing, with sale-time cost snapshots for profit reporting.
-- Customer and supplier accounts, ledgers, outstanding balances and invoice-level payment allocations.
+- Customer and supplier accounts, ledgers, outstanding balances, invoice-level payment allocations and cash refund transactions.
 - Sales and purchase returns with stock and party-balance adjustments.
 - Reports, product margins, customer profitability, business analytics and strategy recommendations.
 - Market quotation and recorded price-movement tracking.
