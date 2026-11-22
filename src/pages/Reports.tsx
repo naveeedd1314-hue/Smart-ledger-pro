@@ -139,7 +139,9 @@ const supplierRefunds = payments.filter(x=>x.type==='Supplier Refund').reduce((s
           ['Expense entries',expenses.length],
           ['Payment transactions',payments.length],
           ['Customer receipts',money(received)],
-          ['Supplier payments',money(supplierPaid)]
+          ['Supplier payments',money(supplierPaid)],
+          ['Customer refunds',money(customerRefunds)],
+          ['Supplier refunds',money(supplierRefunds)]
         ].map(([label,value])=><div key={String(label)} className="flex justify-between gap-3 py-3"><span>{label}</span><strong>{value}</strong></div>)}
       </div>
     </div>
