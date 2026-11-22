@@ -133,7 +133,7 @@ const total = taxableValue + taxAmount;
 {!isJammuKashmir && sameState && <p>SGST: <strong>{money(sgst)}</strong></p>}
 {!sameState && <p>IGST: <strong>{money(igst)}</strong></p>}
 <p>Total GST: <strong>{money(taxAmount)}</strong></p></>}
-<p>Invoice total: <strong>{money(total)}</strong></p><p>Remaining payable: <strong>{money(total-paid)}</strong></p><p>Stock after purchase: <strong>{(selected?.stock||0)+qty}</strong></p>{selected && <p>Weighted average cost: <strong>{currentAverageCost > 0 ? money(currentAverageCost) : 'Not recorded'} → {money(previewAverageCost)}</strong></p>}</div>
+<p>Invoice total: <strong>{money(total)}</strong></p><p>Remaining payable: <strong>{money(total-paid)}</strong></p><p>Stock after purchase: <strong>{(selected?.stock||0)+qty}</strong></p>{selected && <p>Weighted average cost: <strong>{currentAverageCost > 0 ? money(currentAverageCost) : 'Not recorded'} → {money(previewAverageCost)}</strong></p>}{selected && selected.stock > 0 && currentAverageCost <= 0 && <p className="text-xs text-[var(--amber)]">Existing stock has no saved cost. The new purchase rate will be used as a provisional cost estimate.</p>}</div>
       <button onClick={save} className="rounded-xl bg-[var(--indigo)] px-5 py-3 font-semibold text-white shadow-sm transition hover:bg-[var(--indigo-ink)]">Save Purchase</button>
     </div>
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
