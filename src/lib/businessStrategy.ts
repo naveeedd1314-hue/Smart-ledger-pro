@@ -60,6 +60,8 @@ export function calculateBusinessStrategy(): {
   const rawProducts = readArray("smartledger-products");
   const bills = readArray("smartledger-pro-sales").concat(readArray("smartledger-bills").filter(old => !readArray("smartledger-pro-sales").some(current => current.invoice && current.invoice === old.invoice)));
   const salesByProduct = new Map<string, number>();
+  const returnedByProduct = new Map<string, number>();
+  const returns = readArray("smartledger-pro-returns");
   const warnings: string[] = [];
 
   const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
@@ -83,13 +85,29 @@ export function calculateBusinessStrategy(): {
     }
   }
 
+  for (const item of returns) {
+    if (item.type !== "Sales Return") continue;
+    const dateValue = item.date || item.createdAt;
+    const timestamp = dateValue ? new Date(dateValue).getTime() : NaN;
+    if (!Number.isFinite(timestamp) || timestamp < cutoff) continue;
+    const id = String(item.productId ?? "").trim();
+    const name = String(item.product ?? item.productName ?? "").trim().toLowerCase();
+    const qty = firstPositive(item.qty, item.quantity);
+    if (qty > 0) {
+      if (id) returnedByProduct.set(id, (returnedByProduct.get(id) || 0) + qty);
+      if (name) returnedByProduct.set(name, (returnedByProduct.get(name) || 0) + qty);
+    }
+  }
+
   const products: StrategyResult[] = rawProducts.map((p: StrategyProduct) => {
     const id = String(p.id ?? p.name ?? p.productName ?? "");
     const stock = num(p.stock ?? p.quantity ?? p.qty);
     const cost = firstPositive(p.purchasePrice, p.purchase, p.costPrice);
     const selling = firstPositive(p.sellingPrice, p.salePrice, p.price);
     const productName = String(p.name ?? p.productName ?? "").trim().toLowerCase();
-    const sold = salesByProduct.get(id) || salesByProduct.get(productName) || 0;
+    const grossSold = salesByProduct.get(id) || salesByProduct.get(productName) || 0;
+    const returned = returnedByProduct.get(id) || returnedByProduct.get(productName) || 0;
+    const sold = Math.max(0, grossSold - returned);
     const margin = selling > 0 && cost > 0 ? ((selling - cost) / selling) * 100 : null;
     const days = sold > 0 ? (stock / (sold / 30)) : null;
 
