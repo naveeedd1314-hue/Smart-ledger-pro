@@ -26,7 +26,7 @@ export default function Reports() {
   }, []);
 
   const num = (v: unknown) => Number(v) || 0;
-  const salesTotal = sales.reduce((s,x)=>s+num(x.total),0);
+  const salesTotal = sales.reduce((s,x)=>s+(x.taxableValue !== undefined && x.taxableValue !== null ? num(x.taxableValue) : (num(x.qty)*num(x.rate) || num(x.total))),0);
   const purchaseTotal = purchases.reduce((s,x)=>s+(num(x.total || x.amount) || num(x.qty)*num(x.rate)),0);
   const salesReturns = returns.filter(x=>x.type==='Sales Return');
   const purchaseReturns = returns.filter(x=>x.type==='Purchase Return');
