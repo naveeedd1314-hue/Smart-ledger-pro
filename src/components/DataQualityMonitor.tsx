@@ -11,7 +11,7 @@ export default function DataQualityMonitor() {
         <p className="text-sm text-[var(--text-2)]">{audit.valid ? "No data-quality warnings detected." : `${audit.warnings.length} item(s) need review.`}</p>
       </div>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {([["Products",audit.checked.products],["Sales",audit.checked.sales],["Purchases",audit.checked.purchases],["Expenses",audit.checked.expenses],["Payments",audit.checked.payments],["Returns",audit.checked.returns]] as const).map(([label,value])=>
+        {([["Products",audit.checked.products],["Sales",audit.checked.sales],["Purchases",audit.checked.purchases],["Expenses",audit.checked.expenses],["Payments",audit.checked.payments],["Returns",audit.checked.returns],["Price changes",audit.checked.priceHistory],["Market quotes",audit.checked.marketQuotes]] as const).map(([label,value])=>
           <div key={label} className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-3">
             <p className="text-xs text-[var(--text-2)]">{label}</p>
             <strong className="text-lg text-[var(--text)]">{value}</strong>
