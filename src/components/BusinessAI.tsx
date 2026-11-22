@@ -53,6 +53,7 @@ function analyse(){
  const marketQuotes=read("smartledger-market-quotes");
  const rateRecords=[
   ...purchases.filter(p=>n(field(p,"rate","purchaseRate"))>0&&field(p,"date")).map(p=>({key:String(field(p,"productId","product")||field(p,"productName","product")||"unknown"),name:String(field(p,"product","productName")||"Unknown product"),rate:n(field(p,"rate","purchaseRate")),date:String(p.date).slice(0,10),source:String(field(p,"supplier")||"Supplier"),kind:"Supplier purchase"})),
+  ...bills.filter(p=>n(field(p,"rate","sellingPrice"))>0&&field(p,"date")).map(p=>({key:String(field(p,"productId","product")||field(p,"productName","product")||"unknown"),name:String(field(p,"product","productName")||"Unknown product"),rate:n(field(p,"rate","sellingPrice")),date:String(p.date).slice(0,10),source:`Sales invoice ${String(field(p,"invoice")||"")}`,kind:"Recorded selling rate"})),
   ...marketQuotes.filter(p=>n(field(p,"marketRate"))>0&&field(p,"checkedAt")).map(p=>({key:String(field(p,"productId","productName")||"unknown"),name:String(field(p,"productName")||"Unknown product"),rate:n(field(p,"marketRate")),date:String(p.checkedAt).slice(0,10),source:String(field(p,"source")||"Market source"),kind:"Market quotation"}))
  ];
  const rateGroups=new Map<string,typeof rateRecords>();
