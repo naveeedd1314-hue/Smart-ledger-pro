@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { localDateISO } from '../lib/dateUtils';
 
 type Expense = { id: string; date: string; category: string; description: string; amount: number };
