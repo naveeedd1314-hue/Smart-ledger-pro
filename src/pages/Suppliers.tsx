@@ -1,19 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 type Supplier = { id: string; name: string; phone: string; address: string; opening: number; gstin?: string };
 
 export default function Suppliers() {
-  const [items, setItems] = useState<Supplier[]>([]);
+  const [items, setItems] = useState<Supplier[]>(() => {
+    try { const value = JSON.parse(localStorage.getItem('smartledger-pro-suppliers') || '[]'); return Array.isArray(value) ? value : []; }
+    catch { return []; }
+  });
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [gstin, setGstin] = useState('');
   const [address, setAddress] = useState('');
   const [opening, setOpening] = useState(0);
   const [search, setSearch] = useState('');
-
-  useEffect(() => {
-    setItems(JSON.parse(localStorage.getItem('smartledger-pro-suppliers') || '[]'));
-  }, []);
 
   function save() {
     if (!name.trim()) return alert('Enter supplier name.');
