@@ -75,35 +75,72 @@ export function validateBusinessRecords() {
   const read = (...keys: string[]) => {
     for (const key of keys) {
       try {
-        const value = JSON.parse(localStorage.getItem(key) || "[]");
-        if (Array.isArray(value) && value.length) return value;
+        const raw = localStorage.getItem(key);
+        if (raw === null) continue;
+        const value = JSON.parse(raw);
+        if (Array.isArray(value)) return value;
+        warnings.push(key + ": expected a list of records");
+        return [];
       } catch {
         warnings.push(key + ": invalid stored data");
+        return [];
       }
     }
     return [];
   };
   const products = read("smartledger-products");
-  const bills = read("smartledger-pro-sales", "smartledger-bills");
+  const sales = read("smartledger-pro-sales", "smartledger-pro-bills", "smartledger-bills");
   const purchases = read("smartledger-pro-purchases", "smartledger-purchases");
   const expenses = read("smartledger-pro-expenses", "smartledger-expenses");
+  const payments = read("smartledger-pro-payments");
+  const returns = read("smartledger-pro-returns");
 
   if (!products.length) warnings.push("No product records found.");
-  if (!bills.length) warnings.push("No sales records found.");
+  if (!sales.length) warnings.push("No sales records found.");
   if (!purchases.length) warnings.push("No purchase records found.");
   if (!expenses.length) warnings.push("No expense records found.");
 
+  const validAmount = (value: unknown) => Number.isFinite(Number(value)) && Number(value) >= 0;
   products.forEach((p: any, i: number) => {
     const stock = Number(p.stock ?? p.quantity ?? p.qty);
     if (!Number.isFinite(stock)) warnings.push("Product " + (i + 1) + ": stock value missing or invalid.");
-    if (stock < 0) warnings.push("Product " + (i + 1) + ": negative stock.");
+    else if (stock < 0) warnings.push("Product " + (i + 1) + ": negative stock.");
+    const cost = p.purchase ?? p.purchasePrice ?? p.costPrice;
+    if (cost !== undefined && cost !== null && !validAmount(cost)) warnings.push("Product " + (i + 1) + ": purchase cost is invalid.");
   });
-  bills.forEach((b: any, i: number) => {
-    const total = Number(b.total ?? b.grandTotal ?? b.amount);
-    if (!Number.isFinite(total)) warnings.push("Sale " + (i + 1) + ": total missing or invalid.");
+  sales.forEach((sale: any, i: number) => {
+    const total = Number(sale.total ?? sale.grandTotal ?? sale.amount);
+    const qty = Number(sale.qty ?? sale.quantity);
+    const paid = Number(sale.paid ?? 0);
+    if (!Number.isFinite(total) || total < 0) warnings.push("Sale " + (i + 1) + ": total missing or invalid.");
+    if (!Number.isFinite(qty) || qty <= 0) warnings.push("Sale " + (i + 1) + ": quantity missing or invalid.");
+    if (!Number.isFinite(paid) || paid < 0 || (Number.isFinite(total) && paid > total + 0.01)) warnings.push("Sale " + (i + 1) + ": payment exceeds invoice total or is invalid.");
+  });
+  purchases.forEach((purchase: any, i: number) => {
+    const total = Number(purchase.total ?? purchase.grandTotal ?? purchase.amount);
+    const qty = Number(purchase.qty ?? purchase.quantity);
+    const paid = Number(purchase.paid ?? 0);
+    if (!Number.isFinite(total) || total < 0) warnings.push("Purchase " + (i + 1) + ": total missing or invalid.");
+    if (!Number.isFinite(qty) || qty <= 0) warnings.push("Purchase " + (i + 1) + ": quantity missing or invalid.");
+    if (!Number.isFinite(paid) || paid < 0 || (Number.isFinite(total) && paid > total + 0.01)) warnings.push("Purchase " + (i + 1) + ": payment exceeds invoice total or is invalid.");
+  });
+  expenses.forEach((expense: any, i: number) => {
+    const amount = Number(expense.amount ?? expense.total);
+    if (!Number.isFinite(amount) || amount <= 0) warnings.push("Expense " + (i + 1) + ": amount missing or invalid.");
+  });
+  payments.forEach((payment: any, i: number) => {
+    const amount = Number(payment.amount);
+    if (!Number.isFinite(amount) || amount <= 0) warnings.push("Payment " + (i + 1) + ": amount missing or invalid.");
+    if (!["Customer Receipt", "Supplier Payment"].includes(String(payment.type))) warnings.push("Payment " + (i + 1) + ": transaction type is invalid.");
+  });
+  returns.forEach((item: any, i: number) => {
+    const qty = Number(item.qty);
+    if (!Number.isFinite(qty) || qty <= 0) warnings.push("Return " + (i + 1) + ": quantity missing or invalid.");
+    if (!item.originalId) warnings.push("Return " + (i + 1) + ": original invoice link is missing.");
   });
   return { valid: warnings.length === 0, warnings, checked: {
-    products: products.length, sales: bills.length,
-    purchases: purchases.length, expenses: expenses.length
+    products: products.length, sales: sales.length,
+    purchases: purchases.length, expenses: expenses.length,
+    payments: payments.length, returns: returns.length
   }};
 }
