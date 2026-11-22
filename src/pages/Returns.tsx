@@ -11,6 +11,9 @@ type ReturnItem = {
   qty: number;
   rate: number;
   amount: number;
+  taxAmount?: number;
+  totalAmount?: number;
+  gstRate?: number;
   purchasePrice?: number | null;
   date: string;
   reason: string;
@@ -47,6 +50,9 @@ export default function Returns() {
   const remaining=Math.max(0,Number(source?.qty||0)-alreadyReturned);
   const rate=Number(source?.rate)||0;
   const amount=qty*rate;
+  const gstRate=Number(source?.gstRate)||0;
+  const taxAmount=amount*gstRate/100;
+  const totalAmount=amount+taxAmount;
   const money=(n:number)=>`₹${n.toLocaleString('en-IN',{maximumFractionDigits:2})}`;
 
   function changeType(next:'Sales Return'|'Purchase Return') {
@@ -86,6 +92,9 @@ export default function Returns() {
       qty,
       rate,
       amount,
+      taxAmount,
+      totalAmount,
+      gstRate,
       purchasePrice: type === 'Sales Return' ? (source.purchasePrice !== undefined && source.purchasePrice !== null && Number.isFinite(Number(source.purchasePrice)) ? Number(source.purchasePrice) : null) : undefined,
       date,
       reason
@@ -101,7 +110,7 @@ export default function Returns() {
     alert('Return recorded and inventory adjusted.');
   }
 
-  const totalSales=returns.filter(x=>x.type==='Sales Return').reduce((s,x)=>s+x.amount,0);
+  const totalSales=returns.filter(x=>x.type==='Sales Return').reduce((s,x)=>s+(x.totalAmount ?? x.amount),0);
   const totalPurchases=returns.filter(x=>x.type==='Purchase Return').reduce((s,x)=>s+x.amount,0);
 
   return <section className="space-y-5">
