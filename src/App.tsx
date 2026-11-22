@@ -149,10 +149,17 @@ function App() {
 
       <aside className={`${menuOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-[var(--border)] bg-[var(--surface)] text-[var(--text)] transition-transform md:translate-x-0`}>
         <div className="flex h-20 shrink-0 items-center gap-3 border-b border-[var(--border)] px-5">
-          <div className="sl-brand-mark flex h-11 w-11 items-center justify-center rounded-2xl text-xl font-black">S</div>
-          <div>
-            <h1 className="text-lg font-extrabold tracking-tight"><PremiumIcon name="dashboard" tone="emerald" size={34} />SmartLedger</h1>
-            <p className="text-[10px] uppercase tracking-[3px] text-[var(--text-2)]">PRO BUSINESS ERP</p>
+          <div className="sl-brand-mark" aria-label="SmartLedger logo">
+            <svg viewBox="0 0 48 48" role="img" aria-hidden="true">
+              <path d="M8 10.5c5.8-2.4 11.1-1.8 16 1.8v27c-4.9-3.6-10.2-4.2-16-1.8z" />
+              <path d="M40 10.5c-5.8-2.4-11.1-1.8-16 1.8v27c4.9-3.6 10.2-4.2 16-1.8z" />
+              <path d="M13 17.5c3.1-.7 6-.1 8.5 1.5M13 24c3.1-.7 6-.1 8.5 1.5M35 17.5c-3.1-.7-6-.1-8.5 1.5M35 24c-3.1-.7-6-.1-8.5 1.5" />
+              <path d="m18.5 32 3.2 3.2 7.8-8.1" />
+            </svg>
+          </div>
+          <div className="sl-brand-copy">
+            <h1 className="text-lg font-extrabold tracking-tight">SmartLedger<span> Pro</span></h1>
+            <p className="text-[10px] uppercase tracking-[3px] text-[var(--text-2)]">BUSINESS MANAGEMENT</p>
           </div>
           <button type="button" aria-label="Close navigation menu" onClick={() => setMenuOpen(false)} className="ml-auto rounded-lg p-2 text-[var(--text-2)] hover:bg-[var(--surface-2)] hover:text-[var(--text)] md:hidden"><X size={19}/></button>
         </div>
