@@ -122,7 +122,7 @@ export function calculateBusinessStrategy(): {
     return {
       name: p.name || p.productName || "Unnamed product",
       stock, cost, selling,
-      stockValue: stock * cost,
+      stockValue: Math.max(0, stock) * cost,
       margin, soldQty30Days: sold,
       estimatedDaysOfStock: days,
       status
