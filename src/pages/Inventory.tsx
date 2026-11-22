@@ -9,6 +9,7 @@ type Product = {
   selling: number
   wholesale?: number
   purchase: number
+  averageCost?: number | null
   stock: number
   sku?: string
   category?: string
@@ -248,6 +249,7 @@ export default function Inventory() {
       hsn: hsn.trim(),
       gstRate: gstValue,
       purchase: purchaseValue,
+      averageCost: purchaseValue > 0 ? purchaseValue : null,
       selling: sellingValue,
       wholesale: wholesaleValue,
       stock: stockValue
