@@ -83,7 +83,8 @@ export function calculateBusinessStrategy(): {
     const stock = Math.max(0, num(p.stock ?? p.quantity ?? p.qty));
     const cost = firstPositive(p.purchasePrice, p.purchase, p.costPrice);
     const selling = firstPositive(p.sellingPrice, p.salePrice, p.price);
-    const sold = salesByProduct.get(id) || 0;
+    const productName = String(p.name ?? p.productName ?? "").trim().toLowerCase();
+    const sold = salesByProduct.get(id) || salesByProduct.get(productName) || 0;
     const margin = selling > 0 && cost > 0 ? ((selling - cost) / selling) * 100 : null;
     const days = sold > 0 ? (stock / (sold / 30)) : null;
 
