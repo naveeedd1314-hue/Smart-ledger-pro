@@ -114,6 +114,10 @@ export default function Returns() {
     };
 
     const updatedReturns=[record,...returns];
+    const stockLog=read('smartledger-pro-stock-adjustments');
+    const stockChange=type==='Sales Return'?qty:-qty;
+    stockLog.unshift({id:crypto.randomUUID(),date,productId:product.id,product:product.name,change:stockChange,movement:stockChange>0?'Stock In':'Stock Out',stockAfter:Number(product.stock)+stockChange,reason:`${type} for invoice ${record.invoice}`});
+    localStorage.setItem('smartledger-pro-stock-adjustments',JSON.stringify(stockLog));
     localStorage.setItem('smartledger-products',JSON.stringify(updatedProducts));
     localStorage.setItem('smartledger-pro-returns',JSON.stringify(updatedReturns));
     setProducts(updatedProducts);
