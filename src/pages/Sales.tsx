@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { downloadInvoicePdf } from '../utils/invoicePdf';
 
-type Product = { id: string; name: string; selling: number; purchase: number; averageCost?: number | null; stock: number; sku?: string; category?: string; gstRate?: number; hsn?: string };
+type Product = { id: string; name: string; selling: number; purchase: number; averageCost?: number | null; wholesale?: number; stock: number; sku?: string; category?: string; gstRate?: number; hsn?: string };
 type Sale = { id: string; productId?: string; invoice: string; date: string; customer: string; product: string; qty: number; rate: number; total: number; paid: number; balance: number; purchasePrice?: number | null; taxableValue?: number; gstRate?: number; taxAmount?: number; cgst?: number; sgst?: number; utgst?: number; igst?: number; placeOfSupply?: string; hsn?: string; customerGstin?: string; customerAddress?: string };
 
 export default function Sales() {
@@ -48,6 +48,8 @@ export default function Sales() {
   const utgst = applyGST && sameState && isJammuKashmir ? taxAmount / 2 : 0;
   const igst = applyGST && !sameState ? taxAmount : 0;
   const total = taxableValue + taxAmount;
+  const saleCost = selected ? Number(selected.averageCost ?? selected.purchase) : 0;
+  const estimatedGrossProfit = selected && Number.isFinite(saleCost) && saleCost > 0 ? (rate - saleCost) * qty : null;
 
   function saveSale() {
     if (!selected || !Number.isFinite(qty) || qty <= 0 || !Number.isFinite(rate) || rate < 0 || !Number.isFinite(paid) || paid < 0 || !Number.isFinite(total) || paid > total || qty > selected.stock) {
@@ -118,7 +120,8 @@ export default function Sales() {
         <label className="text-sm">Customer name<input className="mt-1 w-full rounded-lg border p-3" value={customer} onChange={e => setCustomer(e.target.value)} /></label>
         <label className="text-sm">Product<select className="mt-1 w-full rounded-lg border p-3" value={productId} onChange={e => { const p = products.find(x => x.id === e.target.value); setProductId(e.target.value); setRate(p?.selling || 0); }}><option value="">Select product</option>{products.map(p => <option key={p.id} value={p.id}>{p.name} — Stock: {p.stock}</option>)}</select></label>
         <label className="text-sm">Quantity<input type="number" min="0.01" step="any" className="mt-1 w-full rounded-lg border p-3" value={qty} onChange={e => setQty(Number(e.target.value))} /></label>
-        <label className="text-sm">Selling rate<input type="number" min="0" className="mt-1 w-full rounded-lg border p-3" value={rate} onChange={e => setRate(Number(e.target.value))} /></label>
+        <label className="text-sm">Selling rate<input type="number" min="0" step="any" className="mt-1 w-full rounded-lg border p-3" value={rate} onChange={e => setRate(Number(e.target.value))} /></label>
+        <div className="flex flex-wrap items-end gap-2"><button type="button" disabled={!selected} onClick={() => setRate(Number(selected?.selling) || 0)} className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm disabled:opacity-40">Retail ₹{money(Number(selected?.selling) || 0)}</button><button type="button" disabled={!selected || !(Number(selected.wholesale) > 0)} onClick={() => setRate(Number(selected?.wholesale) || 0)} className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm disabled:opacity-40">Wholesale ₹{money(Number(selected?.wholesale) || 0)}</button></div>
         <label className="text-sm">Amount received (initial payment)<input type="number" min="0" className="mt-1 w-full rounded-lg border p-3" value={paid} onChange={e => setPaid(Number(e.target.value))} /></label>
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={applyGST} onChange={e => setApplyGST(e.target.checked)} />
@@ -141,6 +144,8 @@ export default function Sales() {
         <p>Invoice total: <strong>{money(total)}</strong></p>
         <p>Balance due: <strong>{money(total - paid)}</strong></p>
         <p>Available stock: <strong>{selected?.stock ?? '—'}</strong></p>
+        <p>Weighted average cost: <strong>{selected && saleCost > 0 ? money(saleCost) : 'Not recorded'}</strong></p>
+        <p>Estimated gross profit: <strong>{estimatedGrossProfit === null ? 'Cost required' : money(estimatedGrossProfit)}</strong></p>
       </div>
       <button onClick={saveSale} className="rounded-lg sl-primary px-5 py-3 font-semibold text-white">Save Invoice</button>
     </div>
