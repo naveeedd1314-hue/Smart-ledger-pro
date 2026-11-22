@@ -4,7 +4,15 @@ const SHELL_URLS = ['/', '/index.html', '/favicon.svg', '/icon-192.svg', '/icon-
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(SHELL_URLS))
+      .then(async cache => {
+        await cache.addAll(SHELL_URLS);
+        const index = await cache.match('/index.html');
+        if (index) {
+          const html = await index.text();
+          const assets = Array.from(html.matchAll(/(?:src|href)="(\\/assets\\/[^"]+)"/g), match => match[1]);
+          if (assets.length) await cache.addAll(assets);
+        }
+      })
       .then(() => self.skipWaiting())
   );
 });
