@@ -145,7 +145,7 @@ export default function Reports() {
     <div className="rounded-xl bg-[var(--surface)] p-5 shadow-sm space-y-4">
       <div>
         <h2 className="text-lg font-semibold">Invoice-wise Profit &amp; Loss</h2>
-        <p className="text-sm text-[var(--text-2)]">Profit uses sale-time weighted average cost snapshots, excludes GST from sales revenue and reverses known sales-return margin. Legacy stock without cost layers starts from its saved purchase rate.</p>
+        <p className="text-sm text-[var(--text-2)]">Profit uses the cost captured on each sale (weighted average for new transactions; legacy transactions retain their saved purchase rate), excludes GST from sales revenue and reverses known sales-return margin.</p>
       </div>
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <div className="rounded-lg bg-[var(--surface-2)] p-3"><p className="text-sm text-[var(--text-2)]">Gross Profit</p><strong className="text-xl">{money(invoiceGrossProfit)}</strong></div>
