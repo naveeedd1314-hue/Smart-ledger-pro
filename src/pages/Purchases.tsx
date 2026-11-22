@@ -60,7 +60,7 @@ const total = taxableValue + taxAmount;
       return;
     }
     if(!invoice.trim()) { alert('Enter supplier invoice number.'); return; }
-    if(items.some(x => x.supplier.trim().toLowerCase() === supplier.trim().toLowerCase() && x.invoice.trim().toLowerCase() === invoice.trim().toLowerCase())) { alert('This supplier invoice number is already recorded for this supplier.'); return; }
+    if(items.some(x => String(x.supplier || '').trim().toLowerCase() === supplier.trim().toLowerCase() && String(x.invoice || '').trim().toLowerCase() === invoice.trim().toLowerCase())) { alert('This supplier invoice number is already recorded for this supplier.'); return; }
 
     const supplierDetails = suppliers.find(x =>
       x.name.trim().toLowerCase() === supplier.trim().toLowerCase()
