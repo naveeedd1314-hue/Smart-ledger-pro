@@ -182,7 +182,12 @@ export function validateBusinessRecords() {
       if (payment.allocations.some((item: any) => !item.invoiceId || !Number.isFinite(Number(item.amount)) || Number(item.amount) <= 0)) warnings.push("Payment " + (i + 1) + ": an invoice allocation is missing its invoice link or has an invalid amount.");
       if (allocated > amount + 0.01) warnings.push("Payment " + (i + 1) + ": allocated amount exceeds the payment total.");
       const invoiceIds = payment.type === "Customer Receipt" ? salesIds : purchaseIds;
-      payment.allocations.forEach((item: any) => { if (item.invoiceId && !invoiceIds.has(String(item.invoiceId))) warnings.push("Payment " + (i + 1) + ": allocation points to an invoice that cannot be found."); });
+      payment.allocations.forEach((item: any) => {
+        if (item.invoiceId && !invoiceIds.has(String(item.invoiceId))) warnings.push("Payment " + (i + 1) + ": allocation points to an invoice that cannot be found.");
+        const target = payment.type === "Customer Receipt" ? sales.find((invoice: any) => String(invoice.id) === String(item.invoiceId)) : purchases.find((invoice: any) => String(invoice.id) === String(item.invoiceId));
+        const targetParty = payment.type === "Customer Receipt" ? target?.customer : target?.supplier;
+        if (targetParty && String(targetParty).trim().toLowerCase() !== String(payment.party || "").trim().toLowerCase()) warnings.push("Payment " + (i + 1) + ": allocated invoice belongs to a different party.");
+      });
     }
   });
   stockAdjustments.forEach((item: any, i: number) => {
