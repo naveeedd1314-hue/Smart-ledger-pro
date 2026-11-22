@@ -101,7 +101,7 @@ const total = taxableValue + taxAmount;
         <label className="text-sm">Purchase rate<input type="number" min="0" step="any" className="mt-1 w-full rounded-lg border p-3" value={rate} onChange={e=>setRate(Number(e.target.value))}/></label>
         <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={applyGST} onChange={e=>setApplyGST(e.target.checked)}/> Apply GST to this purchase</label>
 {applyGST && <label className="text-sm">Place of supply (state / UT)<input className="mt-1 w-full rounded-lg border p-3" value={placeOfSupply} onChange={e=>setPlaceOfSupply(e.target.value)}/></label>}
-<label className="text-sm">Amount paid<input type="number" min="0" step="any" className="mt-1 w-full rounded-lg border p-3" value={paid} onChange={e=>setPaid(Number(e.target.value))}/></label>
+<label className="text-sm">Amount paid (initial payment)<input type="number" min="0" step="any" className="mt-1 w-full rounded-lg border p-3" value={paid} onChange={e=>setPaid(Number(e.target.value))}/></label>
       </div>
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] p-4 text-sm text-[var(--text)]"><p>Taxable value: <strong>{money(taxableValue)}</strong></p>
 {applyGST && <><p>GST rate: <strong>{gstRate}%</strong></p>
