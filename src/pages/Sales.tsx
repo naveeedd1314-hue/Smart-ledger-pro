@@ -49,7 +49,7 @@ export default function Sales() {
   const igst = applyGST && !sameState ? taxAmount : 0;
   const total = taxableValue + taxAmount;
   const saleCost = selected ? Number(selected.averageCost ?? selected.purchase) : 0;
-  const estimatedGrossProfit = selected && Number.isFinite(saleCost) && saleCost > 0 ? (rate - saleCost) * qty : null;
+  const estimatedGrossProfit = selected && Number.isFinite(saleCost) && saleCost > 0 && Number.isFinite(rate) ? (rate - saleCost) * qty : null;
 
   function saveSale() {
     if (!selected || !Number.isFinite(qty) || qty <= 0 || !Number.isFinite(rate) || rate < 0 || !Number.isFinite(paid) || paid < 0 || !Number.isFinite(total) || paid > total || qty > selected.stock) {
