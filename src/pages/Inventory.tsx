@@ -127,7 +127,7 @@ export default function Inventory() {
     const doc = new jsPDF({ orientation: 'landscape' })
     const pageWidth = doc.internal.pageSize.getWidth()
     const pageHeight = doc.internal.pageSize.getHeight()
-    const columns = ['Product', 'SKU', 'Purchase', 'Selling', 'Profit/Unit', 'Stock', 'Cost Value', 'Retail Value']
+    const columns = ['Product', 'SKU', 'Average Cost', 'Selling', 'Profit/Unit', 'Stock', 'Cost Value', 'Retail Value']
     const widths = [58, 28, 25, 25, 27, 18, 35, 35]
     const startX = 12
     let y = 43
