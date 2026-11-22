@@ -1,1 +1,6 @@
-{"file": "src/App.tsx", "score": 65}
+{
+  "file": "src/App.tsx",
+  "root": "/workspaces/Smart-ledger-pro",
+  "dashboard": "/workspaces/Smart-ledger-pro/src/App.tsx",
+  "score": 65
+}
