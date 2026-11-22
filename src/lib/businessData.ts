@@ -94,6 +94,19 @@ export function validateBusinessRecords() {
   const expenses = read("smartledger-pro-expenses", "smartledger-expenses");
   const payments = read("smartledger-pro-payments");
   const returns = read("smartledger-pro-returns");
+  const salesIds = new Set(sales.map((item: any) => String(item.id)));
+  const purchaseIds = new Set(purchases.map((item: any) => String(item.id)));
+
+  const duplicateIds = (rows: any[]) => {
+    const seen = new Set<string>();
+    const duplicates = new Set<string>();
+    rows.forEach(item => { const id = String(item?.id ?? ""); if (id && seen.has(id)) duplicates.add(id); else if (id) seen.add(id); });
+    return duplicates.size;
+  };
+  [["Products", products], ["Sales", sales], ["Purchases", purchases], ["Payments", payments], ["Returns", returns]].forEach(([label, rows]) => {
+    const count = duplicateIds(rows as any[]);
+    if (count) warnings.push(String(label) + ": " + count + " duplicate record ID(s) found.");
+  });
 
   if (!products.length) warnings.push("No product records found.");
   if (!sales.length) warnings.push("No sales records found.");
@@ -136,6 +149,8 @@ export function validateBusinessRecords() {
       const allocated = payment.allocations.reduce((sum: number, item: any) => sum + (Number(item.amount) || 0), 0);
       if (payment.allocations.some((item: any) => !item.invoiceId || !Number.isFinite(Number(item.amount)) || Number(item.amount) <= 0)) warnings.push("Payment " + (i + 1) + ": an invoice allocation is missing its invoice link or has an invalid amount.");
       if (allocated > amount + 0.01) warnings.push("Payment " + (i + 1) + ": allocated amount exceeds the payment total.");
+      const invoiceIds = payment.type === "Customer Receipt" ? salesIds : purchaseIds;
+      payment.allocations.forEach((item: any) => { if (item.invoiceId && !invoiceIds.has(String(item.invoiceId))) warnings.push("Payment " + (i + 1) + ": allocation points to an invoice that cannot be found."); });
     }
   });
   returns.forEach((item: any, i: number) => {
