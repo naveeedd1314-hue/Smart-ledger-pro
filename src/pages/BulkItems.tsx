@@ -85,19 +85,40 @@ export default function BulkItems() {
       const i = headers.findIndex(h => names.includes(h))
       return i < 0 ? fallback : r[i] || fallback
     }
-    const parsed = rows.slice(1).map((r, i): Product => ({
-      id: get(r,['id'],`bulk-${Date.now()}-${i}`),
-      name: get(r,['name','product','item']),
-      sku: get(r,['sku','barcode']),
-      category: get(r,['category','group'],'General'),
-      hsn: get(r,['hsn']),
-      gstRate: Number(get(r,['gstrate','gst'])) || 0,
-      purchase: Number(get(r,['purchase','purchaseprice','cost'])) || 0,
-      selling: Number(get(r,['selling','sellingprice','rate'])) || 0,
-      stock: Number(get(r,['stock','qty','quantity'])) || 0
-    })).filter(p => p.name)
+    const errors: string[] = []
+    const parsed = rows.slice(1).map((r, i): Product => {
+      const numeric = (names: string[], label: string) => {
+        const raw = get(r, names)
+        if (!raw) return 0
+        const value = Number(raw)
+        if (!Number.isFinite(value) || value < 0) {
+          errors.push(`Row ${i + 2}: invalid ${label} value.`)
+          return 0
+        }
+        return value
+      }
+      const tax = numeric(['gstrate','gst'], 'GST rate')
+      if (tax > 100) errors.push(`Row ${i + 2}: GST rate cannot exceed 100%.`)
+      return {
+        id: get(r,['id']) || crypto.randomUUID(),
+        name: get(r,['name','product','item']),
+        sku: get(r,['sku','barcode']),
+        category: get(r,['category','group'],'General'),
+        hsn: get(r,['hsn']),
+        gstRate: tax,
+        purchase: numeric(['purchase','purchaseprice','cost'], 'purchase price'),
+        selling: numeric(['selling','sellingprice','rate'], 'selling price'),
+        stock: numeric(['stock','qty','quantity'], 'stock')
+      }
+    }).filter(p => p.name)
+    if (errors.length) {
+      setPreview([])
+      setMessage(`Import stopped: ${errors.slice(0, 5).join(' ')}`)
+      return
+    }
+    if (!parsed.length) { setPreview([]); setMessage('No valid product names found in the CSV.'); return }
     setPreview(parsed)
-    setMessage(`${parsed.length} rows ready. Existing products will be matched by SKU or name.`)
+    setMessage(`${parsed.length} rows ready. Existing products will be matched by SKU or name; invalid numeric values are rejected.`)
   }
 
   const applyImport = () => {
@@ -112,7 +133,7 @@ export default function BulkItems() {
       const previous = index >= 0 ? next[index] : null
       const previousStock = Number(previous?.stock || 0)
       if (index >= 0) { next[index] = { ...next[index], ...p, id: next[index].id }; updated++ }
-      else { next.push(p); added++ }
+      else { next.push(next.some(x => String(x.id) === String(p.id)) ? { ...p, id: crypto.randomUUID() } : p); added++ }
       const change = Number(p.stock || 0) - previousStock
       if (change !== 0) logs.unshift({ id: crypto.randomUUID(), date: new Date().toISOString().slice(0,10), productId: previous?.id ?? p.id, product: p.name, change, movement: change > 0 ? 'Stock In' : 'Stock Out', stockAfter: Number(p.stock || 0), reason: 'Bulk CSV import' })
     })
@@ -123,8 +144,8 @@ export default function BulkItems() {
 
   const updatePrices = () => {
     const n = Number(amount)
-    if (!selected.length || amount === '' || !Number.isFinite(n) || n < 0) {
-      setMessage('Select items and enter a valid value.'); return
+    if (!selected.length || amount === '' || !Number.isFinite(n) || n < 0 || (mode === 'decrease' && n > 100)) {
+      setMessage(mode === 'decrease' && n > 100 ? 'A price decrease cannot exceed 100%.' : 'Select items and enter a valid value.'); return
     }
     const history = read('smartledger-pro-price-history') as any[]
     const next = items.map(p => {
@@ -132,7 +153,7 @@ export default function BulkItems() {
       const old = Number(p[field]) || 0
       const value = mode === 'set' ? n : mode === 'increase' ? old * (1+n/100) : old * (1-n/100)
       const updated = Math.max(0, Number(value.toFixed(2)))
-      if (updated !== old) history.unshift({ id: crypto.randomUUID(), productId: p.id, productName: p.name, field, oldPrice: old, newPrice: updated, date: new Date().toISOString().slice(0,10), source: 'Bulk Items price update' })
+      if (updated !== old) history.unshift({ id: crypto.randomUUID(), productId: p.id, productName: p.name, field, oldPrice: old, newPrice: updated, date: new Date().toISOString().slice(0,10), savedAt: new Date().toISOString(), source: 'Bulk Items price update' })
       return { ...p, [field]: updated }
     })
     localStorage.setItem('smartledger-pro-price-history', JSON.stringify(history))
