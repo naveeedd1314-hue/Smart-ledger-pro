@@ -86,7 +86,7 @@ function analyse(){
  const rateGroups=new Map<string,typeof rateRecords>();
  rateRecords.forEach(p=>{const key=p.kind+"|"+p.key;if(!rateGroups.has(key))rateGroups.set(key,[]);rateGroups.get(key)!.push(p);});
  const rateMovements=Array.from(rateGroups.values()).map(rows=>{const sorted=[...rows].sort((a,b)=>a.date.localeCompare(b.date)||String(a.sortAt||'').localeCompare(String(b.sortAt||'')));const previous=sorted.length>1?sorted[sorted.length-2]:null;const latest=sorted[sorted.length-1];return {...latest,previous:previous?.rate??null,change:previous?latest.rate-previous.rate:0,percent:previous&&previous.rate>0?(latest.rate-previous.rate)/previous.rate*100:null,observations:sorted.length};}).sort((a,b)=>b.date.localeCompare(a.date));
- return {products,bills,purchases,payments,expenses,customers,suppliers,productRows,known,low,negative,sales,expenseTotal,purchaseTotal,receivable,payable,stockValue,missingCost,marginAvg,targetMargin,belowTargetMargin,rateMovements,knownGrossProfit,estimatedAfterExpenses,missingCostInvoices,returnsMissingCost,customerProfitRows,customerDueRows,supplierDueRows};
+ return {products,bills,purchases,payments,expenses,customers,suppliers,productRows,known,low,negative,sales,expenseTotal,purchaseTotal,receivable,payable,customerRefunds,supplierRefunds,stockValue,missingCost,marginAvg,targetMargin,belowTargetMargin,rateMovements,knownGrossProfit,estimatedAfterExpenses,missingCostInvoices,returnsMissingCost,customerProfitRows,customerDueRows,supplierDueRows};
 }
 function answer(q:string,d:ReturnType<typeof analyse>){
  const s=q.toLowerCase();
@@ -125,6 +125,7 @@ function answer(q:string,d:ReturnType<typeof analyse>){
   const leaders=d.customerProfitRows.slice(0,8);
   return `Customer gross-profit ranking from recorded item costs (before business expenses):\\n${leaders.map((x:any,i:number)=>`${i+1}. ${x.name}: ${money(x.profit)} known gross profit; ${x.missingCost} missing cost records`).join("\\n")||"No customer sales records available."}\\nCustomer-specific expenses are not allocated.`;
  }
+ if(/refund/.test(s)) return `Recorded customer refunds: ${money(d.customerRefunds)}. Supplier refunds received: ${money(d.supplierRefunds)}. Customer refunds increase customer balances; supplier refunds increase supplier balances until settled.`;
  if(/target margin|minimum margin/.test(s)) return `Your configured minimum gross margin alert threshold is ${d.targetMargin.toFixed(2)}%. Products below this level are flagged in Business Strategy. SmartLedger does not change selling prices automatically.`;
  if(/profit|margin|loss|munafa|nuksan/.test(s))
   return `Recorded taxable sales: ${money(d.sales)}. Known gross profit from invoices with saved item costs, less costed sales returns: ${money(d.knownGrossProfit)}. Recorded expenses: ${money(d.expenseTotal)}. Estimated profit after expenses on costed invoices only: ${money(d.estimatedAfterExpenses)}. Missing cost snapshots: ${d.missingCostInvoices} sales invoices and ${d.returnsMissingCost} sales returns. Average listed product margin: ${d.marginAvg.toFixed(2)}%. This is an incomplete estimate, not a finalized P&L; missing costs, opening stock, overhead timing and tax treatment must be reconciled.`;
