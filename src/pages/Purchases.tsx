@@ -61,6 +61,7 @@ const total = taxableValue + taxAmount;
   const currentAverageCost = selected ? Number(selected.averageCost ?? selected.purchase) || 0 : 0;
   const previewAverageCost = selected && qty > 0 && rate > 0 ? (selected.stock > 0 && currentAverageCost > 0 ? ((selected.stock * currentAverageCost) + (qty * rate)) / (selected.stock + qty) : rate) : 0;
   const totalPayments=payments.filter(x=>x.type==='Supplier Payment').reduce((sum,x)=>sum+(Number(x.amount)||0),0);
+  const supplierRefunds=payments.filter(x=>x.type==='Supplier Refund').reduce((sum,x)=>sum+(Number(x.amount)||0),0);
   const purchaseReturnCredits=returns.filter(x=>x.type==='Purchase Return').reduce((sum,x)=>sum+(Number(x.totalAmount??x.amount)||0),0);
   const basePayable=items.reduce((sum,x)=>sum+(Number.isFinite(Number(x.total))?Math.max(0,Number(x.total)-Number(x.paid||0)):Math.max(0,Number(x.balance)||0)),0);
   const supplierOpening=suppliersList.reduce((sum,x)=>sum+(Number(x.opening)||0),0);
@@ -113,7 +114,7 @@ const total = taxableValue + taxAmount;
     <div className="grid gap-3 sm:grid-cols-3">
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">Purchase Value</p><strong className="text-xl">{money(items.reduce((s,x)=>s+x.total,0))}</strong></div>
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">Paid</p><strong className="text-xl">{money(items.reduce((sum,x)=>sum+x.paid,0)+totalPayments)}</strong></div>
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">Outstanding</p><strong className="text-xl">{money(Math.max(0,supplierOpening+basePayable-totalPayments-purchaseReturnCredits))}</strong></div>
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">Outstanding</p><strong className="text-xl">{money(Math.max(0,supplierOpening+basePayable+supplierRefunds-totalPayments-purchaseReturnCredits))}</strong></div>
     </div>
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm space-y-5">
       <h2 className="font-semibold">Record Purchase Invoice</h2>
