@@ -68,7 +68,7 @@ export default function Ledger() {
     const cost = sale.purchasePrice === undefined || sale.purchasePrice === null ? Number.NaN : Number(sale.purchasePrice);
     const quantity = Number(sale.qty) || 0;
     const rate = Number(sale.rate) || 0;
-    return sum + (Number.isFinite(cost) && cost >= 0 ? (rate - cost) * quantity : 0);
+    return sum + (Number.isFinite(cost) && cost > 0 ? (rate - cost) * quantity : 0);
   }, 0);
   const customerReturnProfit = type === 'Customer' ? returns.filter(x => x.type === 'Sales Return' && x.party === party).reduce((sum, item) => {
     const cost = item.purchasePrice === undefined || item.purchasePrice === null ? Number.NaN : Number(item.purchasePrice);
@@ -77,7 +77,7 @@ export default function Ledger() {
     return sum + (Number.isFinite(cost) && cost >= 0 ? (rate - cost) * quantity : 0);
   }, 0) : 0;
   const customerGrossProfit = customerSalesGrossProfit - customerReturnProfit;
-  const salesMissingCost = customerSales.filter(x => x.purchasePrice === undefined || x.purchasePrice === null || !Number.isFinite(Number(x.purchasePrice)) || Number(x.purchasePrice) <= 0).length + (type === 'Customer' ? returns.filter(x => x.type === 'Sales Return' && x.party === party && (x.purchasePrice === undefined || x.purchasePrice === null || !Number.isFinite(Number(x.purchasePrice)))).length : 0);
+  const salesMissingCost = customerSales.filter(x => x.purchasePrice === undefined || x.purchasePrice === null || !Number.isFinite(Number(x.purchasePrice)) || Number(x.purchasePrice) <= 0).length + (type === 'Customer' ? returns.filter(x => x.type === 'Sales Return' && x.party === party && (x.purchasePrice === undefined || x.purchasePrice === null || !Number.isFinite(Number(x.purchasePrice)) || Number(x.purchasePrice) <= 0)).length : 0);
   const opening = Number(selected?.opening) || 0;
   const debit = entries.reduce((s,x)=>s+x.debit,0);
   const credit = entries.reduce((s,x)=>s+x.credit,0);
