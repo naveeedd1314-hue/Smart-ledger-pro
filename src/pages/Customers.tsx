@@ -17,6 +17,8 @@ export default function Customers() {
 
   function save() {
     if (!name.trim()) return alert('Enter customer name.');
+    if (!Number.isFinite(opening)) return alert('Enter a valid opening balance.');
+    if (items.some(x => String(x.name || '').trim().toLowerCase() === name.trim().toLowerCase())) return alert('A customer with this name already exists. Use the existing customer record.');
     const next = [{ id: crypto.randomUUID(), name: name.trim(), phone, gstin: gstin.trim(), address, opening }, ...items];
     setItems(next);
     localStorage.setItem('smartledger-pro-customers', JSON.stringify(next));
