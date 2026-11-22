@@ -87,7 +87,10 @@ export default function Sales() {
       videoRef.current.srcObject = stream;
       await videoRef.current.play();
       setScanning(true);
-      const detector = new Detector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'qr_code'] });
+      const requestedFormats = ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'qr_code'];
+      const supportedFormats = typeof Detector.getSupportedFormats === 'function' ? await Detector.getSupportedFormats() : requestedFormats;
+      const formats = requestedFormats.filter(format => supportedFormats.includes(format));
+      const detector = new Detector(formats.length ? { formats } : undefined);
       const scan = async () => {
         if (!videoRef.current || !scanStreamRef.current) return;
         try {
