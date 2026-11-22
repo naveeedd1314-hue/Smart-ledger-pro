@@ -4,7 +4,7 @@
     "src/smartledger-pro-theme.css"
   ],
   "components": 13,
-  "pages": 14,
+  "pages": 15,
   "app_exists": true,
   "dependencies": [
     "@tailwindcss/vite",
