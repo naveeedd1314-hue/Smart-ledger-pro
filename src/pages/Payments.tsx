@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { localDateISO } from '../lib/dateUtils';
 import { jsPDF } from 'jspdf';
 
 type Payment = { id: string; date: string; type: string; party: string; amount: number; method: string; reference: string; note: string; allocations?: { invoiceId: string; invoice: string; amount: number }[] };
@@ -15,7 +16,7 @@ export default function Payments() {
   const [method, setMethod] = useState('Cash');
   const [reference, setReference] = useState('');
   const [note, setNote] = useState('');
-  const [date, setDate] = useState(new Date().toISOString().slice(0,10));
+  const [date, setDate] = useState(localDateISO());
   const [salesInvoices, setSalesInvoices] = useState<any[]>([]);
   const [purchaseInvoices, setPurchaseInvoices] = useState<any[]>([]);
   const [invoiceId, setInvoiceId] = useState('');
