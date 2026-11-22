@@ -26,14 +26,14 @@ export default function MarketRateIntelligence() {
   const priceDifference = market !== null && retail !== null ? market - retail : null;
 
   return (
-    <section style={{ margin: "18px 0", padding: 18, borderRadius: 18, background: "var(--card, #fff)", border: "1px solid var(--border, #ddd)" }}>
+    <section style={{ margin: "18px 0", padding: 18, borderRadius: 18, background: "var(--surface)", border: "1px solid var(--border, #ddd)" }}>
       <h2 style={{ margin: "0 0 5px", fontSize: 20 }}>Market Rate Intelligence</h2>
       <p style={{ fontSize: 13, opacity: .7 }}>Compare your recorded rates with an independently checked market quotation.</p>
 
       <label style={{ display: "grid", gap: 6, fontSize: 13, marginTop: 12 }}>
         Select product
         <select value={selected} onChange={e => { setSelected(e.target.value); setMarketRate(""); setSource(""); setCheckedAt(""); }}
-          style={{ padding: 11, borderRadius: 9, border: "1px solid var(--border, #ccc)", background: "var(--card, white)", color: "inherit" }}>
+          style={{ padding: 11, borderRadius: 9, border: "1px solid var(--border, #ccc)", background: "var(--surface)", color: "inherit" }}>
           <option value="">Choose a product</option>
           {products.map((p: any, i: number) => <option key={i} value={String(p.id ?? p.name)}>{p.name || p.productName || `Product ${i + 1}`}</option>)}
         </select>
@@ -57,17 +57,17 @@ export default function MarketRateIntelligence() {
       <label style={{ display: "grid", gap: 6, fontSize: 13, marginTop: 14 }}>
         Verified market quotation (₹)
         <input type="number" min="0" step="any" value={marketRate} onChange={e => setMarketRate(e.target.value)} placeholder="Enter checked market rate"
-          style={{ padding: 11, borderRadius: 9, border: "1px solid var(--border, #ccc)", background: "var(--card, white)", color: "inherit" }} />
+          style={{ padding: 11, borderRadius: 9, border: "1px solid var(--border, #ccc)", background: "var(--surface)", color: "inherit" }} />
       </label>
       <label style={{ display: "grid", gap: 6, fontSize: 13, marginTop: 10 }}>
         Source / supplier / market
         <input value={source} onChange={e => setSource(e.target.value)} placeholder="Source name or quotation reference"
-          style={{ padding: 11, borderRadius: 9, border: "1px solid var(--border, #ccc)", background: "var(--card, white)", color: "inherit" }} />
+          style={{ padding: 11, borderRadius: 9, border: "1px solid var(--border, #ccc)", background: "var(--surface)", color: "inherit" }} />
       </label>
       <label style={{ display: "grid", gap: 6, fontSize: 13, marginTop: 10 }}>
         Date checked
         <input type="date" value={checkedAt} onChange={e => setCheckedAt(e.target.value)}
-          style={{ padding: 11, borderRadius: 9, border: "1px solid var(--border, #ccc)", background: "var(--card, white)", color: "inherit" }} />
+          style={{ padding: 11, borderRadius: 9, border: "1px solid var(--border, #ccc)", background: "var(--surface)", color: "inherit" }} />
       </label>
 
       {product && market !== null && market >= 0 && (
@@ -93,7 +93,7 @@ export default function MarketRateIntelligence() {
               window.alert("Could not save quotation. Check device storage.");
             }
           }}
-          style={{ marginTop: 12, padding: "11px 16px", border: 0, borderRadius: 10, background: "var(--primary, #1f6f6b)", color: "white", fontWeight: 600, cursor: "pointer" }}
+          style={{ marginTop: 12, padding: "11px 16px", border: 0, borderRadius: 10, background: "var(--indigo)", color: "white", fontWeight: 600, cursor: "pointer" }}
         >
           Save Market Quotation
         </button>
