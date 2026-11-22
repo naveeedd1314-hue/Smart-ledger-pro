@@ -128,7 +128,7 @@ export default function Returns() {
   }
 
   const totalSales=returns.filter(x=>x.type==='Sales Return').reduce((s,x)=>s+(x.totalAmount ?? x.amount),0);
-  const totalPurchases=returns.filter(x=>x.type==='Purchase Return').reduce((s,x)=>s+x.amount,0);
+  const totalPurchases=returns.filter(x=>x.type==='Purchase Return').reduce((s,x)=>s+(x.totalAmount ?? x.amount),0);
 
   return <section className="space-y-5">
     <div>
