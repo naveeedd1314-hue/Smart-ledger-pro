@@ -9,6 +9,12 @@ function buildSeries() {
   const products = read('smartledger-products');
   const productNames = new Map(products.map((p: any) => [String(p.id), String(p.name || p.productName || 'Product')]));
   const points: RatePoint[] = [];
+  read('smartledger-pro-sales').forEach((sale: any) => {
+    const rate = Number(sale.rate);
+    const date = String(sale.date || '');
+    if (!Number.isFinite(rate) || rate <= 0 || !date) return;
+    points.push({ productId: sale.productId, product: sale.product || 'Unknown product', rate, date, source: `Sales invoice ${sale.invoice || ''}`, kind: 'Recorded selling rate' });
+  });
   read('smartledger-pro-purchases').forEach((p: any) => {
     const rate = Number(p.rate);
     const date = String(p.date || '');
