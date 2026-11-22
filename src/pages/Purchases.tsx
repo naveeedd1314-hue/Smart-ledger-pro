@@ -69,6 +69,7 @@ const total = taxableValue + taxAmount;
       alert('Check supplier, product, quantity, rate and payment.');
       return;
     }
+    if(applyGST && (!normalizedBusinessState || !normalizedPlaceState)) { alert('Enter the business state and place of supply before applying GST.'); return; }
     if(!invoice.trim()) { alert('Enter supplier invoice number.'); return; }
     if(items.some(x => String(x.supplier || '').trim().toLowerCase() === supplier.trim().toLowerCase() && String(x.invoice || '').trim().toLowerCase() === invoice.trim().toLowerCase())) { alert('This supplier invoice number is already recorded for this supplier.'); return; }
 
