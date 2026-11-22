@@ -13,6 +13,8 @@ export default function Settings() {
   const [backupStatus, setBackupStatus] = useState('');
 
   function save() {
+    const targetMargin = Number(business.targetMarginPercent);
+    if (!Number.isFinite(targetMargin) || targetMargin < 0 || targetMargin > 100) { alert('Minimum gross margin must be between 0 and 100%.'); return; }
     localStorage.setItem('smartledger-pro-settings', JSON.stringify(business));
     alert('Business settings saved.');
   }
@@ -89,7 +91,7 @@ export default function Settings() {
           ['invoicePrefix','Invoice prefix'],
           ['financialYear','Financial year'],
           ['targetMarginPercent','Minimum gross margin (%)']
-        ] as const).map(([key,label])=><label key={key} className="text-sm">{label}<input className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] p-3 text-[var(--text)]" value={business[key]} onChange={e=>setBusiness({...business,[key]:e.target.value})}/></label>)}
+        ] as const).map(([key,label])=><label key={key} className="text-sm">{label}<input type={key === 'targetMarginPercent' ? 'number' : 'text'} min={key === 'targetMarginPercent' ? 0 : undefined} max={key === 'targetMarginPercent' ? 100 : undefined} step={key === 'targetMarginPercent' ? 0.1 : undefined} className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] p-3 text-[var(--text)]" value={business[key]} onChange={e=>setBusiness({...business,[key]:e.target.value})}/></label>)}
       </div>
       <button onClick={save} className="rounded-xl bg-[var(--indigo)] px-5 py-3 font-semibold text-white shadow-sm transition hover:bg-[var(--indigo-ink)]">Save Settings</button>
     </div>
