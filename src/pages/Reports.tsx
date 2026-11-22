@@ -31,8 +31,9 @@ export default function Reports() {
   const salesReturns = returns.filter(x=>x.type==='Sales Return');
   const purchaseReturns = returns.filter(x=>x.type==='Purchase Return');
   const salesReturnTotal = salesReturns.reduce((s,x)=>s+num(x.totalAmount ?? x.amount),0);
+  const salesReturnRevenue = salesReturns.reduce((s,x)=>s+num(x.amount),0);
   const purchaseReturnTotal = purchaseReturns.reduce((s,x)=>s+num(x.totalAmount ?? x.amount),0);
-  const netSales = Math.max(0,salesTotal-salesReturnTotal);
+  const netSales = Math.max(0,salesTotal-salesReturnRevenue);
   const netPurchases = Math.max(0,purchaseTotal-purchaseReturnTotal);
   const expenseTotal = expenses.reduce((s,x)=>s+num(x.amount),0);
   const received = payments.filter(x=>x.type==='Customer Receipt').reduce((s,x)=>s+num(x.amount),0);
