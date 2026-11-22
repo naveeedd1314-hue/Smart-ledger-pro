@@ -1,39 +1,35 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { localDateISO } from '../lib/dateUtils';
 import { downloadInvoicePdf } from '../utils/invoicePdf';
 
 type Product = { id: string; name: string; selling: number; purchase: number; averageCost?: number | null; wholesale?: number; stock: number; sku?: string; category?: string; gstRate?: number; hsn?: string };
 type Sale = { id: string; productId?: string; invoice: string; date: string; customer: string; product: string; qty: number; rate: number; total: number; paid: number; balance: number; purchasePrice?: number | null; taxableValue?: number; gstRate?: number; taxAmount?: number; cgst?: number; sgst?: number; utgst?: number; igst?: number; placeOfSupply?: string; hsn?: string; customerGstin?: string; customerAddress?: string };
 
+const readArray = <T,>(key: string): T[] => {
+  try {
+    const value: unknown = JSON.parse(localStorage.getItem(key) || '[]');
+    return Array.isArray(value) ? value as T[] : [];
+  } catch { return []; }
+};
+const readBusinessState = () => {
+  try { return JSON.parse(localStorage.getItem('smartledger-pro-settings') || '{}').state || 'Jammu and Kashmir'; }
+  catch { return 'Jammu and Kashmir'; }
+};
+
 export default function Sales() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [sales, setSales] = useState<Sale[]>([]);
-  const [payments, setPayments] = useState<any[]>([]);
-  const [returns, setReturns] = useState<any[]>([]);
-  const [customers, setCustomers] = useState<any[]>([]);
+  const [products, setProducts] = useState<Product[]>(() => readArray<Product>('smartledger-products'));
+  const [sales, setSales] = useState<Sale[]>(() => readArray<Sale>('smartledger-pro-sales'));
+  const [payments, setPayments] = useState<any[]>(() => readArray<any>('smartledger-pro-payments'));
+  const [returns, setReturns] = useState<any[]>(() => readArray<any>('smartledger-pro-returns'));
+  const [customers, setCustomers] = useState<any[]>(() => readArray<any>('smartledger-pro-customers'));
   const [customer, setCustomer] = useState('Walk-in Customer');
   const [productId, setProductId] = useState('');
   const [qty, setQty] = useState(1);
   const [rate, setRate] = useState(0);
   const [paid, setPaid] = useState(0);
   const [applyGST, setApplyGST] = useState(false);
-  const [businessState, setBusinessState] = useState('Jammu and Kashmir');
-  const [placeOfSupply, setPlaceOfSupply] = useState('Jammu and Kashmir');
-
-  useEffect(() => {
-    const readArray = (key: string) => { try { const value = JSON.parse(localStorage.getItem(key) || '[]'); return Array.isArray(value) ? value : []; } catch { return []; } };
-    setProducts(readArray('smartledger-products'));
-    setSales(readArray('smartledger-pro-sales'));
-    setPayments(readArray('smartledger-pro-payments'));
-    setReturns(readArray('smartledger-pro-returns'));
-    setCustomers(readArray('smartledger-pro-customers'));
-    try {
-      const settings = JSON.parse(localStorage.getItem('smartledger-pro-settings') || '{}');
-      const state = settings.state || 'Jammu and Kashmir';
-      setBusinessState(state);
-      setPlaceOfSupply(state);
-    } catch {}
-  }, []);
+  const [businessState, setBusinessState] = useState(readBusinessState);
+  const [placeOfSupply, setPlaceOfSupply] = useState(readBusinessState);
 
   const selected = products.find(p => p.id === productId);
   const taxableValue = qty * rate;
