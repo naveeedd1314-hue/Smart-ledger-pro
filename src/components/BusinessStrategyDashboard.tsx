@@ -17,7 +17,7 @@ export default function BusinessStrategyDashboard() {
     <section data-sl-strategy="true" className="sl-strategy" style={{ margin: "20px 0" }}>
       <h2>Business Strategy Engine</h2>
       <p style={{ opacity: .7, fontSize: 13 }}>
-        Product profitability, stock investment and inventory movement analysis.
+        Product profitability, stock investment and net inventory movement after customer returns.
       </p>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(145px,1fr))", gap: 10 }}>
