@@ -15,9 +15,9 @@ type Product = {
 
 const KEY = 'smartledger-products'
 const money = (n: number) => `₹${Number(n || 0).toLocaleString('en-IN')}`
-const read = (): Product[] => {
+const read = (key: string = KEY): Product[] => {
   try {
-    const value = JSON.parse(localStorage.getItem(KEY) || '[]')
+    const value = JSON.parse(localStorage.getItem(key) || '[]')
     return Array.isArray(value) ? value : []
   } catch { return [] }
 }
