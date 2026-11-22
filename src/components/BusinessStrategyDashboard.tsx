@@ -36,6 +36,10 @@ export default function BusinessStrategyDashboard() {
           <small>Missing Cost Records</small>
           <h3>{result.productsMissingCost}</h3>
         </div>
+        <div style={card}>
+          <small>Negative Stock Alerts</small>
+          <h3>{result.negativeStockProducts}</h3>
+        </div>
       </div>
 
       <h3 style={{ marginTop: 22 }}>Product Strategy Report</h3>
