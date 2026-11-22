@@ -1,4 +1,3 @@
-import PremiumIcon from "./components/PremiumIcon";
 import BusinessAdvisor from "./components/BusinessAdvisor";
 import PriceAnalysis from "./components/PriceAnalysis";
 import BusinessIntelligence from "./components/BusinessIntelligence";
