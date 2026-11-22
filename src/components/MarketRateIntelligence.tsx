@@ -11,7 +11,7 @@ const read = () => {
 };
 
 export default function MarketRateIntelligence() {
-  const products = useMemo(read, []);
+  const products = useMemo(() => read(), []);
   const [selected, setSelected] = useState("");
   const [marketRate, setMarketRate] = useState("");
   const [source, setSource] = useState("");
