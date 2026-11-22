@@ -67,8 +67,8 @@ export default function BulkItems() {
 
   const exportCSV = () => {
     const rows = [
-      ['id','name','sku','category','hsn','gstRate','purchase','selling','stock'],
-      ...items.map(p => [p.id,p.name,p.sku || '',p.category || '',p.hsn || '',p.gstRate || 0,p.purchase,p.selling,p.stock])
+      ['id','name','sku','category','hsn','gstRate','purchase','averageCost','selling','stock'],
+      ...items.map(p => [p.id,p.name,p.sku || '',p.category || '',p.hsn || '',p.gstRate || 0,p.purchase,p.averageCost ?? p.purchase,p.selling,p.stock])
     ]
     const blob = new Blob([rows.map(r => r.map(cell).join(',')).join('\r\n')], { type: 'text/csv;charset=utf-8' })
     const url = URL.createObjectURL(blob)
@@ -101,6 +101,7 @@ export default function BulkItems() {
       const tax = numeric(['gstrate','gst'], 'GST rate')
       if (tax > 100) errors.push(`Row ${i + 2}: GST rate cannot exceed 100%.`)
       const purchaseValue = numeric(['purchase','purchaseprice','cost'], 'purchase price')
+      const averageCostValue = get(r,['averagecost','weightedaveragecost']) ? numeric(['averagecost','weightedaveragecost'], 'average cost') : purchaseValue
       return {
         id: get(r,['id']) || crypto.randomUUID(),
         name: get(r,['name','product','item']),
@@ -109,7 +110,7 @@ export default function BulkItems() {
         hsn: get(r,['hsn']),
         gstRate: tax,
         purchase: purchaseValue,
-        averageCost: purchaseValue > 0 ? purchaseValue : null,
+        averageCost: averageCostValue > 0 ? averageCostValue : null,
         selling: numeric(['selling','sellingprice','rate'], 'selling price'),
         stock: numeric(['stock','qty','quantity'], 'stock')
       }
