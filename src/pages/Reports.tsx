@@ -205,7 +205,7 @@ export default function Reports() {
     </div>
 
     <div className="rounded-xl bg-[var(--amber-tint)] p-4 text-sm text-[var(--amber-ink)]">
-      These figures are operational summaries, not a finalized profit-and-loss statement. Accurate profit requires item-level cost of goods sold, returns, opening stock, tax treatment and reconciled party ledgers. Cash movement is an estimate and may include duplicate receipts or payments if the same transaction is recorded in both an invoice and Payments.
+      These figures are operational summaries, not a finalized profit-and-loss statement. Accurate profit requires item-level cost of goods sold, returns, opening stock, tax treatment and reconciled party ledgers. Cash movement is an estimate. Record the initial payment in the invoice and later payments in Payments only; duplicate entries will overstate cash movement.
     </div>
   </section>;
 }
