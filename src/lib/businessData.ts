@@ -94,6 +94,8 @@ export function validateBusinessRecords() {
   const expenses = read("smartledger-pro-expenses", "smartledger-expenses");
   const payments = read("smartledger-pro-payments");
   const returns = read("smartledger-pro-returns");
+  const priceHistory = read("smartledger-pro-price-history");
+  const marketQuotes = read("smartledger-market-quotes");
   const salesIds = new Set(sales.map((item: any) => String(item.id)));
   const purchaseIds = new Set(purchases.map((item: any) => String(item.id)));
 
@@ -103,7 +105,7 @@ export function validateBusinessRecords() {
     rows.forEach(item => { const id = String(item?.id ?? ""); if (id && seen.has(id)) duplicates.add(id); else if (id) seen.add(id); });
     return duplicates.size;
   };
-  [["Products", products], ["Sales", sales], ["Purchases", purchases], ["Payments", payments], ["Returns", returns]].forEach(([label, rows]) => {
+  [["Products", products], ["Sales", sales], ["Purchases", purchases], ["Payments", payments], ["Returns", returns], ["Price history", priceHistory]].forEach(([label, rows]) => {
     const count = duplicateIds(rows as any[]);
     if (count) warnings.push(String(label) + ": " + count + " duplicate record ID(s) found.");
   });
@@ -153,6 +155,15 @@ export function validateBusinessRecords() {
       payment.allocations.forEach((item: any) => { if (item.invoiceId && !invoiceIds.has(String(item.invoiceId))) warnings.push("Payment " + (i + 1) + ": allocation points to an invoice that cannot be found."); });
     }
   });
+  priceHistory.forEach((item: any, i: number) => {
+    if (!["purchase", "selling"].includes(String(item.field))) warnings.push("Price history " + (i + 1) + ": price type is invalid.");
+    if (!validAmount(item.oldPrice) || !validAmount(item.newPrice)) warnings.push("Price history " + (i + 1) + ": old or new price is invalid.");
+    if (!item.date || !item.productId) warnings.push("Price history " + (i + 1) + ": product link or date is missing.");
+  });
+  marketQuotes.forEach((item: any, i: number) => {
+    if (!Number.isFinite(Number(item.marketRate)) || Number(item.marketRate) <= 0) warnings.push("Market quotation " + (i + 1) + ": rate is invalid.");
+    if (!item.checkedAt || !item.source) warnings.push("Market quotation " + (i + 1) + ": checked date or source is missing.");
+  });
   returns.forEach((item: any, i: number) => {
     const qty = Number(item.qty);
     if (!Number.isFinite(qty) || qty <= 0) warnings.push("Return " + (i + 1) + ": quantity missing or invalid.");
@@ -161,6 +172,7 @@ export function validateBusinessRecords() {
   return { valid: warnings.length === 0, warnings, checked: {
     products: products.length, sales: sales.length,
     purchases: purchases.length, expenses: expenses.length,
-    payments: payments.length, returns: returns.length
+    payments: payments.length, returns: returns.length,
+    priceHistory: priceHistory.length, marketQuotes: marketQuotes.length
   }};
 }
