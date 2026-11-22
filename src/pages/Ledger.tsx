@@ -63,6 +63,14 @@ export default function Ledger() {
     return rows.sort((a,b) => a.date.localeCompare(b.date));
   }, [type, party, sales, purchases, payments, returns]);
 
+  const customerSales = type === 'Customer' ? sales.filter(x => x.customer === party) : [];
+  const customerGrossProfit = customerSales.reduce((sum, sale) => {
+    const cost = Number(sale.purchasePrice);
+    const quantity = Number(sale.qty) || 0;
+    const rate = Number(sale.rate) || 0;
+    return sum + (Number.isFinite(cost) && cost >= 0 ? (rate - cost) * quantity : 0);
+  }, 0);
+  const salesMissingCost = customerSales.filter(x => x.purchasePrice === undefined || x.purchasePrice === null || !Number.isFinite(Number(x.purchasePrice))).length;
   const opening = Number(selected?.opening) || 0;
   const debit = entries.reduce((s,x)=>s+x.debit,0);
   const credit = entries.reduce((s,x)=>s+x.credit,0);
@@ -83,6 +91,18 @@ export default function Ledger() {
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {[['Opening Balance',opening],['Total Debit',debit],['Total Credit',credit],['Closing Balance',Math.abs(closing)]].map(([label,value])=><div key={String(label)} className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">{label}</p><strong className="text-xl">{money(Number(value))}</strong>{label==='Closing Balance'&&<p className="text-xs text-[var(--text-2)]">{closing===0?'Settled':closing>0?(type==='Customer'?'Receivable':'Payable'):(type==='Customer'?'Advance received':'Advance paid')}</p>}</div>)}
       </div>
+      {type === "Customer" && <div className="grid gap-3 sm:grid-cols-2">
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
+          <p className="text-sm text-[var(--text-2)]">Gross profit before expenses</p>
+          <strong className="text-xl">{money(customerGrossProfit)}</strong>
+          <p className="mt-1 text-xs text-[var(--text-2)]">Based on saved sale-time purchase costs; GST excluded from margin.</p>
+        </div>
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
+          <p className="text-sm text-[var(--text-2)]">Sales missing cost data</p>
+          <strong className="text-xl">{salesMissingCost}</strong>
+          <p className="mt-1 text-xs text-[var(--text-2)]">Older invoices without cost snapshots are excluded from gross profit.</p>
+        </div>
+      </div>}
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
         <h2 className="mb-4 font-semibold">{party} — Statement</h2>
         <div className="overflow-x-auto"><table className="w-full text-left text-sm">
