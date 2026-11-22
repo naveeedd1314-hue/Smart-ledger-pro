@@ -89,6 +89,8 @@ export function validateBusinessRecords() {
     return [];
   };
   const products = read("smartledger-products");
+  const customers = read("smartledger-pro-customers");
+  const suppliers = read("smartledger-pro-suppliers");
   const sales = read("smartledger-pro-sales", "smartledger-pro-bills", "smartledger-bills");
   const purchases = read("smartledger-pro-purchases", "smartledger-purchases");
   const expenses = read("smartledger-pro-expenses", "smartledger-expenses");
@@ -106,7 +108,7 @@ export function validateBusinessRecords() {
     rows.forEach(item => { const id = String(item?.id ?? ""); if (id && seen.has(id)) duplicates.add(id); else if (id) seen.add(id); });
     return duplicates.size;
   };
-  [["Products", products], ["Sales", sales], ["Purchases", purchases], ["Payments", payments], ["Returns", returns], ["Price history", priceHistory], ["Stock adjustments", stockAdjustments]].forEach(([label, rows]) => {
+  [["Products", products], ["Customers", customers], ["Suppliers", suppliers], ["Sales", sales], ["Purchases", purchases], ["Payments", payments], ["Returns", returns], ["Price history", priceHistory], ["Stock adjustments", stockAdjustments]].forEach(([label, rows]) => {
     const count = duplicateIds(rows as any[]);
     if (count) warnings.push(String(label) + ": " + count + " duplicate record ID(s) found.");
   });
@@ -117,9 +119,13 @@ export function validateBusinessRecords() {
     return duplicates.size;
   };
   const duplicateSkus = duplicateValues(products, item => String(item.sku || item.barcode || ""));
+  const duplicateCustomerNames = duplicateValues(customers, item => String(item.name || ""));
+  const duplicateSupplierNames = duplicateValues(suppliers, item => String(item.name || ""));
   const duplicateSalesInvoices = duplicateValues(sales, item => String(item.invoice || item.invoiceNo || ""));
   const duplicatePurchaseInvoices = duplicateValues(purchases, item => item.invoice ? String(item.supplier || "") + "|" + String(item.invoice) : "");
   if (duplicateSkus) warnings.push("Products: " + duplicateSkus + " duplicate SKU/barcode value(s) found.");
+  if (duplicateCustomerNames) warnings.push("Customers: " + duplicateCustomerNames + " duplicate names may merge ledger balances.");
+  if (duplicateSupplierNames) warnings.push("Suppliers: " + duplicateSupplierNames + " duplicate names may merge ledger balances.");
   if (duplicateSalesInvoices) warnings.push("Sales: " + duplicateSalesInvoices + " duplicate invoice number(s) found.");
   if (duplicatePurchaseInvoices) warnings.push("Purchases: " + duplicatePurchaseInvoices + " duplicate supplier invoice number(s) found.");
 
@@ -129,6 +135,8 @@ export function validateBusinessRecords() {
   if (!expenses.length) warnings.push("No expense records found.");
 
   const validAmount = (value: unknown) => Number.isFinite(Number(value)) && Number(value) >= 0;
+  customers.forEach((item: any, i: number) => { if (!item.name || !Number.isFinite(Number(item.opening ?? 0))) warnings.push("Customer " + (i + 1) + ": name or opening balance is invalid."); });
+  suppliers.forEach((item: any, i: number) => { if (!item.name || !Number.isFinite(Number(item.opening ?? 0))) warnings.push("Supplier " + (i + 1) + ": name or opening balance is invalid."); });
   products.forEach((p: any, i: number) => {
     const stock = Number(p.stock ?? p.quantity ?? p.qty);
     if (!Number.isFinite(stock)) warnings.push("Product " + (i + 1) + ": stock value missing or invalid.");
@@ -198,7 +206,7 @@ export function validateBusinessRecords() {
     if (!item.originalId) warnings.push("Return " + (i + 1) + ": original invoice link is missing.");
   });
   return { valid: warnings.length === 0, warnings, checked: {
-    products: products.length, sales: sales.length,
+    products: products.length, customers: customers.length, suppliers: suppliers.length, sales: sales.length,
     purchases: purchases.length, expenses: expenses.length,
     payments: payments.length, returns: returns.length,
     priceHistory: priceHistory.length, marketQuotes: marketQuotes.length,
