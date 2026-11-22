@@ -57,7 +57,7 @@ export function calculateBusinessStrategy(): {
   warnings: string[];
 } {
   const rawProducts = readArray("smartledger-products");
-  const bills = readArray("smartledger-bills");
+  const bills = readArray("smartledger-pro-sales").concat(readArray("smartledger-bills"));
   const salesByProduct = new Map<string, number>();
   const warnings: string[] = [];
 
@@ -69,10 +69,10 @@ export function calculateBusinessStrategy(): {
     if (!Number.isFinite(timestamp) || timestamp < cutoff) continue;
 
     const items = Array.isArray(bill.items) ? bill.items :
-      Array.isArray(bill.products) ? bill.products : [];
+      Array.isArray(bill.products) ? bill.products : [bill];
 
     for (const item of items) {
-      const id = String(item.productId ?? item.product_id ?? item.id ?? item.name ?? item.productName ?? "");
+      const id = String(item.productId ?? item.product_id ?? item.product ?? item.name ?? item.productName ?? "");
       const qty = firstPositive(item.quantity, item.qty);
       if (id && qty > 0) salesByProduct.set(id, (salesByProduct.get(id) || 0) + qty);
     }
