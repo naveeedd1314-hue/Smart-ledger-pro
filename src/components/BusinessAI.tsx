@@ -40,8 +40,8 @@ function analyse(){
  const purchaseTotal=sum(purchases.map(p=>n(field(p,"total","grandTotal","amount","totalAmount"))));
  const collected=sum(payments.filter(p=>field(p,"type")==="Customer Receipt").map(p=>n(field(p,"amount"))));
  const supplierPaid=sum(payments.filter(p=>field(p,"type")==="Supplier Payment").map(p=>n(field(p,"amount"))));
- const receivable=Math.max(0,sum(customers.map(c=>n(field(c,"opening","balance","outstanding","closingBalance","due"))))+sum(bills.map(b=>n(field(b,"balance"))))-collected);
- const payable=Math.max(0,sum(suppliers.map(s=>n(field(s,"opening","balance","outstanding","closingBalance","due"))))+sum(purchases.map(p=>n(field(p,"balance"))))-supplierPaid);
+ const receivable=Math.max(0,sum(customers.map(c=>n(field(c,"opening","balance","outstanding","closingBalance","due"))))+sum(bills.map(b=>field(b,"balance")!==undefined?n(field(b,"balance")):Math.max(0,n(field(b,"total","grandTotal"))-n(field(b,"paid")))))-collected);
+ const payable=Math.max(0,sum(suppliers.map(s=>n(field(s,"opening","balance","outstanding","closingBalance","due"))))+sum(purchases.map(p=>field(p,"balance")!==undefined?n(field(p,"balance")):Math.max(0,n(field(p,"total","grandTotal","amount"))-n(field(p,"paid")))))-supplierPaid);
  const missingCost=productRows.filter(p=>p.retail>0&&p.cost<=0);
  const marginAvg=known.length?sum(known.map(p=>p.margin))/known.length:0;
  const invoiceProfit=bills.map(b=>{const qty=n(field(b,"qty","quantity"));const rate=n(field(b,"rate","sellingPrice"));const revenue=field(b,"taxableValue")!==undefined?n(field(b,"taxableValue")):qty*rate;const rawCost=field(b,"purchasePrice");const hasCost=rawCost!==undefined&&rawCost!==null&&rawCost!==""&&Number.isFinite(Number(rawCost))&&Number(rawCost)>=0;return {profit:revenue-(hasCost?qty*Number(rawCost):0),hasCost};});
