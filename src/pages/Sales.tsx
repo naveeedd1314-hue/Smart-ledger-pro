@@ -85,7 +85,6 @@ export default function Sales() {
     setPaid(0);
   }
 
-  const allocatedReceipts = payments.filter(p => p.type === 'Customer Receipt').reduce((sum, p) => sum + (Array.isArray(p.allocations) ? p.allocations.reduce((part: number, a: any) => part + (Number(a.amount) || 0), 0) : 0), 0);
   const totalReceipts = payments.filter(p => p.type === 'Customer Receipt').reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
   const invoiceDue = (sale: Sale) => Math.max(0, Number(sale.balance) - payments.filter(p => p.type === 'Customer Receipt').reduce((sum, p) => sum + (Array.isArray(p.allocations) ? p.allocations.filter((a: any) => String(a.invoiceId) === String(sale.id)).reduce((part: number, a: any) => part + (Number(a.amount) || 0), 0) : 0), 0));
   const money = (n: number) => `₹${n.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
