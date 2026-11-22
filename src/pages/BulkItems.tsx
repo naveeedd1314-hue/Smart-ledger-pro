@@ -124,6 +124,7 @@ export default function BulkItems() {
   const applyImport = () => {
     const next = [...items]
     const logs = read('smartledger-pro-stock-adjustments') as any[]
+    const priceHistory = read('smartledger-pro-price-history') as any[]
     let added = 0, updated = 0
     preview.forEach(p => {
       const index = next.findIndex(x =>
@@ -132,12 +133,19 @@ export default function BulkItems() {
       )
       const previous = index >= 0 ? next[index] : null
       const previousStock = Number(previous?.stock || 0)
-      if (index >= 0) { next[index] = { ...next[index], ...p, id: next[index].id }; updated++ }
+      if (index >= 0) {
+        const current = next[index]
+        const savedAt = new Date().toISOString()
+        if (Number(current.purchase) !== Number(p.purchase)) priceHistory.unshift({ id: crypto.randomUUID(), productId: current.id, productName: p.name, field: 'purchase', oldPrice: Number(current.purchase) || 0, newPrice: p.purchase, date: savedAt.slice(0,10), savedAt, source: 'Bulk CSV import' })
+        if (Number(current.selling) !== Number(p.selling)) priceHistory.unshift({ id: crypto.randomUUID(), productId: current.id, productName: p.name, field: 'selling', oldPrice: Number(current.selling) || 0, newPrice: p.selling, date: savedAt.slice(0,10), savedAt, source: 'Bulk CSV import' })
+        next[index] = { ...current, ...p, id: current.id }; updated++
+      }
       else { next.push(next.some(x => String(x.id) === String(p.id)) ? { ...p, id: crypto.randomUUID() } : p); added++ }
       const change = Number(p.stock || 0) - previousStock
       if (change !== 0) logs.unshift({ id: crypto.randomUUID(), date: new Date().toISOString().slice(0,10), productId: previous?.id ?? p.id, product: p.name, change, movement: change > 0 ? 'Stock In' : 'Stock Out', stockAfter: Number(p.stock || 0), reason: 'Bulk CSV import' })
     })
     localStorage.setItem('smartledger-pro-stock-adjustments', JSON.stringify(logs))
+    localStorage.setItem('smartledger-pro-price-history', JSON.stringify(priceHistory))
     save(next); setPreview([])
     setMessage(`${added} items added; ${updated} existing items updated. Stock changes were added to the audit history.`)
   }
