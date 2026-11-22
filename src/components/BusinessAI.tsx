@@ -121,6 +121,7 @@ function answer(q:string,d:ReturnType<typeof analyse>){
   const leaders=d.customerProfitRows.slice(0,8);
   return `Customer gross-profit ranking from recorded item costs (before business expenses):\\n${leaders.map((x:any,i:number)=>`${i+1}. ${x.name}: ${money(x.profit)} known gross profit; ${x.missingCost} missing cost records`).join("\\n")||"No customer sales records available."}\\nCustomer-specific expenses are not allocated.`;
  }
+ if(/target margin|minimum margin/.test(s)) return `Your configured minimum gross margin alert threshold is ${d.targetMargin.toFixed(2)}%. Products below this level are flagged in Business Strategy. SmartLedger does not change selling prices automatically.`;
  if(/profit|margin|loss|munafa|nuksan/.test(s))
   return `Recorded taxable sales: ${money(d.sales)}. Known gross profit from invoices with saved item costs, less costed sales returns: ${money(d.knownGrossProfit)}. Recorded expenses: ${money(d.expenseTotal)}. Estimated profit after expenses on costed invoices only: ${money(d.estimatedAfterExpenses)}. Missing cost snapshots: ${d.missingCostInvoices} sales invoices and ${d.returnsMissingCost} sales returns. Average listed product margin: ${d.marginAvg.toFixed(2)}%. This is an incomplete estimate, not a finalized P&L; missing costs, opening stock, overhead timing and tax treatment must be reconciled.`;
  if(/customer|collect|receivable|udhaar/.test(s))
