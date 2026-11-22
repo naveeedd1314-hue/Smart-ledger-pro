@@ -54,6 +54,7 @@ export default function Sales() {
       alert('Check product, quantity, stock and payment amount.');
       return;
     }
+    if (applyGST && (!normalizedBusinessState || !normalizedPlaceState)) { alert('Enter the business state and place of supply before applying GST.'); return; }
     const customerName = customer.trim() || 'Walk-in Customer';
     let customerDetails: { gstin?: string; address?: string } = {};
     try {
