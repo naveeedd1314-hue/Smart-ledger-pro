@@ -209,6 +209,41 @@ export function validateBusinessRecords() {
     if (!Number.isFinite(Number(item.marketRate)) || Number(item.marketRate) <= 0) warnings.push("Market quotation " + (i + 1) + ": rate is invalid.");
     if (!item.checkedAt || !item.source) warnings.push("Market quotation " + (i + 1) + ": checked date or source is missing.");
   });
+  const partyBalance = (opening: number, invoices: any[], partyKey: "customer" | "supplier", paymentsToSubtract: string, returnsToSubtract: string) => {
+    const balances = new Map<string, number>();
+    const add = (name: unknown, amount: number) => { const key = String(name || "").trim().toLowerCase(); if (key) balances.set(key, (balances.get(key) || 0) + amount); };
+    customers.forEach((item: any) => add(item.name, Number(item.opening) || 0));
+    suppliers.forEach((item: any) => add(item.name, Number(item.opening) || 0));
+    invoices.forEach((item: any) => {
+      const total = Number(item.total ?? item.grandTotal ?? item.amount);
+      const due = Number.isFinite(total) ? Math.max(0, total - (Number(item.paid) || 0)) : Math.max(0, Number(item.balance) || 0);
+      add(item[partyKey], due);
+    });
+    payments.filter((item: any) => item.type === paymentsToSubtract).forEach((item: any) => add(item.party, -(Number(item.amount) || 0)));
+    returns.filter((item: any) => item.type === returnsToSubtract).forEach((item: any) => add(item.party, -(Number(item.totalAmount ?? item.amount) || 0)));
+    return balances;
+  };
+  const customerBalancesBeforeRefunds = partyBalance(0, sales, "customer", "Customer Receipt", "Sales Return");
+  const supplierBalancesBeforeRefunds = partyBalance(0, purchases, "supplier", "Supplier Payment", "Purchase Return");
+  const customerRefundTotals = new Map<string, number>();
+  const supplierRefundTotals = new Map<string, number>();
+  payments.filter((item: any) => item.type === "Customer Refund").forEach((item: any) => {
+    const key = String(item.party || "").trim().toLowerCase();
+    customerRefundTotals.set(key, (customerRefundTotals.get(key) || 0) + (Number(item.amount) || 0));
+  });
+  payments.filter((item: any) => item.type === "Supplier Refund").forEach((item: any) => {
+    const key = String(item.party || "").trim().toLowerCase();
+    supplierRefundTotals.set(key, (supplierRefundTotals.get(key) || 0) + (Number(item.amount) || 0));
+  });
+  customerRefundTotals.forEach((amount, key) => {
+    const available = Math.max(0, -(customerBalancesBeforeRefunds.get(key) || 0));
+    if (amount > available + 0.01) warnings.push("Customer " + key + ": recorded refunds exceed the available credit balance.");
+  });
+  supplierRefundTotals.forEach((amount, key) => {
+    const available = Math.max(0, -(supplierBalancesBeforeRefunds.get(key) || 0));
+    if (amount > available + 0.01) warnings.push("Supplier " + key + ": recorded refunds exceed the available credit balance.");
+  });
+
   returns.forEach((item: any, i: number) => {
     const qty = Number(item.qty);
     if (!Number.isFinite(qty) || qty <= 0) warnings.push("Return " + (i + 1) + ": quantity missing or invalid.");
