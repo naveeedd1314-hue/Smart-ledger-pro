@@ -52,7 +52,7 @@ export default function Reports() {
     const rate = num(x.rate);
     const revenue = num(x.taxableValue) || qty * rate;
     const costPrice = num(x.purchasePrice);
-    const hasCost = x.purchasePrice !== undefined && x.purchasePrice !== null && x.purchasePrice !== '';
+    const hasCost = x.purchasePrice !== undefined && x.purchasePrice !== null && x.purchasePrice !== '' && Number.isFinite(Number(x.purchasePrice)) && Number(x.purchasePrice) > 0;
     const cost = hasCost ? qty * costPrice : 0;
     return {
       invoice: String(x.invoice || x.invoiceNo || x.billNo || `Invoice ${index + 1}`),
