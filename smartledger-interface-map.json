@@ -31,7 +31,8 @@
     "src/components/ThemeSwitcher.tsx",
     "src/lib/businessCalculations.ts",
     "src/lib/businessData.ts",
-    "src/lib/businessStrategy.ts"
+    "src/lib/businessStrategy.ts",
+    "src/pages/BusinessCommandCentre.tsx"
   ],
   "dependencies": [
     "@tailwindcss/vite",
