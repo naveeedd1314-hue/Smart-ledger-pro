@@ -118,7 +118,7 @@ export function validateBusinessRecords() {
   };
   const duplicateSkus = duplicateValues(products, item => String(item.sku || item.barcode || ""));
   const duplicateSalesInvoices = duplicateValues(sales, item => String(item.invoice || item.invoiceNo || ""));
-  const duplicatePurchaseInvoices = duplicateValues(purchases, item => String(item.supplier || "") + "|" + String(item.invoice || ""));
+  const duplicatePurchaseInvoices = duplicateValues(purchases, item => item.invoice ? String(item.supplier || "") + "|" + String(item.invoice) : "");
   if (duplicateSkus) warnings.push("Products: " + duplicateSkus + " duplicate SKU/barcode value(s) found.");
   if (duplicateSalesInvoices) warnings.push("Sales: " + duplicateSalesInvoices + " duplicate invoice number(s) found.");
   if (duplicatePurchaseInvoices) warnings.push("Purchases: " + duplicatePurchaseInvoices + " duplicate supplier invoice number(s) found.");
