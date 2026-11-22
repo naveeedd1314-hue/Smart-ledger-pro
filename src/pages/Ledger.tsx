@@ -40,7 +40,7 @@ export default function Ledger() {
       }));
       payments.filter(x => x.type === 'Customer Receipt' && x.party === party).forEach(x => rows.push({
         date: x.date, description: `Receipt - ${x.method || 'Payment'}`,
-        debit: 0, credit: x.allocations ? (Number(x.unallocatedAmount) || 0) : (Number(x.amount) || 0)
+        debit: 0, credit: Number(x.amount) || 0
       }));
       returns.filter(x => x.type === 'Sales Return' && x.party === party).forEach(x => rows.push({
         date: x.date, description: `Sales return - ${x.invoice || ''}`,
@@ -53,7 +53,7 @@ export default function Ledger() {
       }));
       payments.filter(x => x.type === 'Supplier Payment' && x.party === party).forEach(x => rows.push({
         date: x.date, description: `Payment - ${x.method || 'Payment'}`,
-        debit: x.allocations ? (Number(x.unallocatedAmount) || 0) : (Number(x.amount) || 0), credit: 0
+        debit: Number(x.amount) || 0, credit: 0
       }));
       returns.filter(x => x.type === 'Purchase Return' && x.party === party).forEach(x => rows.push({
         date: x.date, description: `Purchase return - Debit note ${x.debitNoteNo || ''}`,
