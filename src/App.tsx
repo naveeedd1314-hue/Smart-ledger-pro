@@ -149,25 +149,25 @@ function App() {
 
       <aside className={`${menuOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-[var(--border)] bg-[var(--surface)] text-[var(--text)] transition-transform md:translate-x-0`}>
         <div className="flex h-20 shrink-0 items-center gap-3 border-b border-[var(--border)] px-5">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--indigo-tint)] text-xl font-black text-[var(--indigo-ink)]">S</div>
+          <div className="sl-brand-mark flex h-11 w-11 items-center justify-center rounded-2xl text-xl font-black">S</div>
           <div>
-            <h1 className="text-lg font-bold tracking-wide"><PremiumIcon name="dashboard" tone="emerald" size={38} />SmartLedger</h1>
+            <h1 className="text-lg font-extrabold tracking-tight"><PremiumIcon name="dashboard" tone="emerald" size={34} />SmartLedger</h1>
             <p className="text-[10px] uppercase tracking-[3px] text-[var(--text-2)]">PRO BUSINESS ERP</p>
           </div>
           <button type="button" aria-label="Close navigation menu" onClick={() => setMenuOpen(false)} className="ml-auto rounded-lg p-2 text-[var(--text-2)] hover:bg-[var(--surface-2)] hover:text-[var(--text)] md:hidden"><X size={19}/></button>
         </div>
 
         <nav aria-label="Main navigation" className="min-h-0 flex-1 space-y-6 overflow-y-auto overscroll-contain px-3 py-5">
-          {navigation.map(group => (
-            <div key={group.title}>
-              <p className="mb-3 px-3 text-[10px] font-bold tracking-[2px] text-[var(--text-2)]">{group.title}</p>
+          {navigation.map((group, groupIndex) => (
+            <div key={group.title} className={`sl-nav-group sl-nav-group-${groupIndex}`}>
+              <p className="mb-3 flex items-center gap-2 px-3 text-[10px] font-extrabold tracking-[2px] text-[var(--text-2)]"><span className="sl-nav-group-dot" />{group.title}</p>
               <div className="space-y-1">
                 {group.items.map(item => {
                   const Icon = item.icon
                   return (
                     <button key={item.name} onClick={() => { setActive(item.name); setMenuOpen(false) }}
-                      className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm transition ${active === item.name ? 'border-[var(--indigo)]/20 bg-[var(--indigo-tint)] font-semibold text-[var(--indigo-ink)] shadow-sm' : 'border-transparent text-[var(--text-2)] hover:border-[var(--border)] hover:bg-[var(--surface-2)] hover:text-[var(--text)]'}`}>
-                      <Icon size={18} /> {item.name}
+                      className={`sl-nav-item flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm transition ${active === item.name ? 'is-active border-[var(--indigo)]/20 bg-[var(--indigo-tint)] font-semibold text-[var(--indigo-ink)] shadow-sm' : 'border-transparent text-[var(--text-2)] hover:border-[var(--border)] hover:bg-[var(--surface-2)] hover:text-[var(--text)]'}`}>
+                      <span className="sl-nav-icon"><Icon size={17} strokeWidth={2.2} /></span><span>{item.name}</span><span className="sl-nav-chevron">›</span>
                     </button>
                   )
                 })}
@@ -175,7 +175,7 @@ function App() {
             </div>
           ))}
         </nav>
-        <div className="m-4 rounded-xl border border-[var(--border)] bg-[var(--surface)]/5 p-4">
+        <div className="sl-sidebar-footer m-3 rounded-2xl border border-[var(--border)] p-4">
           <p className="text-xs font-semibold">SmartLedger Pro</p>
           <p className="mt-1 text-[11px] text-[var(--text-2)]">Your business. Under control.</p>
         </div>
@@ -206,13 +206,13 @@ function App() {
 
         {active === 'Command Centre' ? <BusinessCommandCentre /> : active === 'Analytics' ? <Analytics /> : active === 'Sales' ? <Sales /> : active === 'Purchases' ? <Purchases /> : active === 'Inventory' ? <Inventory /> : active === 'Bulk Items' ? <BulkItems /> : active === 'Customers' ? <Customers /> : active === 'Suppliers' ? <Suppliers /> : active === 'Expenses' ? <Expenses /> : active === 'Payments' ? <Payments /> : active === 'Reports' ? <Reports /> : active === 'Ledger' ? <Ledger /> : active === 'Returns' ? <Returns /> : active === 'GST & Tax' ? <GST /> : active === 'Settings' ? <SettingsPage /> : (
         <div className="mx-auto max-w-7xl p-4 md:p-8">
-          <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+          <div className="sl-dashboard-heading mb-8 flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-[var(--border)] p-5 md:p-6">
             <div>
               <p className="text-sm text-[var(--text-2)]">{new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</p>
-              <h2 className="mt-1 text-2xl font-bold">Business overview</h2>
+              <h2 className="mt-1 text-2xl font-extrabold tracking-tight">Business overview</h2>
               <p className="mt-1 text-sm text-[var(--text-2)]">Monitor your business performance from one place.</p>
             </div>
-            <button onClick={() => setActive('Sales')} className="flex items-center gap-2 rounded-xl bg-[var(--indigo)] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[var(--indigo-ink)]">
+            <button onClick={() => setActive('Sales')} className="sl-new-transaction flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-bold text-white">
               <Plus size={17}/> New transaction
             </button>
           </div>
@@ -221,10 +221,10 @@ function App() {
             {metrics.map((metric) => {
               const Icon = metric.icon
               return (
-                <div key={metric.label} className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
+                <div key={metric.label} className="sl-metric-card rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-[var(--text-2)]">{metric.label}</span>
-                    <span className="rounded-xl bg-[var(--indigo-tint)] p-2.5 text-[var(--indigo)]"><Icon size={19}/></span>
+                    <span className="sl-metric-icon rounded-2xl p-3"><Icon size={20}/></span>
                   </div>
                   <p className="mt-5 text-2xl font-bold tracking-tight">{metric.value}</p>
                   <p className="mt-2 text-xs text-[var(--text-2)]">{metric.change}</p>
@@ -234,7 +234,7 @@ function App() {
           </section>
 
           <section className="mt-6 grid grid-cols-1 gap-5 xl:grid-cols-3">
-            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 xl:col-span-2">
+            <div className="sl-dashboard-panel rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 xl:col-span-2">
               <div className="flex items-center justify-between">
                 <div><h3 className="font-bold">Business performance</h3><p className="mt-1 text-xs text-[var(--text-2)]">Your financial activity will appear here.</p></div>
                 <button className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs">This month <ChevronDown className="ml-2 inline" size={13}/></button>
@@ -254,7 +254,7 @@ function App() {
                 </ResponsiveContainer> : <p className="pt-20 text-center text-sm text-[var(--text-2)]">Add dated transactions to view performance.</p>}
               </div>
             </div>
-            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6">
+            <div className="sl-dashboard-panel rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6">
               <h3 className="font-bold">Quick actions</h3>
               <p className="mt-1 text-xs text-[var(--text-2)]">Common business operations</p>
               <div className="mt-5 space-y-3">
@@ -271,7 +271,7 @@ function App() {
             </div>
           </section>
 
-          <section className="mt-6 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6">
+          <section className="sl-dashboard-panel mt-6 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6">
             <div className="flex items-center justify-between">
               <div><h3 className="font-bold">Recent transactions</h3><p className="mt-1 text-xs text-[var(--text-2)]">Your latest business activity</p></div>
               <button onClick={() => setActive('Reports')} className="text-xs font-semibold text-[var(--indigo)]">View reports →</button>
