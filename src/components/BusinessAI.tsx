@@ -105,7 +105,9 @@ export default function BusinessAI(){
  const [query,setQuery]=useState("");
  const [history,setHistory]=useState<{q:string,a:string}[]>([]);
  const data=useMemo(()=>analyse(),[open,history.length]);
+ const priceChanges=data.rateMovements.filter((x:any)=>x.previous!==null&&x.change!==0);
  const insights=[
+  priceChanges.length?`${priceChanges.length} dated product rate changes detected from saved invoices and quotations.`:"No dated product rate movements detected yet.",
   data.low.length?`${data.low.length} products have stock at or below 5 units.`:"No low-stock products detected.",
   data.missingCost.length?`${data.missingCost.length} products need purchase-cost records for reliable margin analysis.`:"Product purchase costs are available for listed products.",
   data.receivable>0?`${money(data.receivable)} customer receivables need monitoring.`:"No customer receivables detected.",
