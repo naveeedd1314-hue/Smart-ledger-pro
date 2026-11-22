@@ -1,4 +1,4 @@
-type RatePoint = { productId?: string | number; product?: string; productName?: string; rate: number; date: string; source: string; kind: 'Supplier purchase' | 'Market quotation' | 'Recorded selling rate' | 'Purchase cost update' | 'Retail price update' };
+type RatePoint = { productId?: string | number; product?: string; productName?: string; rate: number; date: string; source: string; kind: 'Supplier purchase' | 'Market quotation' | 'Recorded selling rate' | 'Purchase cost update' | 'Retail price update'; sortAt?: string };
 
 function read(key: string): any[] {
   try { const value = JSON.parse(localStorage.getItem(key) || '[]'); return Array.isArray(value) ? value : []; }
