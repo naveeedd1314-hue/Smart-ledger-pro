@@ -41,15 +41,16 @@ export default function Analytics() {
 
     const selected = new Set(months.map(x => x.month));
     const findMonth = (date: unknown) => String(date || '').slice(0, 7);
+    const taxableValue = (x: Row) => x.taxableValue !== undefined && x.taxableValue !== null ? Number(x.taxableValue) || 0 : ((Number(x.qty) || 0) * (Number(x.rate) || 0) || Number(x.total) || Number(x.amount) || 0);
 
     sales.forEach(x => {
       const m = months.find(v => v.month === findMonth(x.date));
-      if (m) m.sales += Number(x.total) || 0;
+      if (m) m.sales += taxableValue(x);
     });
 
     purchases.forEach(x => {
       const m = months.find(v => v.month === findMonth(x.date));
-      if (m) m.purchases += Number(x.total) || 0;
+      if (m) m.purchases += taxableValue(x);
     });
 
     expenses.forEach(x => {
@@ -60,7 +61,7 @@ export default function Analytics() {
     returns.forEach(x => {
       const m = months.find(v => v.month === findMonth(x.date));
       if (!m) return;
-      const amount = Number(x.totalAmount ?? x.amount) || 0;
+      const amount = Number(x.amount ?? x.totalAmount) || 0;
       if (x.type === 'Sales Return') m.salesReturns += amount;
       if (x.type === 'Purchase Return') m.purchaseReturns += amount;
     });
@@ -73,7 +74,7 @@ export default function Analytics() {
       const name = String(x.product || 'Unknown');
       productMap[name] ||= { product: name, qty: 0, revenue: 0 };
       productMap[name].qty += Number(x.qty) || 0;
-      productMap[name].revenue += Number(x.total) || 0;
+      productMap[name].revenue += taxableValue(x);
     });
 
     const expenseMap: Record<string, number> = {};
@@ -109,7 +110,7 @@ export default function Analytics() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">Business Analytics</h1>
-          <p className="text-sm text-[var(--text-2)]">Sales, purchases, returns and expense performance.</p>
+          <p className="text-sm text-[var(--text-2)]">Taxable sales, purchases, returns and expense performance (GST excluded from transaction values).</p>
         </div>
         <select className="rounded-lg border bg-[var(--surface)] p-3" value={period} onChange={e => setPeriod(Number(e.target.value))}>
           <option value={6}>Last 6 months</option>
