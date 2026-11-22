@@ -17,6 +17,7 @@ import Returns from './pages/Returns'
 import Purchases from './pages/Purchases'
 import Inventory from './pages/Inventory'
 import BulkItems from './pages/BulkItems'
+import BusinessCommandCentre from './pages/BusinessCommandCentre'
 import { useEffect, useState } from 'react'
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from 'recharts'
 import {
@@ -30,6 +31,7 @@ import {
 const navigation = [
   { title: 'OVERVIEW', items: [
     { name: 'Dashboard', icon: LayoutDashboard },
+    { name: 'Command Centre', icon: ChartNoAxesCombined },
     { name: 'Analytics', icon: ChartNoAxesCombined },
   ]},
   { title: 'BUSINESS', items: [
@@ -201,7 +203,7 @@ function App() {
           </div>
         </header>
 
-        {active === 'Analytics' ? <Analytics /> : active === 'Sales' ? <Sales /> : active === 'Purchases' ? <Purchases /> : active === 'Inventory' ? <Inventory /> : active === 'Bulk Items' ? <BulkItems /> : active === 'Customers' ? <Customers /> : active === 'Suppliers' ? <Suppliers /> : active === 'Expenses' ? <Expenses /> : active === 'Payments' ? <Payments /> : active === 'Reports' ? <Reports /> : active === 'Ledger' ? <Ledger /> : active === 'Returns' ? <Returns /> : active === 'GST & Tax' ? <GST /> : active === 'Settings' ? <SettingsPage /> : (
+        {active === 'Command Centre' ? <BusinessCommandCentre /> : active === 'Analytics' ? <Analytics /> : active === 'Sales' ? <Sales /> : active === 'Purchases' ? <Purchases /> : active === 'Inventory' ? <Inventory /> : active === 'Bulk Items' ? <BulkItems /> : active === 'Customers' ? <Customers /> : active === 'Suppliers' ? <Suppliers /> : active === 'Expenses' ? <Expenses /> : active === 'Payments' ? <Payments /> : active === 'Reports' ? <Reports /> : active === 'Ledger' ? <Ledger /> : active === 'Returns' ? <Returns /> : active === 'GST & Tax' ? <GST /> : active === 'Settings' ? <SettingsPage /> : (
         <div className="mx-auto max-w-7xl p-4 md:p-8">
           <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
             <div>
