@@ -1,11 +1,10 @@
 {
   "styles": [
     "src/index.css",
-    "src/App.css",
-    "src/styles/smartledger-theme.css"
+    "src/smartledger-pro-theme.css"
   ],
-  "components": 12,
-  "pages": 30,
+  "components": 13,
+  "pages": 14,
   "app_exists": true,
   "dependencies": [
     "@tailwindcss/vite",
@@ -16,5 +15,9 @@
     "react-dom",
     "recharts",
     "tailwindcss"
-  ]
+  ],
+  "entry": "src/main.tsx",
+  "theme_css_imported": true,
+  "active_dashboard": "src/App.tsx",
+  "legacy_backup_files_preserved": true
 }
