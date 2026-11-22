@@ -80,6 +80,8 @@ function getDashboardMetrics() {
 
   const collected = sum(payments.filter(x => x.type === 'Customer Receipt'), 'amount')
   const supplierPaid = sum(payments.filter(x => x.type === 'Supplier Payment'), 'amount')
+  const customerRefunds = sum(payments.filter(x => x.type === 'Customer Refund'), 'amount')
+  const supplierRefunds = sum(payments.filter(x => x.type === 'Supplier Refund'), 'amount')
   const salesDue = sales.reduce((total, item) => { const invoiceTotal = Number(item.total); const due = item.total !== undefined && item.total !== null && Number.isFinite(invoiceTotal) ? Math.max(0, invoiceTotal - (Number(item.paid) || 0)) : Math.max(0, Number(item.balance) || 0); return total + due; }, 0)
   const purchaseDue = purchases.reduce((total, item) => { const invoiceTotal = Number(item.total); const due = item.total !== undefined && item.total !== null && Number.isFinite(invoiceTotal) ? Math.max(0, invoiceTotal - (Number(item.paid) || 0)) : Math.max(0, Number(item.balance) || 0); return total + due; }, 0)
   const salesReturnCredit = sum(returns.filter(x => x.type === 'Sales Return').map(x => ({ amount: Number(x.totalAmount ?? x.amount) || 0 })), 'amount')
@@ -88,8 +90,8 @@ function getDashboardMetrics() {
   return [
     { label: 'Net Sales', value: money(Math.max(0, sum(sales, 'total') - salesReturnCredit)), change: 'Invoice value after sales returns', icon: ShoppingCart },
     { label: 'Net Purchases', value: money(Math.max(0, sum(purchases, 'total') - purchaseReturnCredit)), change: 'Invoice value after purchase returns', icon: ShoppingBag },
-    { label: 'To Collect', value: money(Math.max(0, sum(customers, 'opening') + salesDue - collected - salesReturnCredit)), change: 'Customer receivables', icon: ArrowDownRight },
-    { label: 'To Pay', value: money(Math.max(0, sum(suppliers, 'opening') + purchaseDue - supplierPaid - purchaseReturnCredit)), change: 'Supplier payables', icon: ArrowUpRight },
+    { label: 'To Collect', value: money(Math.max(0, sum(customers, 'opening') + salesDue + customerRefunds - collected - salesReturnCredit)), change: 'Customer receivables', icon: ArrowDownRight },
+    { label: 'To Pay', value: money(Math.max(0, sum(suppliers, 'opening') + purchaseDue + supplierRefunds - supplierPaid - purchaseReturnCredit)), change: 'Supplier payables', icon: ArrowUpRight },
   ]
 }
 
