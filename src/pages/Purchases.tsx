@@ -51,7 +51,7 @@ const utgst = applyGST && sameState && isJammuKashmir ? taxAmount / 2 : 0;
 const igst = applyGST && !sameState ? taxAmount : 0;
 const total = taxableValue + taxAmount;
   const totalPayments=payments.filter(x=>x.type==='Supplier Payment').reduce((sum,x)=>sum+(Number(x.amount)||0),0);
-  const invoiceDue=(item:Purchase)=>Math.max(0,Number(item.balance)-payments.filter(x=>x.type==='Supplier Payment').reduce((sum,x)=>sum+(Array.isArray(x.allocations)?x.allocations.filter((a:any)=>String(a.invoiceId)===String(item.id)).reduce((part:number,a:any)=>part+(Number(a.amount)||0),0):0),0));
+  const invoiceDue=(item:Purchase)=>{const storedDue=item.balance!==undefined&&item.balance!==null?Number(item.balance):Math.max(0,Number(item.total)-Number(item.paid||0));const allocated=payments.filter(x=>x.type==='Supplier Payment').reduce((sum,x)=>sum+(Array.isArray(x.allocations)?x.allocations.filter((a:any)=>String(a.invoiceId)===String(item.id)).reduce((part:number,a:any)=>part+(Number(a.amount)||0),0):0),0);return Math.max(0,storedDue-allocated);};
   const money=(n:number)=>`₹${n.toLocaleString('en-IN',{maximumFractionDigits:2})}`;
 
   function save() {
