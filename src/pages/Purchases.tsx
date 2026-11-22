@@ -68,7 +68,7 @@ const total = taxableValue + taxAmount;
   const money=(n:number)=>`₹${n.toLocaleString('en-IN',{maximumFractionDigits:2})}`;
 
   function save() {
-    if(!supplier || !selected || !Number.isFinite(qty) || qty<=0 || !Number.isFinite(rate) || rate<=0 || !Number.isFinite(paid) || paid<0 || !Number.isFinite(total) || paid>total || qty>100000) {
+    if(!date || !supplier || !selected || !Number.isFinite(qty) || qty<=0 || !Number.isFinite(rate) || rate<=0 || !Number.isFinite(paid) || paid<0 || !Number.isFinite(total) || paid>total || qty>100000) {
       alert('Check supplier, product, quantity, rate and payment.');
       return;
     }
