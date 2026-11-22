@@ -9,7 +9,7 @@ self.addEventListener('install', event => {
         const index = await cache.match('/index.html');
         if (index) {
           const html = await index.text();
-          const assets = Array.from(html.matchAll(/(?:src|href)="(\\/assets\\/[^"]+)"/g), match => match[1]);
+          const assets = Array.from(html.matchAll(/(?:src|href)="(\/assets\/[^"]+)"/g), match => match[1]);
           if (assets.length) await cache.addAll(assets);
         }
       })
