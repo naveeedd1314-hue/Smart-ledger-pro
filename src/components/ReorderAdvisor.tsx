@@ -74,7 +74,7 @@ export default function ReorderAdvisor() {
       missingStock: rows.filter(p => p.stock === null).length,
       undatedInvoices
     };
-  }, []);
+  }, [now]);
 
   return (
     <section style={{ margin: "18px 0", padding: 18, borderRadius: 18, background: "var(--card, #fff)", border: "1px solid var(--border, #ddd)" }}>
