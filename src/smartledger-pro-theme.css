@@ -745,3 +745,14 @@ main .card [class*="font-bold"] {
 @media(prefers-reduced-motion:reduce) {
   .sl-nav-item,.sl-metric-card,.sl-new-transaction {transition:none;}
 }
+
+
+/* SmartLedger identity mark: open ledger + verified entry */
+[data-sl-dashboard] .sl-brand-mark{width:44px;height:44px;flex:0 0 44px;display:grid;place-items:center;border-radius:14px;padding:7px;color:#e9fff2;background:linear-gradient(145deg,#263d68 0%,#101b31 100%);border:1px solid rgba(255,255,255,.22);box-shadow:inset 0 1px 1px rgba(255,255,255,.18),0 6px 14px rgba(16,27,49,.28)}
+[data-sl-dashboard] .sl-brand-mark svg{width:100%;height:100%;overflow:visible}
+[data-sl-dashboard] .sl-brand-mark svg path:nth-child(1){fill:#83d8ad;stroke:#d7ffea;stroke-width:.7;stroke-linejoin:round}
+[data-sl-dashboard] .sl-brand-mark svg path:nth-child(2){fill:#f4ebd5;stroke:#fff8e9;stroke-width:.7;stroke-linejoin:round}
+[data-sl-dashboard] .sl-brand-mark svg path:nth-child(3){fill:none;stroke:#244c4a;stroke-width:1.8;stroke-linecap:round}
+[data-sl-dashboard] .sl-brand-mark svg path:nth-child(4){fill:none;stroke:#167653;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+[data-sl-dashboard] .sl-brand-copy h1{white-space:nowrap}
+[data-sl-dashboard] .sl-brand-copy h1 span{color:var(--indigo);font-size:.72em;font-weight:800}
