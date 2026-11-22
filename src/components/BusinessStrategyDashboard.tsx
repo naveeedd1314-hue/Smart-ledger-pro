@@ -17,7 +17,7 @@ export default function BusinessStrategyDashboard() {
     <section data-sl-strategy="true" className="sl-strategy" style={{ margin: "20px 0" }}>
       <h2>Business Strategy Engine</h2>
       <p style={{ opacity: .7, fontSize: 13 }}>
-        Product profitability, stock investment and net inventory movement after customer returns.
+        Product profitability, stock investment and net inventory movement after customer returns. Low-margin alerts use your configurable minimum gross margin.
       </p>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(145px,1fr))", gap: 10 }}>
@@ -26,7 +26,7 @@ export default function BusinessStrategyDashboard() {
           <h3>₹{result.totalStockInvestment.toLocaleString("en-IN", {maximumFractionDigits:2})}</h3>
         </div>
         <div style={card}>
-          <small>Low-Margin Products</small>
+          <small>Low-Margin Products (&lt;{result.targetMarginPercent.toFixed(1)}%)</small>
           <h3>{result.lowMarginProducts}</h3>
         </div>
         <div style={card}>
