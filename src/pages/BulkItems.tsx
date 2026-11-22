@@ -6,6 +6,7 @@ type Product = {
   name: string
   selling: number
   purchase: number
+  averageCost?: number | null
   stock: number
   sku?: string
   category?: string
@@ -99,6 +100,7 @@ export default function BulkItems() {
       }
       const tax = numeric(['gstrate','gst'], 'GST rate')
       if (tax > 100) errors.push(`Row ${i + 2}: GST rate cannot exceed 100%.`)
+      const purchaseValue = numeric(['purchase','purchaseprice','cost'], 'purchase price')
       return {
         id: get(r,['id']) || crypto.randomUUID(),
         name: get(r,['name','product','item']),
@@ -106,7 +108,8 @@ export default function BulkItems() {
         category: get(r,['category','group'],'General'),
         hsn: get(r,['hsn']),
         gstRate: tax,
-        purchase: numeric(['purchase','purchaseprice','cost'], 'purchase price'),
+        purchase: purchaseValue,
+        averageCost: purchaseValue > 0 ? purchaseValue : null,
         selling: numeric(['selling','sellingprice','rate'], 'selling price'),
         stock: numeric(['stock','qty','quantity'], 'stock')
       }
@@ -199,7 +202,7 @@ export default function BulkItems() {
     <div className="grid gap-4 sm:grid-cols-3">
       <div className="rounded-2xl border bg-[var(--surface)] p-5"><p className="text-sm text-[var(--text-2)]">Products</p><p className="mt-2 text-2xl font-bold">{items.length}</p></div>
       <div className="rounded-2xl border bg-[var(--surface)] p-5"><p className="text-sm text-[var(--text-2)]">Stock units</p><p className="mt-2 text-2xl font-bold">{items.reduce((s,p)=>s+(Number(p.stock)||0),0).toLocaleString('en-IN')}</p></div>
-      <div className="rounded-2xl border bg-[var(--surface)] p-5"><p className="text-sm text-[var(--text-2)]">Stock value at cost</p><p className="mt-2 text-2xl font-bold">{money(items.reduce((s,p)=>s+(Number(p.stock)||0)*(Number(p.purchase)||0),0))}</p></div>
+      <div className="rounded-2xl border bg-[var(--surface)] p-5"><p className="text-sm text-[var(--text-2)]">Stock value at cost</p><p className="mt-2 text-2xl font-bold">{money(items.reduce((s,p)=>s+(Number(p.stock)||0)*(Number(p.averageCost ?? p.purchase)||0),0))}</p></div>
     </div>
 
     <section className="rounded-2xl border bg-[var(--surface)] p-5">
