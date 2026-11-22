@@ -8,6 +8,7 @@ type ReturnItem = {
   invoice: string;
   party: string;
   product: string;
+  productId?: string | number;
   qty: number;
   rate: number;
   amount: number;
@@ -98,6 +99,7 @@ export default function Returns() {
       invoice:source.invoice||'',
       party:type==='Sales Return'?source.customer:source.supplier,
       product:source.product,
+      productId:product.id,
       qty,
       rate,
       amount,
@@ -205,7 +207,7 @@ export default function Returns() {
         Save Return
       </button>
       <p className="text-xs text-[var(--text-2)]">
-        This records the return value and adjusts stock. It does not automatically issue a cash refund or settle a supplier credit.
+        This records the return against the original invoice, adjusts inventory and reflects the return credit in the party ledger. Cash refunds or cash settlements are not recorded automatically.
       </p>
     </div>
 
