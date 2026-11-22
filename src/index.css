@@ -1,13 +1,113 @@
 @import "tailwindcss";
 
 :root {
-  font-family: Inter, system-ui, sans-serif;
-  color: #25382d;
-  background: #f5f3eb;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  color: #26392e;
+  background: #f4f1e7;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  --sl-green: #183b2b;
+  --sl-green-light: #315b42;
+  --sl-cream: #f4f1e7;
+  --sl-card: #fffdf7;
+  --sl-beige: #e5dcc7;
+  --sl-gold: #b69a63;
+  --sl-muted: #788579;
+  --sl-border: #e6e0d2;
+  --sl-shadow: 0 5px 20px rgba(36, 54, 41, .055);
 }
 
 * { box-sizing: border-box; }
-body { margin: 0; min-width: 320px; min-height: 100vh; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: var(--sl-cream);
+}
+
+button, input, select, textarea { font: inherit; }
 button { cursor: pointer; }
+button:disabled { cursor: not-allowed; opacity: .55; }
+
+::selection { background: #d9e4d5; color: var(--sl-green); }
+
+:focus-visible {
+  outline: 2px solid var(--sl-gold);
+  outline-offset: 2px;
+}
+
+@layer base {
+  h1, h2, h3, h4 {
+    color: #26392e;
+    letter-spacing: -.025em;
+  }
+
+  input, select, textarea {
+    max-width: 100%;
+    border-color: var(--sl-border);
+    border-radius: 10px;
+    background-color: #fffdf8;
+    color: #26392e;
+    transition: border-color .18s, box-shadow .18s;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    border-color: #66866c;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(89, 125, 94, .12);
+  }
+
+  input::placeholder, textarea::placeholder { color: #a0a69b; }
+
+  table { border-collapse: separate; border-spacing: 0; }
+  th { color: #66766a; font-weight: 650; }
+  td, th { border-color: #eee9dd; }
+
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: #eeeadd; }
+  ::-webkit-scrollbar-thumb {
+    border: 2px solid #eeeadd;
+    border-radius: 20px;
+    background: #b7c1b3;
+  }
+}
+
+@layer components {
+  .sl-card {
+    border: 1px solid var(--sl-border);
+    border-radius: 18px;
+    background: var(--sl-card);
+    box-shadow: var(--sl-shadow);
+  }
+
+  .sl-primary {
+    border-radius: 11px;
+    background: var(--sl-green);
+    color: white;
+    font-weight: 650;
+    transition: background .18s, transform .18s;
+  }
+
+  .sl-primary:hover { background: var(--sl-green-light); }
+  .sl-primary:active { transform: scale(.98); }
+
+  .sl-secondary {
+    border: 1px solid var(--sl-border);
+    border-radius: 11px;
+    background: #fffdf7;
+    color: var(--sl-green);
+    font-weight: 600;
+  }
+
+  .sl-secondary:hover { background: #f0eee4; }
+}
+
+@media (max-width: 640px) {
+  body { font-size: 14px; }
+  input, select, textarea { font-size: 16px; }
+}
+@import "./smartledger-pro-theme.css";

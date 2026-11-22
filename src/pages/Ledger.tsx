@@ -72,30 +72,30 @@ export default function Ledger() {
   let running = opening;
 
   return <section className="space-y-5">
-    <div><h1 className="text-2xl font-bold">Party Ledger</h1><p className="text-sm text-gray-500">Account statements and outstanding balances.</p></div>
-    <div className="rounded-xl bg-white p-5 shadow-sm space-y-4">
+    <div><h1 className="text-2xl font-bold">Party Ledger</h1><p className="text-sm text-[#788579]">Account statements and outstanding balances.</p></div>
+    <div className="rounded-2xl border border-[#e6e0d2] bg-[#fffdf7] p-5 shadow-sm space-y-4">
       <div className="flex flex-wrap gap-2">
-        {(['Customer','Supplier'] as const).map(x=><button key={x} onClick={()=>{setType(x);setParty('');}} className={`rounded-lg px-5 py-3 text-sm font-semibold ${type===x?'bg-green-900 text-white':'bg-stone-100 text-gray-700'}`}>{x} Ledger</button>)}
+        {(['Customer','Supplier'] as const).map(x=><button key={x} onClick={()=>{setType(x);setParty('');}} className={`rounded-lg px-5 py-3 text-sm font-semibold ${type===x?'sl-primary text-white':'bg-[var(--surface-2)] text-gray-700'}`}>{x} Ledger</button>)}
       </div>
       <label className="block text-sm font-medium">Select {type}<select className="mt-1 w-full rounded-lg border p-3" value={party} onChange={e=>setParty(e.target.value)}><option value="">Choose {type.toLowerCase()}</option>{parties.map(x=><option key={x.id} value={x.name}>{x.name}</option>)}</select></label>
     </div>
     {party && <>
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {[['Opening Balance',opening],['Total Debit',debit],['Total Credit',credit],['Closing Balance',Math.abs(closing)]].map(([label,value])=><div key={String(label)} className="rounded-xl bg-white p-4 shadow-sm"><p className="text-sm text-gray-500">{label}</p><strong className="text-xl">{money(Number(value))}</strong>{label==='Closing Balance'&&<p className="text-xs text-gray-500">{closing===0?'Settled':closing>0?(type==='Customer'?'Receivable':'Payable'):(type==='Customer'?'Advance received':'Advance paid')}</p>}</div>)}
+        {[['Opening Balance',opening],['Total Debit',debit],['Total Credit',credit],['Closing Balance',Math.abs(closing)]].map(([label,value])=><div key={String(label)} className="rounded-2xl border border-[#e6e0d2] bg-[#fffdf7] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[#788579]">{label}</p><strong className="text-xl">{money(Number(value))}</strong>{label==='Closing Balance'&&<p className="text-xs text-[#788579]">{closing===0?'Settled':closing>0?(type==='Customer'?'Receivable':'Payable'):(type==='Customer'?'Advance received':'Advance paid')}</p>}</div>)}
       </div>
-      <div className="rounded-xl bg-white p-5 shadow-sm">
+      <div className="rounded-2xl border border-[#e6e0d2] bg-[#fffdf7] p-5 shadow-sm">
         <h2 className="mb-4 font-semibold">{party} — Statement</h2>
         <div className="overflow-x-auto"><table className="w-full text-left text-sm">
-          <thead><tr className="border-b text-gray-500"><th className="p-2">Date</th><th className="p-2">Description</th><th className="p-2">Debit</th><th className="p-2">Credit</th><th className="p-2">Balance</th></tr></thead>
+          <thead><tr className="border-b text-[#788579]"><th className="p-2">Date</th><th className="p-2">Description</th><th className="p-2">Debit</th><th className="p-2">Credit</th><th className="p-2">Balance</th></tr></thead>
           <tbody>
-            <tr className="border-b"><td className="p-2">—</td><td className="p-2">Opening balance</td><td className="p-2">—</td><td className="p-2">—</td><td className="p-2">{money(opening)}</td></tr>
+            <tr className="border-b border-[#eee9dd] hover:bg-[#f7f4eb]"><td className="p-2">—</td><td className="p-2">Opening balance</td><td className="p-2">—</td><td className="p-2">—</td><td className="p-2">{money(opening)}</td></tr>
             {entries.map((x,i)=>{
               running += type==='Customer' ? x.debit-x.credit : x.credit-x.debit;
-              return <tr className="border-b" key={i}><td className="p-2">{x.date}</td><td className="p-2">{x.description}</td><td className="p-2">{x.debit?money(x.debit):'—'}</td><td className="p-2">{x.credit?money(x.credit):'—'}</td><td className="p-2">{money(Math.abs(running))}</td></tr>;
+              return <tr className="border-b border-[#eee9dd] hover:bg-[#f7f4eb]" key={i}><td className="p-2">{x.date}</td><td className="p-2">{x.description}</td><td className="p-2">{x.debit?money(x.debit):'—'}</td><td className="p-2">{x.credit?money(x.credit):'—'}</td><td className="p-2">{money(Math.abs(running))}</td></tr>;
             })}
           </tbody>
         </table></div>
-        {entries.length===0&&<p className="py-5 text-center text-gray-500">No transactions recorded for this party.</p>}
+        {entries.length===0&&<p className="py-5 text-center text-[#788579]">No transactions recorded for this party.</p>}
       </div>
     </>}
   </section>;

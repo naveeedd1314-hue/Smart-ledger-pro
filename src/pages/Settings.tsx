@@ -58,8 +58,8 @@ export default function Settings() {
   }
 
   return <section className="space-y-5">
-    <div><h1 className="text-2xl font-bold">Settings</h1><p className="text-sm text-gray-500">Business profile and application preferences.</p></div>
-    <div className="rounded-xl bg-white p-5 shadow-sm space-y-4">
+    <div><h1 className="text-2xl font-bold">Settings</h1><p className="text-sm text-[#788579]">Business profile and application preferences.</p></div>
+    <div className="rounded-2xl border border-[#e6e0d2] bg-[#fffdf7] p-5 shadow-sm space-y-4">
       <h2 className="text-lg font-semibold">Business Profile</h2>
       <div className="grid gap-3 sm:grid-cols-2">
         {([
@@ -73,12 +73,12 @@ export default function Settings() {
           ['financialYear','Financial year']
         ] as const).map(([key,label])=><label key={key} className="text-sm">{label}<input className="mt-1 w-full rounded-lg border p-3" value={business[key]} onChange={e=>setBusiness({...business,[key]:e.target.value})}/></label>)}
       </div>
-      <button onClick={save} className="rounded-lg bg-green-900 px-5 py-3 text-white">Save Settings</button>
+      <button onClick={save} className="rounded-xl bg-[#183b2b] px-5 py-3 font-semibold text-white shadow-sm transition hover:bg-[#315b42]">Save Settings</button>
     </div>
-    <div className="rounded-xl bg-white p-5 shadow-sm space-y-3">
+    <div className="rounded-2xl border border-[#e6e0d2] bg-[#fffdf7] p-5 shadow-sm space-y-3">
       <h2 className="text-lg font-semibold">Data Backup & Restore</h2>
-      <p className="text-sm text-gray-500">Download your locally stored SmartLedger records or restore from a backup JSON file.</p>
-      <button onClick={backup} className="rounded-lg bg-green-900 px-5 py-3 text-white">Download Backup</button>
+      <p className="text-sm text-[#788579]">Download your locally stored SmartLedger records or restore from a backup JSON file.</p>
+      <button onClick={backup} className="rounded-xl bg-[#183b2b] px-5 py-3 font-semibold text-white shadow-sm transition hover:bg-[#315b42]">Download Backup</button>
       <div><label className="block text-sm font-medium">Restore backup<input type="file" accept=".json,application/json" className="mt-2 block w-full text-sm" onChange={e=>restore(e.target.files?.[0])}/></label></div>
     </div>
     <div className="rounded-xl bg-amber-50 p-4 text-sm text-amber-900">Keep backup files secure. Restoring can overwrite existing records. This is local-device backup, not cloud synchronisation.</div>

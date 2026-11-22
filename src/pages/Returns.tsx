@@ -105,26 +105,26 @@ export default function Returns() {
   return <section className="space-y-5">
     <div>
       <h1 className="text-2xl font-bold">Sales & Purchase Returns</h1>
-      <p className="text-sm text-gray-500">Record returned goods and automatically adjust stock.</p>
+      <p className="text-sm text-[#788579]">Record returned goods and automatically adjust stock.</p>
     </div>
 
     <div className="grid gap-3 sm:grid-cols-2">
-      <div className="rounded-xl bg-white p-4 shadow-sm">
-        <p className="text-sm text-gray-500">Sales Returns</p>
+      <div className="rounded-2xl border border-[#e6e0d2] bg-[#fffdf7] p-5 shadow-sm">
+        <p className="text-sm text-[#788579]">Sales Returns</p>
         <strong className="text-xl">{money(totalSales)}</strong>
       </div>
-      <div className="rounded-xl bg-white p-4 shadow-sm">
-        <p className="text-sm text-gray-500">Purchase Returns</p>
+      <div className="rounded-2xl border border-[#e6e0d2] bg-[#fffdf7] p-5 shadow-sm">
+        <p className="text-sm text-[#788579]">Purchase Returns</p>
         <strong className="text-xl">{money(totalPurchases)}</strong>
       </div>
     </div>
 
-    <div className="rounded-xl bg-white p-5 shadow-sm space-y-4">
+    <div className="rounded-2xl border border-[#e6e0d2] bg-[#fffdf7] p-5 shadow-sm space-y-4">
       <h2 className="font-semibold">Record a Return</h2>
       <div className="flex flex-wrap gap-2">
         {(['Sales Return','Purchase Return'] as const).map(x=>
           <button key={x} onClick={()=>changeType(x)}
-            className={`rounded-lg px-4 py-3 text-sm font-semibold ${type===x?'bg-green-900 text-white':'bg-stone-100'}`}>
+            className={`rounded-lg px-4 py-3 text-sm font-semibold ${type===x?'bg-[#183b2b] text-white shadow-sm':'bg-[#eeeadd] text-[#435648]'}`}>
             {x}
           </button>
         )}
@@ -161,7 +161,7 @@ export default function Returns() {
         </label>
       </div>
 
-      {source&&<div className="rounded-lg bg-stone-100 p-4 text-sm space-y-1">
+      {source&&<div className="rounded-2xl border border-[#e6e0d2] bg-[#eeeadd] p-4 text-sm space-y-2">
         <p>Product: <strong>{source.product}</strong></p>
         <p>Original quantity: <strong>{source.qty}</strong></p>
         <p>Already returned: <strong>{alreadyReturned}</strong></p>
@@ -173,25 +173,25 @@ export default function Returns() {
       </div>}
 
       <button onClick={saveReturn}
-        className="rounded-lg bg-green-900 px-5 py-3 font-semibold text-white">
+        className="rounded-xl bg-[#183b2b] px-5 py-3 font-semibold text-white shadow-sm transition hover:bg-[#315b42]">
         Save Return
       </button>
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-[#788579]">
         This records the return value and adjusts stock. It does not automatically issue a cash refund or settle a supplier credit.
       </p>
     </div>
 
-    <div className="rounded-xl bg-white p-5 shadow-sm">
+    <div className="rounded-2xl border border-[#e6e0d2] bg-[#fffdf7] p-5 shadow-sm">
       <h2 className="mb-4 font-semibold">Return History ({returns.length})</h2>
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
-          <thead><tr className="border-b text-gray-500">
+          <thead><tr className="border-b text-[#788579]">
             <th className="p-2">Date</th><th className="p-2">Type</th>
             <th className="p-2">Invoice</th><th className="p-2">Party</th>
             <th className="p-2">Product</th><th className="p-2">Qty</th>
             <th className="p-2">Value</th>
           </tr></thead>
-          <tbody>{returns.map(x=><tr key={x.id} className="border-b">
+          <tbody>{returns.map(x=><tr key={x.id} className="border-b border-[#eee9dd] hover:bg-[#f7f4eb]">
             <td className="p-2">{x.date}</td><td className="p-2">{x.type}</td>
             <td className="p-2">{x.invoice}</td><td className="p-2">{x.party}</td>
             <td className="p-2">{x.product}</td><td className="p-2">{x.qty}</td>
@@ -199,7 +199,7 @@ export default function Returns() {
           </tr>)}</tbody>
         </table>
       </div>
-      {returns.length===0&&<p className="py-5 text-center text-gray-500">No returns recorded yet.</p>}
+      {returns.length===0&&<p className="py-5 text-center text-[#788579]">No returns recorded yet.</p>}
     </div>
   </section>;
 }

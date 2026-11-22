@@ -77,13 +77,13 @@ const total = taxableValue + taxAmount;
   }
 
   return <section className="space-y-5">
-    <div><h1 className="text-2xl font-bold">Purchases</h1><p className="text-sm text-gray-500">Supplier invoices, stock inward and payments.</p></div>
+    <div><h1 className="text-2xl font-bold">Purchases</h1><p className="text-sm text-[#788579]">Supplier invoices, stock inward and payments.</p></div>
     <div className="grid gap-3 sm:grid-cols-3">
-      <div className="rounded-xl bg-white p-4 shadow-sm"><p className="text-sm text-gray-500">Purchase Value</p><strong className="text-xl">{money(items.reduce((s,x)=>s+x.total,0))}</strong></div>
-      <div className="rounded-xl bg-white p-4 shadow-sm"><p className="text-sm text-gray-500">Paid</p><strong className="text-xl">{money(items.reduce((s,x)=>s+x.paid,0))}</strong></div>
-      <div className="rounded-xl bg-white p-4 shadow-sm"><p className="text-sm text-gray-500">Outstanding</p><strong className="text-xl">{money(items.reduce((s,x)=>s+x.balance,0))}</strong></div>
+      <div className="rounded-2xl border border-[#e6e0d2] bg-[#fffdf7] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[#788579]">Purchase Value</p><strong className="text-xl">{money(items.reduce((s,x)=>s+x.total,0))}</strong></div>
+      <div className="rounded-2xl border border-[#e6e0d2] bg-[#fffdf7] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[#788579]">Paid</p><strong className="text-xl">{money(items.reduce((s,x)=>s+x.paid,0))}</strong></div>
+      <div className="rounded-2xl border border-[#e6e0d2] bg-[#fffdf7] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[#788579]">Outstanding</p><strong className="text-xl">{money(items.reduce((s,x)=>s+x.balance,0))}</strong></div>
     </div>
-    <div className="rounded-xl bg-white p-5 shadow-sm space-y-4">
+    <div className="rounded-2xl border border-[#e6e0d2] bg-[#fffdf7] p-5 shadow-sm space-y-5">
       <h2 className="font-semibold">Record Purchase Invoice</h2>
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="text-sm">Supplier<select className="mt-1 w-full rounded-lg border p-3" value={supplier} onChange={e=>setSupplier(e.target.value)}><option value="">Select supplier</option>{suppliers.map(x=><option key={x.id} value={x.name}>{x.name}</option>)}</select></label>
@@ -96,7 +96,7 @@ const total = taxableValue + taxAmount;
 {applyGST && <label className="text-sm">Place of supply (state / UT)<input className="mt-1 w-full rounded-lg border p-3" value={placeOfSupply} onChange={e=>setPlaceOfSupply(e.target.value)}/></label>}
 <label className="text-sm">Amount paid<input type="number" min="0" step="any" className="mt-1 w-full rounded-lg border p-3" value={paid} onChange={e=>setPaid(Number(e.target.value))}/></label>
       </div>
-      <div className="rounded-lg bg-stone-100 p-4 text-sm"><p>Taxable value: <strong>{money(taxableValue)}</strong></p>
+      <div className="rounded-2xl border border-[#e6e0d2] bg-[#eeeadd] p-4 text-sm text-[#435648]"><p>Taxable value: <strong>{money(taxableValue)}</strong></p>
 {applyGST && <><p>GST rate: <strong>{gstRate}%</strong></p>
 <p>CGST: <strong>{money(cgst)}</strong></p>
 {isJammuKashmir && sameState && <p>UTGST: <strong>{money(utgst)}</strong></p>}
@@ -104,12 +104,12 @@ const total = taxableValue + taxAmount;
 {!sameState && <p>IGST: <strong>{money(igst)}</strong></p>}
 <p>Total GST: <strong>{money(taxAmount)}</strong></p></>}
 <p>Invoice total: <strong>{money(total)}</strong></p><p>Remaining payable: <strong>{money(total-paid)}</strong></p><p>Stock after purchase: <strong>{(selected?.stock||0)+qty}</strong></p></div>
-      <button onClick={save} className="rounded-lg bg-green-900 px-5 py-3 font-semibold text-white">Save Purchase</button>
+      <button onClick={save} className="rounded-xl bg-[#183b2b] px-5 py-3 font-semibold text-white shadow-sm transition hover:bg-[#315b42]">Save Purchase</button>
     </div>
-    <div className="rounded-xl bg-white p-5 shadow-sm">
+    <div className="rounded-2xl border border-[#e6e0d2] bg-[#fffdf7] p-5 shadow-sm">
       <h2 className="mb-4 font-semibold">Purchase History ({items.length})</h2>
-      <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="border-b text-gray-500"><th className="p-2">Date</th><th className="p-2">Invoice</th><th className="p-2">Supplier</th><th className="p-2">Product</th><th className="p-2">Qty</th><th className="p-2">Total</th><th className="p-2">Paid</th><th className="p-2">Due</th><th className="p-2">PDF</th></tr></thead><tbody>{items.map(x=><tr className="border-b" key={x.id}><td className="p-2">{x.date}</td><td className="p-2">{x.invoice}</td><td className="p-2">{x.supplier}</td><td className="p-2">{x.product}</td><td className="p-2">{x.qty}</td><td className="p-2">{money(x.total)}</td><td className="p-2">{money(x.paid)}</td><td className="p-2">{money(x.balance)}</td><td className="p-2"><button onClick={() => { let b = {}; try { b = JSON.parse(localStorage.getItem('smartledger-pro-settings') || '{}'); } catch {} downloadInvoicePdf(x, b, 'purchase'); }} className="rounded bg-green-900 px-3 py-2 text-white">Download PDF</button></td></tr>)}</tbody></table></div>
-      {items.length===0&&<p className="py-5 text-center text-gray-500">No purchases recorded yet.</p>}
+      <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="border-b text-[#788579]"><th className="p-2">Date</th><th className="p-2">Invoice</th><th className="p-2">Supplier</th><th className="p-2">Product</th><th className="p-2">Qty</th><th className="p-2">Total</th><th className="p-2">Paid</th><th className="p-2">Due</th><th className="p-2">PDF</th></tr></thead><tbody>{items.map(x=><tr className="border-b border-[#eee9dd] hover:bg-[#f7f4eb]" key={x.id}><td className="p-2">{x.date}</td><td className="p-2">{x.invoice}</td><td className="p-2">{x.supplier}</td><td className="p-2">{x.product}</td><td className="p-2">{x.qty}</td><td className="p-2">{money(x.total)}</td><td className="p-2">{money(x.paid)}</td><td className="p-2">{money(x.balance)}</td><td className="p-2"><button onClick={() => { let b = {}; try { b = JSON.parse(localStorage.getItem('smartledger-pro-settings') || '{}'); } catch {} downloadInvoicePdf(x, b, 'purchase'); }} className="rounded-lg bg-[#183b2b] px-3 py-2 text-white transition hover:bg-[#315b42]">Download PDF</button></td></tr>)}</tbody></table></div>
+      {items.length===0&&<p className="py-5 text-center text-[#788579]">No purchases recorded yet.</p>}
     </div>
   </section>;
 }

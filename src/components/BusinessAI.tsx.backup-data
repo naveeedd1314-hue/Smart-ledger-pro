@@ -1,0 +1,98 @@
+import { useMemo, useState } from "react";
+
+type Row = Record<string, any>;
+const read = (key:string):Row[] => {
+  try {
+    const v=JSON.parse(localStorage.getItem(key)||"[]");
+    return Array.isArray(v)?v:[];
+  } catch { return []; }
+};
+const n=(...values:any[]):number=>{
+  for(const v of values){const x=Number(v);if(Number.isFinite(x)&&v!==null&&v!=="")return x;}
+  return 0;
+};
+const money=(v:number)=>"₹"+v.toLocaleString("en-IN",{maximumFractionDigits:2});
+const sum=(a:number[])=>a.reduce((x,y)=>x+y,0);
+const field=(o:Row,...keys:string[])=>{for(const k of keys)if(o?.[k]!==undefined&&o[k]!==null)return o[k];return undefined;};
+
+function analyse(){
+ const products=read("smartledger-products");
+ const bills=read("smartledger-bills");
+ const purchases=read("smartledger-purchases");
+ const payments=read("smartledger-payments");
+ const expenses=read("smartledger-expenses");
+ const customers=read("smartledger-customers");
+ const suppliers=read("smartledger-suppliers");
+ const stockValue= sum(products.map(p=>n(field(p,"stock","quantity","qty"))*n(field(p,"purchase","purchasePrice","cost"))));
+ const productRows=products.map(p=>{
+  const cost=n(field(p,"purchase","purchasePrice","cost"));
+  const retail=n(field(p,"price","sellingPrice","salePrice","retail"));
+  const wholesale=n(field(p,"wholesale","wholesalePrice"));
+  const stock=n(field(p,"stock","quantity","qty"));
+  return {name:String(field(p,"name","productName","title")||"Unnamed product"),cost,retail,wholesale,stock,profit:retail-cost,margin:retail>0?(retail-cost)/retail*100:0};
+ });
+ const known=productRows.filter(p=>p.cost>0&&p.retail>0);
+ const low=productRows.filter(p=>p.stock<=5&&p.stock>=0);
+ const negative=productRows.filter(p=>p.stock<0);
+ const sales=sum(bills.map(b=>n(field(b,"grandTotal","total","netTotal","amount","totalAmount"))));
+ const expenseTotal=sum(expenses.map(e=>n(field(e,"amount","total","value"))));
+ const purchaseTotal=sum(purchases.map(p=>n(field(p,"total","grandTotal","amount","totalAmount"))));
+ const receivable=sum(customers.map(c=>n(field(c,"balance","outstanding","closingBalance","due"))));
+ const payable=sum(suppliers.map(s=>n(field(s,"balance","outstanding","closingBalance","due"))));
+ const missingCost=productRows.filter(p=>p.retail>0&&p.cost<=0);
+ const marginAvg=known.length?sum(known.map(p=>p.margin))/known.length:0;
+ return {products,bills,purchases,payments,expenses,customers,suppliers,productRows,known,low,negative,sales,expenseTotal,purchaseTotal,receivable,payable,stockValue,missingCost,marginAvg};
+}
+function answer(q:string,d:ReturnType<typeof analyse>){
+ const s=q.toLowerCase();
+ if(/rate|increase|decrease|price change|badha|ghata|mehnga|sasta/.test(s))
+  return `I can compare recorded purchase and selling prices, but your current product records do not yet contain dated rate history. I will not invent a market movement. Products with recorded cost and selling price: ${d.known.length}. Average product margin: ${d.marginAvg.toFixed(2)}%. To detect increases and decreases automatically, the next stage will add dated supplier-rate history and market-source checks.`;
+ if(/stock|inventory|shortage|reorder|fast|slow/.test(s))
+  return `Stock review: ${d.products.length} products recorded. ${d.low.length} products have stock of 5 units or less. ${d.negative.length} products show negative stock. Estimated stock value at recorded purchase cost: ${money(d.stockValue)}. Low-stock items: ${d.low.slice(0,8).map(p=>`${p.name} (${p.stock})`).join(", ")||"None detected"}.`;
+ if(/profit|margin|loss|munafa|nuksan/.test(s))
+  return `Recorded sales total: ${money(d.sales)}. Recorded expenses: ${money(d.expenseTotal)}. Average listed product margin: ${d.marginAvg.toFixed(2)}%. ${d.missingCost.length} products lack a recorded purchase cost. This is not yet a verified net-profit figure: invoice-level cost of goods sold and expense-period matching must be checked before declaring actual profit.`;
+ if(/customer|collect|receivable|udhaar/.test(s))
+  return `Recorded customer receivables: ${money(d.receivable)} across ${d.customers.length} customer records.`;
+ if(/supplier|payable|pay|due/.test(s))
+  return `Recorded supplier payables: ${money(d.payable)} across ${d.suppliers.length} supplier records.`;
+ if(/purchase|buy|buying/.test(s))
+  return `Recorded purchases total: ${money(d.purchaseTotal)} across ${d.purchases.length} purchase entries. Compare supplier invoices and dated rates before choosing a supplier.`;
+ return `Business overview: ${d.products.length} products, ${d.bills.length} sales invoices, ${d.purchases.length} purchase entries. Recorded sales: ${money(d.sales)}. Purchases: ${money(d.purchaseTotal)}. Expenses: ${money(d.expenseTotal)}. Receivables: ${money(d.receivable)}. Payables: ${money(d.payable)}. Stock value estimate: ${money(d.stockValue)}. I can analyse profit, pricing, stock, purchases, customers and suppliers.`;
+}
+
+export default function BusinessAI(){
+ const [open,setOpen]=useState(false);
+ const [query,setQuery]=useState("");
+ const [history,setHistory]=useState<{q:string,a:string}[]>([]);
+ const data=useMemo(()=>analyse(),[open,history.length]);
+ const insights=[
+  data.low.length?`${data.low.length} products have stock at or below 5 units.`:"No low-stock products detected.",
+  data.missingCost.length?`${data.missingCost.length} products need purchase-cost records for reliable margin analysis.`:"Product purchase costs are available for listed products.",
+  data.receivable>0?`${money(data.receivable)} customer receivables need monitoring.`:"No customer receivables detected.",
+  data.payable>0?`${money(data.payable)} supplier payables need monitoring.`:"No supplier payables detected."
+ ];
+ const ask=(text:string)=>{
+  const q=text.trim();if(!q)return;
+  setHistory(h=>[...h,{q,a:answer(q,analyse())}]);setQuery("");
+ };
+ return <>
+  <button onClick={()=>setOpen(v=>!v)} aria-label="Open SmartLedger AI" style={{position:"fixed",right:18,bottom:18,zIndex:9998,border:0,borderRadius:28,padding:"13px 18px",background:"#1F6F6B",color:"white",fontWeight:700,boxShadow:"0 5px 22px #1e2a2f30"}}>✦ SmartLedger AI</button>
+  {open&&<section style={{position:"fixed",zIndex:9999,right:12,bottom:76,width:"min(420px,calc(100vw - 24px))",maxHeight:"78vh",display:"flex",flexDirection:"column",background:"var(--sl-surface,#fff)",color:"var(--sl-text,#1e2a2f)",border:"1px solid var(--sl-border,#ddd)",borderRadius:20,boxShadow:"0 15px 50px #0003",overflow:"hidden"}}>
+   <header style={{padding:16,background:"#1F6F6B",color:"white",display:"flex",justifyContent:"space-between",alignItems:"center"}}><div><strong>✦ SmartLedger AI</strong><div style={{fontSize:11,opacity:.85}}>Business intelligence • Connected to your records</div></div><button onClick={()=>setOpen(false)} style={{background:"transparent",color:"white",border:0,fontSize:22}}>×</button></header>
+   <div style={{padding:14,overflowY:"auto",fontSize:13}}>
+    <strong>Automatic business review</strong>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,margin:"10px 0"}}>
+     {[["Sales",money(data.sales)],["Purchases",money(data.purchaseTotal)],["Expenses",money(data.expenseTotal)],["Stock value",money(data.stockValue)],["To collect",money(data.receivable)],["To pay",money(data.payable)]].map(([k,v])=><div key={k} style={{background:"var(--sl-surface-muted,#f1f0ea)",padding:10,borderRadius:12}}><div style={{color:"var(--sl-text-muted)",fontSize:11}}>{k}</div><strong>{v}</strong></div>)}
+    </div>
+    <strong>Detected points</strong>
+    {insights.map((x,i)=><p key={i} style={{margin:"7px 0",padding:"8px 10px",background:"var(--sl-surface-muted,#f1f0ea)",borderRadius:10}}>{x}</p>)}
+    {history.map((h,i)=><div key={i} style={{marginTop:12}}><strong>You: {h.q}</strong><p style={{whiteSpace:"pre-wrap",lineHeight:1.5}}>{h.a}</p></div>)}
+   </div>
+   <form onSubmit={e=>{e.preventDefault();ask(query)}} style={{display:"flex",gap:8,padding:12,borderTop:"1px solid var(--sl-border,#ddd)"}}>
+    <input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Ask about profit, stock, rates..." style={{flex:1,minWidth:0,padding:11,borderRadius:12,border:"1px solid var(--sl-border,#ddd)",background:"var(--sl-surface,#fff)",color:"var(--sl-text,#222)"}}/>
+    <button type="submit" style={{border:0,borderRadius:12,padding:"0 15px",background:"#1F6F6B",color:"white"}}>Ask</button>
+   </form>
+   <div style={{padding:"0 12px 10px",fontSize:10,color:"var(--sl-text-muted)"}}>Calculations use locally recorded data. External market rates and autonomous AI reasoning are not connected yet.</div>
+  </section>}
+ </>;
+}

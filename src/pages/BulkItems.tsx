@@ -143,26 +143,26 @@ export default function BulkItems() {
 
   const toggle = (id: string) => setSelected(s => s.includes(id) ? s.filter(x => x !== id) : [...s,id])
 
-  return <div className="mx-auto max-w-7xl space-y-6 p-4 md:p-8">
+  return <div data-sl-page="true" className="mx-auto max-w-7xl space-y-6 p-4 md:p-8">
     <div className="flex flex-wrap items-center justify-between gap-3">
-      <div><h2 className="text-2xl font-bold">Bulk Items</h2><p className="mt-1 text-sm text-[#849187]">Manage many inventory items together.</p></div>
+      <div><h2 className="text-2xl font-bold">Bulk Items</h2><p className="mt-1 text-sm text-[var(--text-2)]">Manage many inventory items together.</p></div>
       <button onClick={exportCSV} className="flex items-center gap-2 rounded-xl bg-[#183b2b] px-4 py-3 text-sm font-semibold text-white"><Download size={17}/> Export CSV</button>
     </div>
 
     <div className="grid gap-4 sm:grid-cols-3">
-      <div className="rounded-2xl border bg-white p-5"><p className="text-sm text-[#849187]">Products</p><p className="mt-2 text-2xl font-bold">{items.length}</p></div>
-      <div className="rounded-2xl border bg-white p-5"><p className="text-sm text-[#849187]">Stock units</p><p className="mt-2 text-2xl font-bold">{items.reduce((s,p)=>s+(Number(p.stock)||0),0).toLocaleString('en-IN')}</p></div>
-      <div className="rounded-2xl border bg-white p-5"><p className="text-sm text-[#849187]">Stock value at cost</p><p className="mt-2 text-2xl font-bold">{money(items.reduce((s,p)=>s+(Number(p.stock)||0)*(Number(p.purchase)||0),0))}</p></div>
+      <div className="rounded-2xl border bg-[var(--surface)] p-5"><p className="text-sm text-[var(--text-2)]">Products</p><p className="mt-2 text-2xl font-bold">{items.length}</p></div>
+      <div className="rounded-2xl border bg-[var(--surface)] p-5"><p className="text-sm text-[var(--text-2)]">Stock units</p><p className="mt-2 text-2xl font-bold">{items.reduce((s,p)=>s+(Number(p.stock)||0),0).toLocaleString('en-IN')}</p></div>
+      <div className="rounded-2xl border bg-[var(--surface)] p-5"><p className="text-sm text-[var(--text-2)]">Stock value at cost</p><p className="mt-2 text-2xl font-bold">{money(items.reduce((s,p)=>s+(Number(p.stock)||0)*(Number(p.purchase)||0),0))}</p></div>
     </div>
 
-    <section className="rounded-2xl border bg-white p-5">
+    <section className="rounded-2xl border bg-[var(--surface)] p-5">
       <h3 className="font-bold">CSV import</h3>
-      <p className="mt-1 text-xs text-[#849187]">Columns: name, sku, category, hsn, gstRate, purchase, selling, stock. Export CSV to get a template.</p>
+      <p className="mt-1 text-xs text-[var(--text-2)]">Columns: name, sku, category, hsn, gstRate, purchase, selling, stock. Export CSV to get a template.</p>
       <input ref={fileRef} type="file" accept=".csv,text/csv" onChange={e=>importCSV(e.target.files?.[0])} className="mt-4 block max-w-full text-sm"/>
       {preview.length > 0 && <div className="mt-4">
         <p className="mb-2 text-sm font-semibold">{preview.length} rows to import</p>
         <div className="max-h-56 overflow-auto rounded-xl border">
-          <table className="w-full text-left text-xs"><thead className="sticky top-0 bg-[#f5f3eb]"><tr>{['Name','SKU','Purchase','Selling','Stock'].map(x=><th className="p-2" key={x}>{x}</th>)}</tr></thead>
+          <table className="w-full text-left text-xs"><thead className="sticky top-0 bg-[var(--bg)]"><tr>{['Name','SKU','Purchase','Selling','Stock'].map(x=><th className="p-2" key={x}>{x}</th>)}</tr></thead>
           <tbody>{preview.slice(0,100).map((p,i)=><tr className="border-t" key={i}><td className="p-2">{p.name}</td><td className="p-2">{p.sku || '—'}</td><td className="p-2">{money(p.purchase)}</td><td className="p-2">{money(p.selling)}</td><td className="p-2">{p.stock}</td></tr>)}</tbody></table>
         </div>
         <button onClick={applyImport} className="mt-3 rounded-xl bg-[#183b2b] px-4 py-2 text-sm font-semibold text-white">Apply import</button>
@@ -170,25 +170,25 @@ export default function BulkItems() {
       </div>}
     </section>
 
-    <section className="rounded-2xl border bg-white p-5">
-      <div className="flex flex-wrap justify-between gap-2"><div><h3 className="font-bold">Bulk updates</h3><p className="mt-1 text-xs text-[#849187]">{selected.length} selected</p></div><button onClick={()=>setSelected(filtered.map(p=>String(p.id)))} className="text-xs font-semibold text-[#31583e]">Select filtered</button></div>
+    <section className="rounded-2xl border bg-[var(--surface)] p-5">
+      <div className="flex flex-wrap justify-between gap-2"><div><h3 className="font-bold">Bulk updates</h3><p className="mt-1 text-xs text-[var(--text-2)]">{selected.length} selected</p></div><button onClick={()=>setSelected(filtered.map(p=>String(p.id)))} className="text-xs font-semibold text-[var(--indigo)]">Select filtered</button></div>
       <div className="mt-4 grid gap-4 md:grid-cols-2">
-        <div className="rounded-xl bg-[#f5f3eb] p-4"><p className="mb-3 text-sm font-semibold">Price update</p><div className="flex flex-wrap gap-2">
-          <select value={field} onChange={e=>setField(e.target.value as 'selling'|'purchase')} className="min-w-0 flex-1 rounded-lg border bg-white p-2 text-sm"><option value="selling">Selling</option><option value="purchase">Purchase</option></select>
-          <select value={mode} onChange={e=>setMode(e.target.value as 'increase'|'decrease'|'set')} className="min-w-0 flex-1 rounded-lg border bg-white p-2 text-sm"><option value="increase">Increase %</option><option value="decrease">Decrease %</option><option value="set">Set price</option></select>
+        <div className="rounded-xl bg-[var(--bg)] p-4"><p className="mb-3 text-sm font-semibold">Price update</p><div className="flex flex-wrap gap-2">
+          <select value={field} onChange={e=>setField(e.target.value as 'selling'|'purchase')} className="min-w-0 flex-1 rounded-lg border bg-[var(--surface)] p-2 text-sm"><option value="selling">Selling</option><option value="purchase">Purchase</option></select>
+          <select value={mode} onChange={e=>setMode(e.target.value as 'increase'|'decrease'|'set')} className="min-w-0 flex-1 rounded-lg border bg-[var(--surface)] p-2 text-sm"><option value="increase">Increase %</option><option value="decrease">Decrease %</option><option value="set">Set price</option></select>
           <input type="number" min="0" value={amount} onChange={e=>setAmount(e.target.value)} placeholder={mode==='set'?'Price':'Percent'} className="w-24 rounded-lg border p-2 text-sm"/>
         </div><button onClick={updatePrices} className="mt-3 rounded-lg bg-[#183b2b] px-3 py-2 text-xs font-semibold text-white">Apply price update</button></div>
-        <div className="rounded-xl bg-[#f5f3eb] p-4"><p className="mb-3 text-sm font-semibold">Stock adjustment</p><p className="text-xs text-[#849187]">Use positive to add stock and negative to remove stock.</p><div className="mt-2 flex gap-2"><input type="number" step="1" value={stockChange} onChange={e=>setStockChange(e.target.value)} placeholder="e.g. 5 or -2" className="w-36 rounded-lg border p-2 text-sm"/><button onClick={updateStock} className="rounded-lg bg-[#183b2b] px-3 py-2 text-xs font-semibold text-white">Adjust</button></div></div>
+        <div className="rounded-xl bg-[var(--bg)] p-4"><p className="mb-3 text-sm font-semibold">Stock adjustment</p><p className="text-xs text-[var(--text-2)]">Use positive to add stock and negative to remove stock.</p><div className="mt-2 flex gap-2"><input type="number" step="1" value={stockChange} onChange={e=>setStockChange(e.target.value)} placeholder="e.g. 5 or -2" className="w-36 rounded-lg border p-2 text-sm"/><button onClick={updateStock} className="rounded-lg bg-[#183b2b] px-3 py-2 text-xs font-semibold text-white">Adjust</button></div></div>
       </div>
     </section>
 
-    {message && <p className="rounded-xl bg-[#edf1e9] p-3 text-sm text-[#31583e]">{message}</p>}
+    {message && <p className="rounded-xl bg-[var(--indigo-tint)] p-3 text-sm text-[var(--indigo)]">{message}</p>}
 
-    <section className="overflow-hidden rounded-2xl border bg-white">
+    <section className="overflow-hidden rounded-2xl border bg-[var(--surface)]">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b p-4"><h3 className="font-bold">Inventory list</h3><div className="flex items-center gap-2 rounded-xl border px-3 py-2"><Search size={16}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search items" className="w-40 text-sm outline-none"/></div></div>
-      <div className="overflow-x-auto"><table className="w-full min-w-[700px] text-left text-sm"><thead className="bg-[#f5f3eb] text-xs text-[#718075]"><tr><th className="p-3">Select</th><th className="p-3">Product</th><th className="p-3">SKU</th><th className="p-3">Category</th><th className="p-3 text-right">Purchase</th><th className="p-3 text-right">Selling</th><th className="p-3 text-right">Stock</th></tr></thead><tbody>
-        {filtered.map(p=><tr key={p.id} className="border-t border-[#eeeae0]"><td className="p-3"><input type="checkbox" checked={selected.includes(String(p.id))} onChange={()=>toggle(String(p.id))}/></td><td className="p-3 font-medium">{p.name}</td><td className="p-3">{p.sku || '—'}</td><td className="p-3">{p.category || 'General'}</td><td className="p-3 text-right">{money(p.purchase)}</td><td className="p-3 text-right">{money(p.selling)}</td><td className="p-3 text-right font-semibold">{p.stock}</td></tr>)}
-      </tbody></table>{!filtered.length && <p className="p-10 text-center text-sm text-[#849187]">No products found.</p>}</div>
+      <div className="overflow-x-auto"><table className="w-full min-w-[700px] text-left text-sm"><thead className="bg-[var(--bg)] text-xs text-[#718075]"><tr><th className="p-3">Select</th><th className="p-3">Product</th><th className="p-3">SKU</th><th className="p-3">Category</th><th className="p-3 text-right">Purchase</th><th className="p-3 text-right">Selling</th><th className="p-3 text-right">Stock</th></tr></thead><tbody>
+        {filtered.map(p=><tr key={p.id} className="border-t border-[var(--border)]"><td className="p-3"><input type="checkbox" checked={selected.includes(String(p.id))} onChange={()=>toggle(String(p.id))}/></td><td className="p-3 font-medium">{p.name}</td><td className="p-3">{p.sku || '—'}</td><td className="p-3">{p.category || 'General'}</td><td className="p-3 text-right">{money(p.purchase)}</td><td className="p-3 text-right">{money(p.selling)}</td><td className="p-3 text-right font-semibold">{p.stock}</td></tr>)}
+      </tbody></table>{!filtered.length && <p className="p-10 text-center text-sm text-[var(--text-2)]">No products found.</p>}</div>
     </section>
   </div>
 }

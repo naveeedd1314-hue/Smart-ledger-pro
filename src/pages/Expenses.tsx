@@ -26,23 +26,23 @@ export default function Expenses() {
   const money = (n: number) => `₹${n.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
 
   return <section className="space-y-5">
-    <div><h1 className="text-2xl font-bold">Expenses</h1><p className="text-sm text-gray-500">Record and review business expenses.</p></div>
-    <div className="grid gap-3 sm:grid-cols-2"><div className="rounded-xl bg-white p-4 shadow-sm"><p className="text-sm text-gray-500">Total Expenses</p><strong className="text-xl">{money(items.reduce((s,x)=>s+x.amount,0))}</strong></div><div className="rounded-xl bg-white p-4 shadow-sm"><p className="text-sm text-gray-500">Expense Entries</p><strong className="text-xl">{items.length}</strong></div></div>
-    <div className="rounded-xl bg-white p-5 shadow-sm space-y-3">
+    <div><h1 className="text-2xl font-bold">Expenses</h1><p className="text-sm text-[#788579]">Record and review business expenses.</p></div>
+    <div className="grid gap-3 sm:grid-cols-2"><div className="rounded-2xl border border-[#e6e0d2] bg-[#fffdf7] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[#788579]">Total Expenses</p><strong className="text-xl">{money(items.reduce((s,x)=>s+x.amount,0))}</strong></div><div className="rounded-2xl border border-[#e6e0d2] bg-[#fffdf7] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[#788579]">Expense Entries</p><strong className="text-xl">{items.length}</strong></div></div>
+    <div className="rounded-2xl border border-[#e6e0d2] bg-[#fffdf7] p-5 shadow-sm space-y-4">
       <h2 className="font-semibold">Add Expense</h2>
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="text-sm">Date<input type="date" className="mt-1 w-full rounded-lg border p-3" value={date} onChange={e=>setDate(e.target.value)} /></label>
-        <label className="text-sm">Category<select className="mt-1 w-full rounded-lg border p-3" value={category} onChange={e=>setCategory(e.target.value)}>{['General','Transport','Fuel','Electricity','Rent','Salary','Packaging','Maintenance','Telephone','Other'].map(x=><option key={x}>{x}</option>)}</select></label>
-        <input className="rounded-lg border p-3" placeholder="Description" value={description} onChange={e=>setDescription(e.target.value)} />
-        <input className="rounded-lg border p-3" type="number" min="0" placeholder="Amount" value={amount} onChange={e=>setAmount(Number(e.target.value))} />
+        <label className="text-sm">Date<input type="date" className="mt-1 w-full rounded-xl border border-[#e6e0d2] bg-[#fffdf7] p-3 focus:border-[#315b42] focus:outline-none focus:ring-2 focus:ring-[#315b42]/15" value={date} onChange={e=>setDate(e.target.value)} /></label>
+        <label className="text-sm">Category<select className="mt-1 w-full rounded-xl border border-[#e6e0d2] bg-[#fffdf7] p-3 focus:border-[#315b42] focus:outline-none focus:ring-2 focus:ring-[#315b42]/15" value={category} onChange={e=>setCategory(e.target.value)}>{['General','Transport','Fuel','Electricity','Rent','Salary','Packaging','Maintenance','Telephone','Other'].map(x=><option key={x}>{x}</option>)}</select></label>
+        <input className="rounded-xl border border-[#e6e0d2] bg-[#fffdf7] p-3 focus:border-[#315b42] focus:outline-none focus:ring-2 focus:ring-[#315b42]/15" placeholder="Description" value={description} onChange={e=>setDescription(e.target.value)} />
+        <input className="rounded-xl border border-[#e6e0d2] bg-[#fffdf7] p-3 focus:border-[#315b42] focus:outline-none focus:ring-2 focus:ring-[#315b42]/15" type="number" min="0" placeholder="Amount" value={amount} onChange={e=>setAmount(Number(e.target.value))} />
       </div>
-      <button onClick={save} className="rounded-lg bg-green-900 px-5 py-3 text-white">Save Expense</button>
+      <button onClick={save} className="rounded-xl bg-[#183b2b] px-5 py-3 font-semibold text-white shadow-sm transition hover:bg-[#315b42]">Save Expense</button>
     </div>
-    <div className="rounded-xl bg-white p-5 shadow-sm space-y-3">
+    <div className="rounded-2xl border border-[#e6e0d2] bg-[#fffdf7] p-5 shadow-sm space-y-4">
       <h2 className="font-semibold">Expense History</h2>
-      <input className="w-full rounded-lg border p-3" placeholder="Search expenses..." value={search} onChange={e=>setSearch(e.target.value)} />
-      <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="border-b text-gray-500"><th className="p-2">Date</th><th className="p-2">Category</th><th className="p-2">Description</th><th className="p-2">Amount</th></tr></thead><tbody>{filtered.map(x=><tr key={x.id} className="border-b"><td className="p-2">{x.date}</td><td className="p-2">{x.category}</td><td className="p-2">{x.description}</td><td className="p-2">{money(x.amount)}</td></tr>)}</tbody></table></div>
-      {filtered.length===0 && <p className="py-5 text-center text-gray-500">No expenses found.</p>}
+      <input className="w-full rounded-xl border border-[#e6e0d2] bg-[#fffdf7] p-3 focus:border-[#315b42] focus:outline-none focus:ring-2 focus:ring-[#315b42]/15" placeholder="Search expenses..." value={search} onChange={e=>setSearch(e.target.value)} />
+      <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="border-b text-[#788579]"><th className="p-2">Date</th><th className="p-2">Category</th><th className="p-2">Description</th><th className="p-2">Amount</th></tr></thead><tbody>{filtered.map(x=><tr key={x.id} className="border-b border-[#eee9dd] hover:bg-[#f7f4eb]"><td className="p-2">{x.date}</td><td className="p-2">{x.category}</td><td className="p-2">{x.description}</td><td className="p-2">{money(x.amount)}</td></tr>)}</tbody></table></div>
+      {filtered.length===0 && <p className="py-5 text-center text-[#788579]">No expenses found.</p>}
     </div>
   </section>;
 }

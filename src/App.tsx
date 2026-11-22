@@ -1,3 +1,9 @@
+import PremiumIcon from "./components/PremiumIcon";
+import BusinessAdvisor from "./components/BusinessAdvisor";
+import PriceAnalysis from "./components/PriceAnalysis";
+import BusinessIntelligence from "./components/BusinessIntelligence";
+import BusinessAI from "./components/BusinessAI";
+import ThemeSwitcher from './components/ThemeSwitcher';
 import GST from './pages/GST'
 import SettingsPage from './pages/Settings'
 import Ledger from './pages/Ledger'
@@ -12,14 +18,14 @@ import Returns from './pages/Returns'
 import Purchases from './pages/Purchases'
 import Inventory from './pages/Inventory'
 import BulkItems from './pages/BulkItems'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from 'recharts'
 import {
   LayoutDashboard, ShoppingCart, ShoppingBag, Package,
   Users, Truck, Wallet, ChartNoAxesCombined, FileText,
   Settings, Bell, Search, Menu, Plus, ArrowUpRight,
   ArrowDownRight, Boxes, CreditCard,
-  Receipt, ChevronDown, BookOpen
+  Receipt, ChevronDown, BookOpen, Sun, Moon
 } from 'lucide-react'
 
 const navigation = [
@@ -127,31 +133,38 @@ function getMonthlyPerformance() {
 function App() {
   const [active, setActive] = useState('Dashboard')
   const [menuOpen, setMenuOpen] = useState(false)
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('smartledger-theme') === 'dark')
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light')
+    localStorage.setItem('smartledger-theme', darkMode ? 'dark' : 'light')
+  }, [darkMode])
   const metrics = getDashboardMetrics()
   const recentTransactions = getRecentTransactions()
   const monthlyPerformance = getMonthlyPerformance()
 
   return (
-    <div className="min-h-screen bg-[#f5f3eb] text-[#25382d]">
-      <aside className={`${menuOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-[#e6e3d8] bg-[#183b2b] text-white transition-transform md:translate-x-0`}>
+    <div data-sl-dashboard="true" className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
+<ThemeSwitcher />
+
+      <aside className={`${menuOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-[var(--border)] bg-[var(--surface)] text-white transition-transform md:translate-x-0`}>
         <div className="flex h-20 items-center gap-3 border-b border-white/10 px-6">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#d9c9a4] text-xl font-black text-[#183b2b]">S</div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--indigo-tint)] text-xl font-black text-[var(--indigo-ink)]">S</div>
           <div>
-            <h1 className="text-lg font-bold tracking-wide">SmartLedger</h1>
-            <p className="text-[10px] uppercase tracking-[3px] text-[#c9d6ca]">PRO BUSINESS ERP</p>
+            <h1 className="text-lg font-bold tracking-wide"><PremiumIcon name="dashboard" tone="emerald" size={38} />SmartLedger</h1>
+            <p className="text-[10px] uppercase tracking-[3px] text-[var(--text-2)]">PRO BUSINESS ERP</p>
           </div>
         </div>
 
         <nav className="flex-1 space-y-7 overflow-y-auto px-4 py-7">
           {navigation.map(group => (
             <div key={group.title}>
-              <p className="mb-3 px-3 text-[10px] font-bold tracking-[2px] text-[#a9bdad]">{group.title}</p>
+              <p className="mb-3 px-3 text-[10px] font-bold tracking-[2px] text-[var(--text-2)]">{group.title}</p>
               <div className="space-y-1">
                 {group.items.map(item => {
                   const Icon = item.icon
                   return (
                     <button key={item.name} onClick={() => { setActive(item.name); setMenuOpen(false) }}
-                      className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm transition ${active === item.name ? 'bg-[#d9c9a4] font-semibold text-[#183b2b]' : 'text-[#e0e8df] hover:bg-white/10'}`}>
+                      className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm transition ${active === item.name ? 'bg-[var(--indigo-tint)] font-semibold text-[var(--indigo-ink)]' : 'text-[var(--text-2)] hover:bg-[var(--surface)]/10'}`}>
                       <Icon size={18} /> {item.name}
                     </button>
                   )
@@ -160,26 +173,29 @@ function App() {
             </div>
           ))}
         </nav>
-        <div className="m-4 rounded-xl border border-white/10 bg-white/5 p-4">
+        <div className="m-4 rounded-xl border border-white/10 bg-[var(--surface)]/5 p-4">
           <p className="text-xs font-semibold">SmartLedger Pro</p>
           <p className="mt-1 text-[11px] text-[#c1d0c3]">Your business. Under control.</p>
         </div>
       </aside>
 
       <main className="min-h-screen md:ml-64">
-        <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-[#e6e3d8] bg-[#f5f3eb]/95 px-4 backdrop-blur md:px-8">
+        <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-[var(--border)] bg-[var(--bg)]/95 px-4 backdrop-blur md:px-8">
           <div className="flex items-center gap-3">
             <button className="md:hidden" onClick={() => setMenuOpen(!menuOpen)}><Menu /></button>
             <div>
-              <p className="text-xs text-[#849187]">Business management / {active}</p>
+              <p className="text-xs text-[var(--text-2)]">Business management / {active}</p>
               <h2 className="text-lg font-bold">{active}</h2>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <button className="hidden rounded-xl border border-[#e5e1d5] bg-white p-2.5 sm:block"><Search size={18}/></button>
-            <button className="relative rounded-xl border border-[#e5e1d5] bg-white p-2.5"><Bell size={18}/><span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[#b57c4b]"/></button>
-            <div className="flex items-center gap-2 rounded-xl border border-[#e5e1d5] bg-white p-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#dce5d9] text-sm font-bold">S</div>
+            <button aria-label="Toggle colour theme" title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} onClick={() => setDarkMode(v => !v)} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2.5 text-[var(--text)]">
+              {darkMode ? <Sun size={18}/> : <Moon size={18}/>}
+            </button>
+            <button className="hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2.5 sm:block"><Search size={18}/></button>
+            <button className="relative rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2.5"><Bell size={18}/><span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[var(--amber)]"/></button>
+            <div className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--surface-2)] text-sm font-bold">S</div>
               <span className="hidden text-xs font-semibold sm:block">My Business</span>
               <ChevronDown size={14}/>
             </div>
@@ -190,11 +206,11 @@ function App() {
         <div className="mx-auto max-w-7xl p-4 md:p-8">
           <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
             <div>
-              <p className="text-sm text-[#849187]">Friday, 20 November 2026</p>
+              <p className="text-sm text-[var(--text-2)]">Friday, 20 November 2026</p>
               <h2 className="mt-1 text-2xl font-bold">Business overview</h2>
-              <p className="mt-1 text-sm text-[#849187]">Monitor your business performance from one place.</p>
+              <p className="mt-1 text-sm text-[var(--text-2)]">Monitor your business performance from one place.</p>
             </div>
-            <button onClick={() => setActive('Sales')} className="flex items-center gap-2 rounded-xl bg-[#183b2b] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#28523c]">
+            <button onClick={() => setActive('Sales')} className="flex items-center gap-2 rounded-xl bg-[var(--surface)] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[var(--indigo-ink)]">
               <Plus size={17}/> New transaction
             </button>
           </div>
@@ -203,23 +219,23 @@ function App() {
             {metrics.map((metric) => {
               const Icon = metric.icon
               return (
-                <div key={metric.label} className="rounded-2xl border border-[#e8e4d9] bg-white p-5 shadow-sm">
+                <div key={metric.label} className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-[#77857a]">{metric.label}</span>
-                    <span className="rounded-xl bg-[#edf1e9] p-2.5 text-[#31583e]"><Icon size={19}/></span>
+                    <span className="text-sm text-[var(--text-2)]">{metric.label}</span>
+                    <span className="rounded-xl bg-[var(--indigo-tint)] p-2.5 text-[var(--indigo)]"><Icon size={19}/></span>
                   </div>
                   <p className="mt-5 text-2xl font-bold tracking-tight">{metric.value}</p>
-                  <p className="mt-2 text-xs text-[#929b91]">{metric.change}</p>
+                  <p className="mt-2 text-xs text-[var(--text-2)]">{metric.change}</p>
                 </div>
               )
             })}
           </section>
 
           <section className="mt-6 grid grid-cols-1 gap-5 xl:grid-cols-3">
-            <div className="rounded-2xl border border-[#e8e4d9] bg-white p-6 xl:col-span-2">
+            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 xl:col-span-2">
               <div className="flex items-center justify-between">
-                <div><h3 className="font-bold">Business performance</h3><p className="mt-1 text-xs text-[#929b91]">Your financial activity will appear here.</p></div>
-                <button className="rounded-lg border border-[#e8e4d9] px-3 py-2 text-xs">This month <ChevronDown className="ml-2 inline" size={13}/></button>
+                <div><h3 className="font-bold">Business performance</h3><p className="mt-1 text-xs text-[var(--text-2)]">Your financial activity will appear here.</p></div>
+                <button className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs">This month <ChevronDown className="ml-2 inline" size={13}/></button>
               </div>
               <div className="mt-5 h-56 w-full">
                 {monthlyPerformance.length ? <ResponsiveContainer width="100%" height="100%">
@@ -229,16 +245,16 @@ function App() {
                     <YAxis />
                     <Tooltip formatter={(value) => `₹${Number(value).toLocaleString('en-IN')}`} />
                     <Legend />
-                    <Bar dataKey="sales" name="Sales" fill="#1b4332" />
-                    <Bar dataKey="purchases" name="Purchases" fill="#b08968" />
-                    <Bar dataKey="expenses" name="Expenses" fill="#d97757" />
+                    <Bar dataKey="sales" name="Sales" fill="var(--indigo)" />
+                    <Bar dataKey="purchases" name="Purchases" fill="var(--emerald)" />
+                    <Bar dataKey="expenses" name="Expenses" fill="var(--rose)" />
                   </BarChart>
-                </ResponsiveContainer> : <p className="pt-20 text-center text-sm text-[#929b91]">Add dated transactions to view performance.</p>}
+                </ResponsiveContainer> : <p className="pt-20 text-center text-sm text-[var(--text-2)]">Add dated transactions to view performance.</p>}
               </div>
             </div>
-            <div className="rounded-2xl border border-[#e8e4d9] bg-white p-6">
+            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6">
               <h3 className="font-bold">Quick actions</h3>
-              <p className="mt-1 text-xs text-[#929b91]">Common business operations</p>
+              <p className="mt-1 text-xs text-[var(--text-2)]">Common business operations</p>
               <div className="mt-5 space-y-3">
                 {[
                   {name:'Create sales invoice',icon:Receipt,page:'Sales'},
@@ -247,46 +263,50 @@ function App() {
                   {name:'Add customer',icon:Users,page:'Customers'},
                 ].map(action => {
                   const Icon = action.icon
-                  return <button key={action.name} onClick={() => setActive(action.page)} className="flex w-full items-center gap-3 rounded-xl border border-[#eeeae0] p-3 text-left text-sm font-medium hover:bg-[#f5f3eb]"><Icon size={18} className="text-[#42664a]"/>{action.name}<ArrowUpRight size={15} className="ml-auto text-[#9aa398]"/></button>
+                  return <button key={action.name} onClick={() => setActive(action.page)} className="flex w-full items-center gap-3 rounded-xl border border-[var(--border)] p-3 text-left text-sm font-medium hover:bg-[var(--bg)]"><Icon size={18} className="text-[var(--indigo)]"/>{action.name}<ArrowUpRight size={15} className="ml-auto text-[#9aa398]"/></button>
                 })}
               </div>
             </div>
           </section>
 
-          <section className="mt-6 rounded-2xl border border-[#e8e4d9] bg-white p-6">
+          <section className="mt-6 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6">
             <div className="flex items-center justify-between">
-              <div><h3 className="font-bold">Recent transactions</h3><p className="mt-1 text-xs text-[#929b91]">Your latest business activity</p></div>
-              <button onClick={() => setActive('Reports')} className="text-xs font-semibold text-[#31583e]">View reports →</button>
+              <div><h3 className="font-bold">Recent transactions</h3><p className="mt-1 text-xs text-[var(--text-2)]">Your latest business activity</p></div>
+              <button onClick={() => setActive('Reports')} className="text-xs font-semibold text-[var(--indigo)]">View reports →</button>
             </div>
             <div className="mt-4 overflow-x-auto">
               {recentTransactions.length ? <table className="w-full text-left text-sm">
-                <thead><tr className="border-b text-[#849187]"><th className="p-2">Date</th><th className="p-2">Transaction</th><th className="p-2">Reference</th><th className="p-2 text-right">Amount</th></tr></thead>
-                <tbody>{recentTransactions.map((x, i) => <tr className="border-b border-[#eeeae0]" key={`${x.kind}-${x.date}-${i}`}>
+                <thead><tr className="border-b text-[var(--text-2)]"><th className="p-2">Date</th><th className="p-2">Transaction</th><th className="p-2">Reference</th><th className="p-2 text-right">Amount</th></tr></thead>
+                <tbody>{recentTransactions.map((x, i) => <tr className="border-b border-[var(--border)]" key={`${x.kind}-${x.date}-${i}`}>
                   <td className="p-3 whitespace-nowrap">{x.date || '—'}</td>
-                  <td className="p-3"><span className="font-medium">{x.title}</span><p className="text-xs text-[#929b91]">{x.kind}</p></td>
+                  <td className="p-3"><span className="font-medium">{x.title}</span><p className="text-xs text-[var(--text-2)]">{x.kind}</p></td>
                   <td className="p-3">{x.detail}</td>
                   <td className="p-3 text-right font-semibold">₹{x.amount.toLocaleString('en-IN', {maximumFractionDigits: 2})}</td>
                 </tr>)}</tbody>
               </table> : <div className="mt-4 overflow-x-auto">
               {recentTransactions.length ? <table className="w-full text-left text-sm">
-                <thead><tr className="border-b text-[#849187]"><th className="p-2">Date</th><th className="p-2">Transaction</th><th className="p-2">Reference</th><th className="p-2 text-right">Amount</th></tr></thead>
-                <tbody>{recentTransactions.map((x, i) => <tr className="border-b border-[#eeeae0]" key={`${x.kind}-${x.date}-${i}`}>
+                <thead><tr className="border-b text-[var(--text-2)]"><th className="p-2">Date</th><th className="p-2">Transaction</th><th className="p-2">Reference</th><th className="p-2 text-right">Amount</th></tr></thead>
+                <tbody>{recentTransactions.map((x, i) => <tr className="border-b border-[var(--border)]" key={`${x.kind}-${x.date}-${i}`}>
                   <td className="p-3 whitespace-nowrap">{x.date || '—'}</td>
-                  <td className="p-3"><span className="font-medium">{x.title}</span><p className="text-xs text-[#929b91]">{x.kind}</p></td>
+                  <td className="p-3"><span className="font-medium">{x.title}</span><p className="text-xs text-[var(--text-2)]">{x.kind}</p></td>
                   <td className="p-3">{x.detail}</td>
                   <td className="p-3 text-right font-semibold">₹{x.amount.toLocaleString('en-IN', {maximumFractionDigits: 2})}</td>
                 </tr>)}</tbody>
-              </table> : <div className="flex h-32 items-center justify-center text-sm text-[#929b91]">No transactions recorded yet.</div>}
+              </table> : <div className="flex h-32 items-center justify-center text-sm text-[var(--text-2)]">No transactions recorded yet.</div>}
             </div>}
             </div>
           </section>
 
-          <footer className="py-8 text-center text-xs text-[#929b91]">SmartLedger Pro · Business management platform</footer>
+          <footer className="py-8 text-center text-xs text-[var(--text-2)]">SmartLedger Pro · Business management platform</footer>
         </div>
         )}
       </main>
       {menuOpen && <button aria-label="Close menu" onClick={() => setMenuOpen(false)} className="fixed inset-0 z-30 bg-black/30 md:hidden"/>}
-    </div>
+    <BusinessAI />
+<BusinessIntelligence />
+<PriceAnalysis />
+<BusinessAdvisor />
+</div>
   )
 }
 

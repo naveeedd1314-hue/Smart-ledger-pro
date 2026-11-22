@@ -1,0 +1,409 @@
+:root {
+  color-scheme: light;
+  --bg:#F5F7FB; --surface:#FFFFFF; --surface-2:#EDF1F7;
+  --border:#D5DCE8; --text:#0F172A; --text-2:#475569;
+  --on-accent:#FFFFFF; --btn-top:#625BEA;
+  --edge:rgba(255,255,255,.85);
+  --shadow-1:0 2px 5px rgba(15,23,42,.06);
+  --shadow-2:0 8px 20px rgba(15,23,42,.10);
+  --indigo:#4F46E5; --indigo-ink:#3730A3; --indigo-tint:#E0E7FF;
+  --emerald:#047857; --emerald-ink:#065F46; --emerald-tint:#D1FAE5;
+  --amber:#B45309; --amber-ink:#92400E; --amber-tint:#FEF3C7;
+  --rose:#BE123C; --rose-ink:#9F1239; --rose-tint:#FFE4E6;
+  --sky:#0369A1; --sky-ink:#075985; --sky-tint:#E0F2FE;
+  --violet:#6D28D9; --violet-ink:#5B21B6; --violet-tint:#EDE9FE;
+  --teal:#0F766E; --teal-ink:#115E59; --teal-tint:#CCFBF1;
+  --orange:#C2410C; --orange-ink:#9A3412; --orange-tint:#FFEDD5;
+}
+[data-theme="dark"] {
+  color-scheme:dark;
+  --bg:#0B1220; --surface:#111A2E; --surface-2:#18233A;
+  --border:#26324A; --text:#F1F5F9; --text-2:#A7B3C6;
+  --on-accent:#0B1220; --btn-top:#9AA6FF;
+  --edge:rgba(255,255,255,.07);
+  --shadow-1:0 2px 6px rgba(0,0,0,.22);
+  --shadow-2:0 8px 22px rgba(0,0,0,.32);
+  --indigo:#818CF8; --indigo-ink:#A5B4FC; --indigo-tint:rgba(129,140,248,.12);
+  --emerald:#34D399; --emerald-ink:#6EE7B7; --emerald-tint:rgba(52,211,153,.12);
+  --amber:#FBBF24; --amber-ink:#FCD34D; --amber-tint:rgba(251,191,36,.12);
+  --rose:#FB7185; --rose-ink:#FDA4AF; --rose-tint:rgba(251,113,133,.12);
+  --sky:#38BDF8; --sky-ink:#7DD3FC; --sky-tint:rgba(56,189,248,.12);
+  --violet:#A78BFA; --violet-ink:#C4B5FD; --violet-tint:rgba(167,139,250,.12);
+  --teal:#2DD4BF; --teal-ink:#5EEAD4; --teal-tint:rgba(45,212,191,.12);
+  --orange:#FB923C; --orange-ink:#FDBA74; --orange-tint:rgba(251,146,60,.12);
+}
+* { box-sizing:border-box; }
+html,body,#root { min-height:100%; }
+body { background:var(--bg); color:var(--text); }
+.card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:12px; box-shadow:var(--shadow-1),inset 0 1px 0 var(--edge);
+}
+.card.raised { box-shadow:var(--shadow-2),inset 0 1px 0 var(--edge); }
+.sl-primary,.btn-primary {
+  color:var(--on-accent);
+  background:linear-gradient(180deg,var(--btn-top),var(--indigo));
+  border:0; border-radius:8px; padding:10px 16px;
+  box-shadow:inset 0 1px 0 var(--edge),inset 0 -2px 0 rgba(0,0,0,.14),0 1px 2px rgba(15,23,42,.18);
+}
+input,select,textarea {
+  background:var(--surface); color:var(--text);
+  border:1px solid var(--border); border-radius:8px;
+}
+input:focus,select:focus,textarea:focus {
+  outline:2px solid var(--indigo); outline-offset:1px;
+}
+
+/* SmartLedger Pro — shared matte component system */
+.card,.sl-card {
+  background:var(--surface);
+  color:var(--text);
+  border:1px solid var(--border);
+  border-radius:12px;
+  box-shadow:var(--shadow-1),inset 0 1px 0 var(--edge);
+}
+.card.raised,.sl-card.raised {
+  box-shadow:var(--shadow-2),inset 0 1px 0 var(--edge);
+}
+button {
+  transition:background-color .18s ease,border-color .18s ease,box-shadow .18s ease;
+}
+button:focus-visible {
+  outline:2px solid var(--indigo);
+  outline-offset:2px;
+}
+table { color:var(--text); }
+thead { background:var(--surface-2); color:var(--text-2); }
+tbody tr { border-color:var(--border); }
+
+/* Inventory and page-wide visual refinement */
+input,select,textarea {
+  color:var(--text);
+  background:var(--surface);
+  border-color:var(--border);
+  border-radius:8px;
+}
+input::placeholder,textarea::placeholder {
+  color:var(--text-2);
+  opacity:.75;
+}
+table th {
+  color:var(--text-2);
+  background:var(--surface-2);
+  font-weight:600;
+}
+table td {
+  border-color:var(--border);
+}
+button:disabled {
+  opacity:.55;
+  cursor:not-allowed;
+}
+
+/* Premium inventory panels */
+main .grid > div {
+  border-color:var(--border);
+}
+main [class*="rounded-xl"],
+main [class*="rounded-2xl"] {
+  border-color:var(--border);
+}
+main [class*="shadow-sm"] {
+  box-shadow:var(--shadow-1);
+}
+main [class*="shadow-md"],
+main [class*="shadow-lg"] {
+  box-shadow:var(--shadow-2);
+}
+main a:focus-visible {
+  outline:2px solid var(--indigo);
+  outline-offset:2px;
+}
+
+/* SmartLedger Pro — unified application shell */
+aside {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+aside a,
+aside button {
+  border-radius: 10px;
+  transition: background-color .18s ease, color .18s ease;
+}
+
+aside a:hover,
+aside button:hover {
+  background: var(--surface-2);
+  color: var(--indigo);
+}
+
+main {
+  color: var(--text);
+}
+
+main section,
+main article {
+  border-color: var(--border);
+}
+
+main table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+main table tbody tr:hover {
+  background: var(--surface-2);
+}
+
+main input,
+main select,
+main textarea {
+  min-height: 40px;
+}
+
+@media (max-width: 640px) {
+  main {
+    min-width: 0;
+    overflow-x: hidden;
+  }
+
+  main table {
+    min-width: 600px;
+  }
+
+  main [class*="overflow-x-auto"] {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* SmartLedger Pro — typography and readability refinement */
+body {
+  font-family: Inter, "Segoe UI", Roboto, system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text) !important;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+p, label, th, td, li {
+  color: inherit;
+}
+
+.text-gray-400, .text-gray-500, .text-gray-600,
+.text-slate-400, .text-slate-500, .text-slate-600,
+.text-stone-400, .text-stone-500, .text-zinc-500 {
+  color: var(--text-2) !important;
+  opacity: 1 !important;
+}
+
+input, select, textarea {
+  color: var(--text) !important;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--text-2) !important;
+  opacity: .85 !important;
+}
+
+button {
+  font-weight: 600;
+  letter-spacing: .005em;
+}
+
+table th {
+  color: var(--text-2) !important;
+  font-weight: 700 !important;
+  font-size: 12px;
+}
+
+table td {
+  color: var(--text) !important;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+small {
+  color: var(--text-2);
+}
+
+
+/* Dashboard — stronger information hierarchy */
+main h1 {
+  font-size: clamp(22px, 3vw, 28px);
+}
+
+main h2 {
+  font-size: 19px;
+}
+
+main h3 {
+  font-size: 16px;
+}
+
+main .card {
+  color: var(--text);
+}
+
+main .card [class*="text-2xl"],
+main .card [class*="text-3xl"] {
+  font-size: clamp(21px, 2.5vw, 28px);
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -0.035em;
+}
+
+main .card [class*="text-xs"] {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+main .card [class*="text-sm"] {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+main .card [class*="font-medium"] {
+  font-weight: 600;
+}
+
+main .card [class*="font-semibold"],
+main .card [class*="font-bold"] {
+  color: var(--text);
+}
+
+
+/* Dark mode — dashboard module visibility correction */
+[data-theme="dark"] main {
+  color: var(--text);
+}
+
+[data-theme="dark"] main .card,
+[data-theme="dark"] main article,
+[data-theme="dark"] main section {
+  color: var(--text);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] main .text-gray-900,
+[data-theme="dark"] main .text-gray-800,
+[data-theme="dark"] main .text-gray-700,
+[data-theme="dark"] main .text-slate-900,
+[data-theme="dark"] main .text-slate-800,
+[data-theme="dark"] main .text-slate-700,
+[data-theme="dark"] main .text-stone-900,
+[data-theme="dark"] main .text-stone-800 {
+  color: var(--text) !important;
+}
+
+[data-theme="dark"] main .text-gray-600,
+[data-theme="dark"] main .text-gray-500,
+[data-theme="dark"] main .text-gray-400,
+[data-theme="dark"] main .text-slate-600,
+[data-theme="dark"] main .text-slate-500,
+[data-theme="dark"] main .text-slate-400,
+[data-theme="dark"] main .text-stone-600,
+[data-theme="dark"] main .text-stone-500 {
+  color: var(--text-2) !important;
+  opacity: 1 !important;
+}
+
+[data-theme="dark"] main .bg-white,
+[data-theme="dark"] main .bg-gray-50,
+[data-theme="dark"] main .bg-gray-100,
+[data-theme="dark"] main .bg-stone-50,
+[data-theme="dark"] main .bg-stone-100 {
+  background: var(--surface) !important;
+}
+
+[data-theme="dark"] main input,
+[data-theme="dark"] main select,
+[data-theme="dark"] main textarea {
+  background: var(--surface-2) !important;
+  color: var(--text) !important;
+}
+
+[data-theme="dark"] main svg {
+  opacity: 1;
+}
+
+
+/* Global dark-mode dashboard visibility fix */
+[data-theme="dark"] #root {
+  background: var(--bg);
+  color: var(--text);
+}
+
+[data-theme="dark"] #root .bg-white,
+[data-theme="dark"] #root .bg-gray-50,
+[data-theme="dark"] #root .bg-gray-100,
+[data-theme="dark"] #root .bg-stone-50,
+[data-theme="dark"] #root .bg-stone-100 {
+  background-color: var(--surface) !important;
+}
+
+[data-theme="dark"] #root .text-black,
+[data-theme="dark"] #root .text-gray-950,
+[data-theme="dark"] #root .text-gray-900,
+[data-theme="dark"] #root .text-gray-800,
+[data-theme="dark"] #root .text-gray-700,
+[data-theme="dark"] #root .text-slate-950,
+[data-theme="dark"] #root .text-slate-900,
+[data-theme="dark"] #root .text-slate-800,
+[data-theme="dark"] #root .text-slate-700,
+[data-theme="dark"] #root .text-stone-900,
+[data-theme="dark"] #root .text-stone-800 {
+  color: var(--text) !important;
+  opacity: 1 !important;
+}
+
+[data-theme="dark"] #root .text-gray-600,
+[data-theme="dark"] #root .text-gray-500,
+[data-theme="dark"] #root .text-gray-400,
+[data-theme="dark"] #root .text-slate-600,
+[data-theme="dark"] #root .text-slate-500,
+[data-theme="dark"] #root .text-slate-400,
+[data-theme="dark"] #root .text-stone-600,
+[data-theme="dark"] #root .text-stone-500 {
+  color: var(--text-2) !important;
+  opacity: 1 !important;
+}
+
+[data-theme="dark"] #root .card,
+[data-theme="dark"] #root [class*="rounded-xl"],
+[data-theme="dark"] #root [class*="rounded-2xl"] {
+  border-color: var(--border);
+}
+
+[data-theme="dark"] #root input,
+[data-theme="dark"] #root select,
+[data-theme="dark"] #root textarea {
+  background-color: var(--surface-2) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+
+
+/* SmartLedger Pro unified theme compatibility */
+html:root {
+  --sl-surface: var(--surface) !important;
+  --sl-surface-muted: var(--surface-2) !important;
+  --sl-text: var(--text) !important;
+  --sl-text-muted: var(--text-2) !important;
+  --sl-border: var(--border) !important;
+}

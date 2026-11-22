@@ -293,48 +293,48 @@ function exportOutstandingPdf() {
 
 
 return <section className="space-y-5">
-    <div><h1 className="text-2xl font-bold">Payments & Receipts</h1><p className="text-sm text-gray-500">Record money received from customers and paid to suppliers.</p></div>
+    <div><h1 className="text-2xl font-bold">Payments & Receipts</h1><p className="text-sm text-[#788579]">Record money received from customers and paid to suppliers.</p></div>
     <div className="grid gap-3 sm:grid-cols-3">
-      <div className="rounded-xl bg-white p-4 shadow-sm"><p className="text-sm text-gray-500">Customer Receipts</p><strong className="text-xl">{money(receipts)}</strong></div>
-      <div className="rounded-xl bg-white p-4 shadow-sm"><p className="text-sm text-gray-500">Supplier Payments</p><strong className="text-xl">{money(paid)}</strong></div>
-      <div className="rounded-xl bg-white p-4 shadow-sm"><p className="text-sm text-gray-500">Transactions</p><strong className="text-xl">{items.length}</strong></div>
+      <div className="rounded-2xl border border-[#e6e0d2] bg-[#fffdf7] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[#788579]">Customer Receipts</p><strong className="text-xl">{money(receipts)}</strong></div>
+      <div className="rounded-2xl border border-[#e6e0d2] bg-[#fffdf7] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[#788579]">Supplier Payments</p><strong className="text-xl">{money(paid)}</strong></div>
+      <div className="rounded-2xl border border-[#e6e0d2] bg-[#fffdf7] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[#788579]">Transactions</p><strong className="text-xl">{items.length}</strong></div>
     </div>
-    <div className="rounded-xl bg-white p-5 shadow-sm space-y-3">
+    <div className="rounded-2xl border border-[#e6e0d2] bg-[#fffdf7] p-5 shadow-sm space-y-4">
       <h2 className="font-semibold">New Transaction</h2>
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="text-sm">Transaction type<select className="mt-1 w-full rounded-lg border p-3" value={type} onChange={e=>setType(e.target.value)}><option>Customer Receipt</option><option>Supplier Payment</option></select></label>
-        <label className="text-sm">Date<input type="date" className="mt-1 w-full rounded-lg border p-3" value={date} onChange={e=>setDate(e.target.value)} /></label>
-        <input className="rounded-lg border p-3" placeholder="Customer / Supplier name" value={party} onChange={e=>setParty(e.target.value)} />
-        <input className="rounded-lg border p-3" type="number" min="0" placeholder="Amount" value={amount} onChange={e=>setAmount(Number(e.target.value))} />
-        <label className="text-sm">Payment method<select className="mt-1 w-full rounded-lg border p-3" value={method} onChange={e=>setMethod(e.target.value)}>{['Cash','UPI','Bank Transfer','Cheque','Card','Other'].map(x=><option key={x}>{x}</option>)}</select></label>
-        <input className="rounded-lg border p-3" placeholder="Reference / UTR / Cheque number" value={reference} onChange={e=>setReference(e.target.value)} />
+        <label className="text-sm">Transaction type<select className="mt-1 w-full rounded-xl border border-[#e6e0d2] bg-[#fffdf7] p-3 focus:border-[#315b42] focus:outline-none focus:ring-2 focus:ring-[#315b42]/15" value={type} onChange={e=>setType(e.target.value)}><option>Customer Receipt</option><option>Supplier Payment</option></select></label>
+        <label className="text-sm">Date<input type="date" className="mt-1 w-full rounded-xl border border-[#e6e0d2] bg-[#fffdf7] p-3 focus:border-[#315b42] focus:outline-none focus:ring-2 focus:ring-[#315b42]/15" value={date} onChange={e=>setDate(e.target.value)} /></label>
+        <input className="rounded-xl border border-[#e6e0d2] bg-[#fffdf7] p-3 focus:border-[#315b42] focus:outline-none focus:ring-2 focus:ring-[#315b42]/15" placeholder="Customer / Supplier name" value={party} onChange={e=>setParty(e.target.value)} />
+        <input className="rounded-xl border border-[#e6e0d2] bg-[#fffdf7] p-3 focus:border-[#315b42] focus:outline-none focus:ring-2 focus:ring-[#315b42]/15" type="number" min="0" placeholder="Amount" value={amount} onChange={e=>setAmount(Number(e.target.value))} />
+        <label className="text-sm">Payment method<select className="mt-1 w-full rounded-xl border border-[#e6e0d2] bg-[#fffdf7] p-3 focus:border-[#315b42] focus:outline-none focus:ring-2 focus:ring-[#315b42]/15" value={method} onChange={e=>setMethod(e.target.value)}>{['Cash','UPI','Bank Transfer','Cheque','Card','Other'].map(x=><option key={x}>{x}</option>)}</select></label>
+        <input className="rounded-xl border border-[#e6e0d2] bg-[#fffdf7] p-3 focus:border-[#315b42] focus:outline-none focus:ring-2 focus:ring-[#315b42]/15" placeholder="Reference / UTR / Cheque number" value={reference} onChange={e=>setReference(e.target.value)} />
         <input className="rounded-lg border p-3 sm:col-span-2" placeholder="Notes (optional)" value={note} onChange={e=>setNote(e.target.value)} />
       </div>
-      <button onClick={save} className="rounded-lg bg-green-900 px-5 py-3 text-white">Save Transaction</button>
+      <button onClick={save} className="rounded-xl bg-[#183b2b] px-5 py-3 font-semibold text-white shadow-sm transition hover:bg-[#315b42]">Save Transaction</button>
     </div>
-    <div className="rounded-xl bg-white p-5 shadow-sm space-y-3">
+    <div className="rounded-2xl border border-[#e6e0d2] bg-[#fffdf7] p-5 shadow-sm space-y-4">
       <h2 className="font-semibold">Transaction History</h2>
-      <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="border-b text-gray-500"><th className="p-2">Date</th><th className="p-2">Type</th><th className="p-2">Party</th><th className="p-2">Method</th><th className="p-2">Reference</th><th className="p-2">Amount</th></tr></thead><tbody>{items.map(x=><tr key={x.id} className="border-b"><td className="p-2">{x.date}</td><td className="p-2">{x.type}</td><td className="p-2">{x.party}</td><td className="p-2">{x.method}</td><td className="p-2">{x.reference}</td><td className="p-2">{money(x.amount)}</td></tr>)}</tbody></table></div>
-      {items.length===0 && <p className="py-5 text-center text-gray-500">No transactions yet.</p>}
+      <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="border-b text-[#788579]"><th className="p-2">Date</th><th className="p-2">Type</th><th className="p-2">Party</th><th className="p-2">Method</th><th className="p-2">Reference</th><th className="p-2">Amount</th></tr></thead><tbody>{items.map(x=><tr key={x.id} className="border-b border-[#eee9dd] hover:bg-[#f7f4eb]"><td className="p-2">{x.date}</td><td className="p-2">{x.type}</td><td className="p-2">{x.party}</td><td className="p-2">{x.method}</td><td className="p-2">{x.reference}</td><td className="p-2">{money(x.amount)}</td></tr>)}</tbody></table></div>
+      {items.length===0 && <p className="py-5 text-center text-[#788579]">No transactions yet.</p>}
     </div>
-      <div className="rounded-xl bg-white p-5 shadow-sm space-y-3">
+      <div className="rounded-2xl border border-[#e6e0d2] bg-[#fffdf7] p-5 shadow-sm space-y-4">
       <h2 className="font-semibold">Invoice-wise Payment History</h2>
-      <button onClick={downloadInvoiceHistoryPdf} className="rounded-lg bg-green-900 px-4 py-2 text-sm text-white">
+      <button onClick={downloadInvoiceHistoryPdf} className="rounded-lg bg-[#183b2b] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#315b42]">
         Download PDF</button>
-      <button onClick={shareInvoiceHistoryWhatsApp} className="rounded-lg border border-green-800 px-4 py-2 text-sm text-green-900">
+      <button onClick={shareInvoiceHistoryWhatsApp} className="rounded-lg border border-[#315b42] bg-[#f4f1e7] px-4 py-2 text-sm font-medium text-[#183b2b] hover:bg-[#eeeadd]">
         Share on WhatsApp
       
       </button>
-      <p className="text-sm text-gray-500">Allocated payments recorded against individual invoices.</p>
+      <p className="text-sm text-[#788579]">Allocated payments recorded against individual invoices.</p>
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
-          <thead><tr className="border-b text-gray-500">
+          <thead><tr className="border-b text-[#788579]">
             <th className="p-2">Invoice</th><th className="p-2">Date</th>
             <th className="p-2">Type</th><th className="p-2">Party</th>
             <th className="p-2">Method</th><th className="p-2">Reference</th>
             <th className="p-2">Paid</th>
           </tr></thead>
-          <tbody>{invoiceHistoryRows.map(row => <tr key={row.id} className="border-b">
+          <tbody>{invoiceHistoryRows.map(row => <tr key={row.id} className="border-b border-[#eee9dd] hover:bg-[#f7f4eb]">
             <td className="p-2 font-medium">{row.invoice}</td>
             <td className="p-2">{row.date}</td><td className="p-2">{row.type}</td>
             <td className="p-2">{row.party}</td><td className="p-2">{row.method}</td>
@@ -343,28 +343,28 @@ return <section className="space-y-5">
           </tr>)}</tbody>
         </table>
       </div>
-      {invoiceHistoryRows.length === 0 && <p className="py-4 text-center text-gray-500">No invoice-linked payments yet.</p>}
+      {invoiceHistoryRows.length === 0 && <p className="py-4 text-center text-[#788579]">No invoice-linked payments yet.</p>}
     </div>
 
-    <div className="rounded-xl bg-white p-5 shadow-sm space-y-3">
+    <div className="rounded-2xl border border-[#e6e0d2] bg-[#fffdf7] p-5 shadow-sm space-y-4">
       <h2 className="font-semibold">Invoice Outstanding & Payment Status</h2>
       <div className="flex flex-wrap gap-2">
-        <button onClick={exportOutstandingPdf} className="rounded-lg bg-green-900 px-4 py-2 text-sm text-white">Export PDF</button>
-        <button onClick={exportOutstandingCsv} className="rounded-lg border border-green-900 px-4 py-2 text-sm text-green-900">Export Excel (CSV)</button>
+        <button onClick={exportOutstandingPdf} className="rounded-lg bg-[#183b2b] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#315b42]">Export PDF</button>
+        <button onClick={exportOutstandingCsv} className="rounded-lg border border-[#315b42] bg-[#f4f1e7] px-4 py-2 text-sm font-medium text-[#183b2b] hover:bg-[#eeeadd]">Export Excel (CSV)</button>
       </div>
       <input
-        className="w-full rounded-lg border p-3 text-sm"
+        className="w-full rounded-xl border border-[#e6e0d2] bg-[#fffdf7] p-3 text-sm focus:border-[#315b42] focus:outline-none focus:ring-2 focus:ring-[#315b42]/15"
         placeholder="Search invoice number or party name"
         value={invoiceSearch}
         onChange={e=>setInvoiceSearch(e.target.value)}
       />
       <div className="grid grid-cols-2 gap-3">
-        <select className="rounded-lg border p-3 text-sm" value={invoiceTypeFilter} onChange={e=>setInvoiceTypeFilter(e.target.value)}>
+        <select className="rounded-xl border border-[#e6e0d2] bg-[#fffdf7] p-3 text-sm focus:border-[#315b42] focus:outline-none focus:ring-2 focus:ring-[#315b42]/15" value={invoiceTypeFilter} onChange={e=>setInvoiceTypeFilter(e.target.value)}>
           <option value="All">All Parties</option>
           <option value="Customer">Customers</option>
           <option value="Supplier">Suppliers</option>
         </select>
-        <select className="rounded-lg border p-3 text-sm" value={invoiceStatusFilter} onChange={e=>setInvoiceStatusFilter(e.target.value)}>
+        <select className="rounded-xl border border-[#e6e0d2] bg-[#fffdf7] p-3 text-sm focus:border-[#315b42] focus:outline-none focus:ring-2 focus:ring-[#315b42]/15" value={invoiceStatusFilter} onChange={e=>setInvoiceStatusFilter(e.target.value)}>
           <option value="All">All Statuses</option>
           <option value="Unpaid">Unpaid</option>
           <option value="Partially Paid">Partially Paid</option>
@@ -373,13 +373,13 @@ return <section className="space-y-5">
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
-          <thead><tr className="border-b text-gray-500">
+          <thead><tr className="border-b text-[#788579]">
             <th className="p-2">Invoice</th><th className="p-2">Party</th>
             <th className="p-2">Type</th><th className="p-2">Total</th>
             <th className="p-2">Paid</th><th className="p-2">Remaining</th>
             <th className="p-2">Status</th>
           </tr></thead>
-          <tbody>{filteredInvoiceStatusRows.map((x: any) => <tr key={x.id} className="border-b">
+          <tbody>{filteredInvoiceStatusRows.map((x: any) => <tr key={x.id} className="border-b border-[#eee9dd] hover:bg-[#f7f4eb]">
             <td className="p-2">{x.invoice}</td><td className="p-2">{x.party}</td>
             <td className="p-2">{x.type}</td><td className="p-2">{money(x.total)}</td>
             <td className="p-2">{money(x.paid)}</td><td className="p-2">{money(x.remaining)}</td>
@@ -387,7 +387,7 @@ return <section className="space-y-5">
           </tr>)}</tbody>
         </table>
       </div>
-      {filteredInvoiceStatusRows.length === 0 && <p className="py-4 text-center text-gray-500">No invoices match these filters.</p>}
+      {filteredInvoiceStatusRows.length === 0 && <p className="py-4 text-center text-[#788579]">No invoices match these filters.</p>}
     </div>
 </section>;
 }
