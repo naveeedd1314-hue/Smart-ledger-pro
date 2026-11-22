@@ -57,7 +57,7 @@ export function calculateBusinessStrategy(): {
   warnings: string[];
 } {
   const rawProducts = readArray("smartledger-products");
-  const bills = readArray("smartledger-pro-sales").concat(readArray("smartledger-bills"));
+  const bills = readArray("smartledger-pro-sales").concat(readArray("smartledger-bills").filter(old => !readArray("smartledger-pro-sales").some(current => current.invoice && current.invoice === old.invoice)));
   const salesByProduct = new Map<string, number>();
   const warnings: string[] = [];
 
