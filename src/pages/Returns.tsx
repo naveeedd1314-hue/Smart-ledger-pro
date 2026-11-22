@@ -76,7 +76,7 @@ export default function Returns() {
       return;
     }
 
-    const product=products.find(p=>p.name===source.product);
+    const product=products.find(p=>source.productId ? String(p.id)===String(source.productId) : p.name===source.product);
     if(!product) {
       alert('The original product was not found in inventory. No changes were made.');
       return;
