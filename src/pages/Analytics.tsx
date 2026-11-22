@@ -109,7 +109,7 @@ export default function Analytics() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">Business Analytics</h1>
-          <p className="text-sm text-[#788579]">Sales, purchases, returns and expense performance.</p>
+          <p className="text-sm text-[var(--text-2)]">Sales, purchases, returns and expense performance.</p>
         </div>
         <select className="rounded-lg border bg-[var(--surface)] p-3" value={period} onChange={e => setPeriod(Number(e.target.value))}>
           <option value={6}>Last 6 months</option>
@@ -126,14 +126,14 @@ export default function Analytics() {
           ['Sales Invoices', analytics.salesCount.toLocaleString('en-IN')],
           ['Purchase Invoices', analytics.purchaseCount.toLocaleString('en-IN')]
         ].map(([label, value]) => (
-          <div key={label} className="rounded-2xl border border-[#e6e0d2] bg-[#fffdf7] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-            <p className="text-sm text-[#788579]">{label}</p>
+          <div key={label} className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+            <p className="text-sm text-[var(--text-2)]">{label}</p>
             <strong className="text-xl">{value}</strong>
           </div>
         ))}
       </div>
 
-      <div className="rounded-2xl border border-[#e6e0d2] bg-[#fffdf7] p-5 shadow-sm">
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
         <h2 className="mb-4 font-semibold">Monthly Performance</h2>
         {analytics.months.some(x => x.sales || x.purchases || x.expenses) ? (
           <div className="h-80 w-full">
@@ -150,26 +150,26 @@ export default function Analytics() {
               </BarChart>
             </ResponsiveContainer>
           </div>
-        ) : <p className="py-12 text-center text-[#788579]">No transactions in this period.</p>}
+        ) : <p className="py-12 text-center text-[var(--text-2)]">No transactions in this period.</p>}
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">
-        <div className="rounded-2xl border border-[#e6e0d2] bg-[#fffdf7] p-5 shadow-sm">
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
           <h2 className="mb-4 font-semibold">Best-Selling Products</h2>
           {analytics.products.length ? analytics.products.map((x, i) => (
             <div key={x.product} className="mb-4">
               <div className="flex justify-between gap-3 text-sm">
-                <span>{i + 1}. {x.product} <span className="text-[#788579]">({x.qty} units)</span></span>
+                <span>{i + 1}. {x.product} <span className="text-[var(--text-2)]">({x.qty} units)</span></span>
                 <strong>{money(x.revenue)}</strong>
               </div>
-              <div className="mt-2 h-2 rounded-full bg-[#eeeadd]">
-                <div className="h-2 rounded-full bg-[#315b42]" style={{ width: `${x.revenue / maxProduct * 100}%` }} />
+              <div className="mt-2 h-2 rounded-full bg-[var(--border)]">
+                <div className="h-2 rounded-full bg-[var(--indigo)]" style={{ width: `${x.revenue / maxProduct * 100}%` }} />
               </div>
             </div>
-          )) : <p className="text-sm text-[#788579]">No sales data available.</p>}
+          )) : <p className="text-sm text-[var(--text-2)]">No sales data available.</p>}
         </div>
 
-        <div className="rounded-2xl border border-[#e6e0d2] bg-[#fffdf7] p-5 shadow-sm">
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
           <h2 className="mb-4 font-semibold">Expense Categories</h2>
           {analytics.categories.length ? analytics.categories.map(([category, amount]) => (
             <div key={category} className="mb-4">
@@ -177,33 +177,33 @@ export default function Analytics() {
                 <span>{category}</span>
                 <strong>{money(amount)}</strong>
               </div>
-              <div className="mt-2 h-2 rounded-full bg-[#eeeadd]">
+              <div className="mt-2 h-2 rounded-full bg-[var(--border)]">
                 <div className="h-2 rounded-full bg-[#b69a63]" style={{ width: `${amount / maxExpense * 100}%` }} />
               </div>
             </div>
-          )) : <p className="text-sm text-[#788579]">No expenses recorded.</p>}
+          )) : <p className="text-sm text-[var(--text-2)]">No expenses recorded.</p>}
         </div>
       </div>
 
-      <div className="rounded-2xl border border-[#e6e0d2] bg-[#fffdf7] p-5 shadow-sm">
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
         <h2 className="mb-4 font-semibold">Return Summary</h2>
         <div className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-lg bg-[#eeeadd] p-4">
-            <p className="text-sm text-[#788579]">Sales Return Value</p>
+          <div className="rounded-lg bg-[var(--border)] p-4">
+            <p className="text-sm text-[var(--text-2)]">Sales Return Value</p>
             <strong className="text-lg">{money(analytics.salesReturns)}</strong>
           </div>
-          <div className="rounded-lg bg-[#eeeadd] p-4">
-            <p className="text-sm text-[#788579]">Purchase Return Value</p>
+          <div className="rounded-lg bg-[var(--border)] p-4">
+            <p className="text-sm text-[var(--text-2)]">Purchase Return Value</p>
             <strong className="text-lg">{money(analytics.purchaseReturns)}</strong>
           </div>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-[#e6e0d2] bg-[#fffdf7] p-5 shadow-sm">
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
         <h2 className="mb-3 font-semibold">Monthly Data</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead><tr className="border-b border-[#e6e0d2] text-[#788579]">
+            <thead><tr className="border-b border-[var(--border)] text-[var(--text-2)]">
               <th className="p-2">Month</th><th className="p-2">Sales</th>
               <th className="p-2">Sales Returns</th><th className="p-2">Net Sales</th>
               <th className="p-2">Purchases</th><th className="p-2">Expenses</th>
@@ -222,7 +222,7 @@ export default function Analytics() {
         </div>
       </div>
 
-      <p className="text-xs text-[#788579]">
+      <p className="text-xs text-[var(--text-2)]">
         Figures are based on recorded transaction dates. Net sales and purchases deduct recorded returns.
         This report does not calculate accounting profit or cost of goods sold.
       </p>
