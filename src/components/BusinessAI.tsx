@@ -17,16 +17,16 @@ const field=(o:Row,...keys:string[])=>{for(const k of keys)if(o?.[k]!==undefined
 
 function analyse(){
  const products=read("smartledger-products");
- const bills=read("smartledger-bills");
- const purchases=read("smartledger-purchases");
- const payments=read("smartledger-payments");
- const expenses=read("smartledger-expenses");
- const customers=read("smartledger-customers");
- const suppliers=read("smartledger-suppliers");
+ const bills=read("smartledger-pro-sales");
+ const purchases=read("smartledger-pro-purchases");
+ const payments=read("smartledger-pro-payments");
+ const expenses=read("smartledger-pro-expenses");
+ const customers=read("smartledger-pro-customers");
+ const suppliers=read("smartledger-pro-suppliers");
  const stockValue= sum(products.map(p=>n(field(p,"stock","quantity","qty"))*n(field(p,"purchase","purchasePrice","cost"))));
  const productRows=products.map(p=>{
   const cost=n(field(p,"purchase","purchasePrice","cost"));
-  const retail=n(field(p,"price","sellingPrice","salePrice","retail"));
+  const retail=n(field(p,"selling","price","sellingPrice","salePrice","retail"));
   const wholesale=n(field(p,"wholesale","wholesalePrice"));
   const stock=n(field(p,"stock","quantity","qty"));
   return {name:String(field(p,"name","productName","title")||"Unnamed product"),cost,retail,wholesale,stock,profit:retail-cost,margin:retail>0?(retail-cost)/retail*100:0};
@@ -34,7 +34,7 @@ function analyse(){
  const known=productRows.filter(p=>p.cost>0&&p.retail>0);
  const low=productRows.filter(p=>p.stock<=5&&p.stock>=0);
  const negative=productRows.filter(p=>p.stock<0);
- const sales=sum(bills.map(b=>n(field(b,"grandTotal","total","netTotal","amount","totalAmount"))));
+ const sales=sum(bills.map(b=>n(field(b,"taxableValue","total","grandTotal","netTotal","amount","totalAmount"))));
  const expenseTotal=sum(expenses.map(e=>n(field(e,"amount","total","value"))));
  const purchaseTotal=sum(purchases.map(p=>n(field(p,"total","grandTotal","amount","totalAmount"))));
  const receivable=sum(customers.map(c=>n(field(c,"balance","outstanding","closingBalance","due"))));
