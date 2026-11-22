@@ -1,4 +1,5 @@
 import DataBackup from '../components/DataBackup';
+import { localDateISO } from '../lib/dateUtils';
 import { useMemo, useState } from 'react'
 import { Search, Package, AlertTriangle, IndianRupee, Plus, ClipboardList, FileDown, FileSpreadsheet } from 'lucide-react'
 import jsPDF from 'jspdf'
@@ -259,7 +260,7 @@ export default function Inventory() {
     if (stockValue > 0) {
       saveAdjustments([{
         id: crypto.randomUUID(),
-        date: new Date().toISOString().slice(0, 10),
+        date: localDateISO(),
         productId: newProduct.id,
         product: newProduct.name,
         change: stockValue,
@@ -297,7 +298,7 @@ export default function Inventory() {
 
     saveAdjustments([{
       id: crypto.randomUUID(),
-      date: new Date().toISOString().slice(0, 10),
+      date: localDateISO(),
       product: product.name,
       change,
  movement: change > 0 ? 'Stock In' : 'Stock Out',
