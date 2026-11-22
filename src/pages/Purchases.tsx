@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { localDateISO } from '../lib/dateUtils';
 import { downloadInvoicePdf } from '../utils/invoicePdf';
 
@@ -13,6 +13,7 @@ export default function Purchases() {
   const [payments,setPayments] = useState<any[]>([]);
   const [returns,setReturns] = useState<any[]>([]);
   const [suppliersList,setSuppliersList] = useState<any[]>([]);
+  const savingRef = useRef(false);
   const [supplier,setSupplier] = useState('');
   const [invoice,setInvoice] = useState('');
   const [date,setDate] = useState(localDateISO());
@@ -71,13 +72,13 @@ const total = taxableValue + taxAmount;
   const money=(n:number)=>`₹${n.toLocaleString('en-IN',{maximumFractionDigits:2})}`;
 
   function save() {
-    if(!date || !supplier || !selected || !Number.isFinite(qty) || qty<=0 || !Number.isFinite(rate) || rate<=0 || !Number.isFinite(paid) || paid<0 || !Number.isFinite(total) || paid>total || qty>100000) {
-      alert('Check supplier, product, quantity, rate and payment.');
-      return;
-    }
-    if(applyGST && (!normalizedBusinessState || !normalizedPlaceState)) { alert('Enter the business state and place of supply before applying GST.'); return; }
-    if(!invoice.trim()) { alert('Enter supplier invoice number.'); return; }
-    if(items.some(x => String(x.supplier || '').trim().toLowerCase() === supplier.trim().toLowerCase() && String(x.invoice || '').trim().toLowerCase() === invoice.trim().toLowerCase())) { alert('This supplier invoice number is already recorded for this supplier.'); return; }
+    if (savingRef.current) return;
+    savingRef.current = true;
+    const reject = (message: string) => { savingRef.current = false; alert(message); };
+    if(!date || !supplier || !selected || !Number.isFinite(qty) || qty<=0 || !Number.isFinite(rate) || rate<=0 || !Number.isFinite(paid) || paid<0 || !Number.isFinite(total) || paid>total || qty>100000) return reject('Check supplier, product, quantity, rate and payment.');
+    if(applyGST && (!normalizedBusinessState || !normalizedPlaceState)) return reject('Enter the business state and place of supply before applying GST.');
+    if(!invoice.trim()) return reject('Enter supplier invoice number.');
+    if(items.some(x => String(x.supplier || '').trim().toLowerCase() === supplier.trim().toLowerCase() && String(x.invoice || '').trim().toLowerCase() === invoice.trim().toLowerCase())) return reject('This supplier invoice number is already recorded for this supplier.');
 
     const supplierDetails = suppliers.find(x =>
       x.name.trim().toLowerCase() === supplier.trim().toLowerCase()
@@ -106,6 +107,7 @@ const total = taxableValue + taxAmount;
     setRate(0);
     setPaid(0);
     setProductId('');
+    savingRef.current = false;
     alert('Purchase saved and stock updated.');
   }
 
