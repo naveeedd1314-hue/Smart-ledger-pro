@@ -6,7 +6,7 @@ const BACKUP_PREFIX = 'smartledger-';
 
 export default function Settings() {
   const [business, setBusiness] = useState(() => {
-    const defaults = { name: 'SmartLedger Business', phone: '', email: '', address: '', gstin: '', state: 'Jammu and Kashmir', invoicePrefix: 'SL', financialYear: '2026-27' };
+    const defaults = { name: 'SmartLedger Business', phone: '', email: '', address: '', gstin: '', state: 'Jammu and Kashmir', invoicePrefix: 'SL', financialYear: '2026-27', targetMarginPercent: '3.5' };
     try { return { ...defaults, ...JSON.parse(localStorage.getItem('smartledger-pro-settings') || '{}') }; }
     catch { return defaults; }
   });
@@ -87,7 +87,8 @@ export default function Settings() {
           ['address','Business address'],
           ['state','State'],
           ['invoicePrefix','Invoice prefix'],
-          ['financialYear','Financial year']
+          ['financialYear','Financial year'],
+          ['targetMarginPercent','Minimum gross margin (%)']
         ] as const).map(([key,label])=><label key={key} className="text-sm">{label}<input className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] p-3 text-[var(--text)]" value={business[key]} onChange={e=>setBusiness({...business,[key]:e.target.value})}/></label>)}
       </div>
       <button onClick={save} className="rounded-xl bg-[var(--indigo)] px-5 py-3 font-semibold text-white shadow-sm transition hover:bg-[var(--indigo-ink)]">Save Settings</button>
