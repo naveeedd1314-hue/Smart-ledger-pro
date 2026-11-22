@@ -95,7 +95,7 @@ function answer(q:string,d:ReturnType<typeof analyse>){
   const changes=d.rateMovements.filter((x:any)=>x.name.toLowerCase()===matchedProduct.name.toLowerCase()).slice(0,4);
   const history=changes.map((x:any)=>x.previous===null?`${x.kind}: latest ₹${x.rate.toFixed(2)} on ${x.date}`:`${x.kind}: ₹${x.previous.toFixed(2)} → ₹${x.rate.toFixed(2)} (${x.change>0?"up":x.change<0?"down":"unchanged"} ${Math.abs(x.percent||0).toFixed(2)}%)`).join("; ");
   const priceStatus=matchedProduct.profit<0?"Selling below recorded purchase cost":matchedProduct.profit===0?"No gross profit at current price":"Positive gross profit before overheads";
-  const explicitMargin=s.match(/(\\d+(?:\\.\\d+)?)\\s*%/);
+  const explicitMargin=s.match(/(\d+(?:\.\d+)?)\s*%/);
   const targetMargin=/margin|markup|profit/.test(s)&&explicitMargin?Number(explicitMargin[1]):d.targetMargin;
   const useMarkup=/markup/.test(s);
   const targetSellPrice=useMarkup?matchedProduct.cost*(1+targetMargin/100):targetMargin<100?matchedProduct.cost/(1-targetMargin/100):null;
