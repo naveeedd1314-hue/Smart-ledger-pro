@@ -40,10 +40,12 @@ function analyse(){
  const purchaseTotal=sum(purchases.map(p=>n(field(p,"total","grandTotal","amount","totalAmount"))));
  const collected=sum(payments.filter(p=>field(p,"type")==="Customer Receipt").map(p=>n(field(p,"amount"))));
  const supplierPaid=sum(payments.filter(p=>field(p,"type")==="Supplier Payment").map(p=>n(field(p,"amount"))));
+ const customerRefunds=sum(payments.filter(p=>field(p,"type")==="Customer Refund").map(p=>n(field(p,"amount"))));
+ const supplierRefunds=sum(payments.filter(p=>field(p,"type")==="Supplier Refund").map(p=>n(field(p,"amount"))));
  const salesReturnCredit=sum(returns.filter(x=>x.type==="Sales Return").map(x=>n(field(x,"totalAmount","amount"))));
  const purchaseReturnCredit=sum(returns.filter(x=>x.type==="Purchase Return").map(x=>n(field(x,"totalAmount","amount"))));
- const receivable=Math.max(0,sum(customers.map(c=>n(field(c,"opening","balance","outstanding","closingBalance","due"))))+sum(bills.map(b=>field(b,"total","grandTotal")!==undefined?Math.max(0,n(field(b,"total","grandTotal"))-n(field(b,"paid"))):n(field(b,"balance"))))-collected-salesReturnCredit);
- const payable=Math.max(0,sum(suppliers.map(s=>n(field(s,"opening","balance","outstanding","closingBalance","due"))))+sum(purchases.map(p=>field(p,"total","grandTotal","amount")!==undefined?Math.max(0,n(field(p,"total","grandTotal","amount"))-n(field(p,"paid"))):n(field(p,"balance"))))-supplierPaid-purchaseReturnCredit);
+ const receivable=Math.max(0,sum(customers.map(c=>n(field(c,"opening","balance","outstanding","closingBalance","due"))))+sum(bills.map(b=>field(b,"total","grandTotal")!==undefined?Math.max(0,n(field(b,"total","grandTotal"))-n(field(b,"paid"))):n(field(b,"balance"))))+customerRefunds-collected-salesReturnCredit);
+ const payable=Math.max(0,sum(suppliers.map(s=>n(field(s,"opening","balance","outstanding","closingBalance","due"))))+sum(purchases.map(p=>field(p,"total","grandTotal","amount")!==undefined?Math.max(0,n(field(p,"total","grandTotal","amount"))-n(field(p,"paid"))):n(field(p,"balance"))))+supplierRefunds-supplierPaid-purchaseReturnCredit);
  const missingCost=productRows.filter(p=>p.retail>0&&p.cost<=0);
  const marginAvg=known.length?sum(known.map(p=>p.margin))/known.length:0;
  let targetMargin=3.5;try{const settings=JSON.parse(localStorage.getItem("smartledger-pro-settings")||"{}");const value=Number(settings.targetMarginPercent);if(Number.isFinite(value)&&value>=0&&value<=100)targetMargin=value;}catch{}
@@ -61,10 +63,12 @@ function analyse(){
  customers.forEach(x=>addBalance(customerBalanceMap,field(x,"name"),n(field(x,"opening","balance","outstanding","due"))));
  bills.forEach(x=>{const total=field(x,"total","grandTotal");addBalance(customerBalanceMap,field(x,"customer","party"),total!==undefined?Math.max(0,n(total)-n(field(x,"paid"))):n(field(x,"balance")));});
  payments.filter(x=>x.type==="Customer Receipt").forEach(x=>addBalance(customerBalanceMap,x.party,-n(field(x,"amount"))));
+ payments.filter(x=>x.type==="Customer Refund").forEach(x=>addBalance(customerBalanceMap,x.party,n(field(x,"amount"))));
  returns.filter(x=>x.type==="Sales Return").forEach(x=>addBalance(customerBalanceMap,x.party,-n(field(x,"totalAmount","amount"))));
  suppliers.forEach(x=>addBalance(supplierBalanceMap,field(x,"name"),n(field(x,"opening","balance","outstanding","due"))));
  purchases.forEach(x=>{const total=field(x,"total","grandTotal","amount");addBalance(supplierBalanceMap,field(x,"supplier"),total!==undefined?Math.max(0,n(total)-n(field(x,"paid"))):n(field(x,"balance")));});
  payments.filter(x=>x.type==="Supplier Payment").forEach(x=>addBalance(supplierBalanceMap,x.party,-n(field(x,"amount"))));
+ payments.filter(x=>x.type==="Supplier Refund").forEach(x=>addBalance(supplierBalanceMap,x.party,n(field(x,"amount"))));
  returns.filter(x=>x.type==="Purchase Return").forEach(x=>addBalance(supplierBalanceMap,x.party,-n(field(x,"totalAmount","amount"))));
  const customerDueRows=Array.from(customerBalanceMap.values()).map(x=>({...x,due:Math.max(0,x.amount)})).filter(x=>x.due>0).sort((a,b)=>b.due-a.due);
  const supplierDueRows=Array.from(supplierBalanceMap.values()).map(x=>({...x,due:Math.max(0,x.amount)})).filter(x=>x.due>0).sort((a,b)=>b.due-a.due);
