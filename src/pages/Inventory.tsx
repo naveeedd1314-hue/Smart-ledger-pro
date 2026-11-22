@@ -20,6 +20,7 @@ type Adjustment = {
   id: string
   date: string
   product: string
+  productId?: string | number
   change: number
   reason: string
   movement?: 'Stock In' | 'Stock Out' | 'Correction'
