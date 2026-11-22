@@ -97,9 +97,9 @@ export default function Inventory() {
     return a.name.localeCompare(b.name)
   })
 
-  const totalUnits = items.reduce((s, x) => s + (Number(x.stock) || 0), 0)
+  const totalUnits = items.reduce((s, x) => s + Math.max(0, Number(x.stock) || 0), 0)
   const stockValue = items.reduce((s, x) => s + Math.max(0, Number(x.stock) || 0) * (Number(x.averageCost ?? x.purchase) || 0), 0)
-  const retailValue = items.reduce((s, x) => s + (Number(x.stock) || 0) * (Number(x.selling) || 0), 0)
+  const retailValue = items.reduce((s, x) => s + Math.max(0, Number(x.stock) || 0) * (Number(x.selling) || 0), 0)
   const lowStock = items.filter(x => Number(x.stock) <= Math.max(0, Number(lowLimit) || 0))
   function exportInventoryCsv() {
     const headers = ['Product', 'SKU', 'Category', 'HSN', 'GST %', 'Last Purchase Price', 'Average Cost', 'Selling Price', 'Profit Per Unit', 'Stock', 'Stock Cost Value', 'Retail Value']
@@ -109,8 +109,8 @@ export default function Inventory() {
       Number(x.selling) || 0,
       (Number(x.selling) || 0) - (Number(x.averageCost ?? x.purchase) || 0),
       Number(x.stock) || 0,
-      (Number(x.stock) || 0) * (Number(x.averageCost ?? x.purchase) || 0),
-      (Number(x.stock) || 0) * (Number(x.selling) || 0)
+      Math.max(0, Number(x.stock) || 0) * (Number(x.averageCost ?? x.purchase) || 0),
+      Math.max(0, Number(x.stock) || 0) * (Number(x.selling) || 0)
     ])
     const csv = [headers, ...rows].map(row =>
       row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(',')
