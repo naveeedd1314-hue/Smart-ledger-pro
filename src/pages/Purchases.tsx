@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { downloadInvoicePdf } from '../utils/invoicePdf';
 
-type Product = { id: string; name: string; purchase: number; selling: number; stock: number; sku?: string; category?: string; gstRate?: number; hsn?: string; };
+type Product = { id: string; name: string; purchase: number; selling: number; averageCost?: number | null; stock: number; sku?: string; category?: string; gstRate?: number; hsn?: string; };
 type Supplier = { id: string; name: string; gstin?: string; address?: string };
 type Purchase = { id: string; productId?: string; supplier: string; invoice: string; date: string; product: string; qty: number; rate: number; total: number; paid: number; balance: number; taxableValue?: number; gstRate?: number; taxAmount?: number; cgst?: number; sgst?: number; utgst?: number; igst?: number; placeOfSupply?: string; hsn?: string; supplierGstin?: string; supplierAddress?: string };
 
@@ -76,7 +76,15 @@ const total = taxableValue + taxAmount;
     const supplierDetails = suppliers.find(x =>
       x.name.trim().toLowerCase() === supplier.trim().toLowerCase()
     );
-    const updatedProducts=products.map(p=>p.id===productId?{...p,stock:p.stock+qty,purchase:rate}:p);
+    const updatedProducts=products.map(p=>{
+      if(p.id!==productId) return p;
+      const oldStock=Math.max(0,Number(p.stock)||0);
+      const oldCost=Number(p.averageCost ?? p.purchase);
+      const knownOldCost=Number.isFinite(oldCost)&&oldCost>0;
+      const nextStock=oldStock+qty;
+      const averageCost=oldStock>0&&knownOldCost?((oldStock*oldCost)+(qty*rate))/nextStock:rate;
+      return {...p,stock:nextStock,purchase:rate,lastPurchaseRate:rate,averageCost:Number(averageCost.toFixed(4))};
+    });
     const record:Purchase={id:crypto.randomUUID(),productId:selected.id,supplier,invoice:invoice.trim(),date,product:selected.name,qty,rate,total,paid,balance:total-paid,taxableValue,gstRate,taxAmount,cgst,sgst,utgst,igst,placeOfSupply:applyGST?placeOfSupply:'',hsn:selected.hsn||'',supplierGstin:supplierDetails?.gstin||'',supplierAddress:supplierDetails?.address||''};
     const updatedItems=[record,...items];
     const stockLog=read<any>('smartledger-pro-stock-adjustments');
