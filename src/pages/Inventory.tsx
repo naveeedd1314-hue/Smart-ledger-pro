@@ -92,23 +92,23 @@ export default function Inventory() {
     if (sortBy === 'stock') return Number(a.stock) - Number(b.stock)
     if (sortBy === 'purchase') return Number(a.purchase) - Number(b.purchase)
     if (sortBy === 'selling') return Number(a.selling) - Number(b.selling)
-    if (sortBy === 'margin') return (Number(a.selling) - Number(a.purchase)) - (Number(b.selling) - Number(b.purchase))
+    if (sortBy === 'margin') return (Number(a.selling) - Number(a.averageCost ?? a.purchase)) - (Number(b.selling) - Number(b.averageCost ?? b.purchase))
     return a.name.localeCompare(b.name)
   })
 
   const totalUnits = items.reduce((s, x) => s + (Number(x.stock) || 0), 0)
-  const stockValue = items.reduce((s, x) => s + (Number(x.stock) || 0) * (Number(x.purchase) || 0), 0)
+  const stockValue = items.reduce((s, x) => s + (Number(x.stock) || 0) * (Number(x.averageCost ?? x.purchase) || 0), 0)
   const retailValue = items.reduce((s, x) => s + (Number(x.stock) || 0) * (Number(x.selling) || 0), 0)
   const lowStock = items.filter(x => Number(x.stock) <= Math.max(0, Number(lowLimit) || 0))
   function exportInventoryCsv() {
-    const headers = ['Product', 'SKU', 'Category', 'HSN', 'GST %', 'Purchase Price', 'Selling Price', 'Profit Per Unit', 'Stock', 'Stock Cost Value', 'Retail Value']
+    const headers = ['Product', 'SKU', 'Category', 'HSN', 'GST %', 'Last Purchase Price', 'Average Cost', 'Selling Price', 'Profit Per Unit', 'Stock', 'Stock Cost Value', 'Retail Value']
     const rows = items.map(x => [
       x.name, x.sku || '', x.category || 'General', x.hsn || '',
-      Number(x.gstRate) || 0, Number(x.purchase) || 0,
+      Number(x.gstRate) || 0, Number(x.purchase) || 0, Number(x.averageCost ?? x.purchase) || 0,
       Number(x.selling) || 0,
-      (Number(x.selling) || 0) - (Number(x.purchase) || 0),
+      (Number(x.selling) || 0) - (Number(x.averageCost ?? x.purchase) || 0),
       Number(x.stock) || 0,
-      (Number(x.stock) || 0) * (Number(x.purchase) || 0),
+      (Number(x.stock) || 0) * (Number(x.averageCost ?? x.purchase) || 0),
       (Number(x.stock) || 0) * (Number(x.selling) || 0)
     ])
     const csv = [headers, ...rows].map(row =>
@@ -446,7 +446,7 @@ export default function Inventory() {
           <table className="w-full text-left text-sm">
             <thead><tr className="border-b text-[var(--text-2)]">
               <th className="p-2">Product</th><th className="p-2">SKU</th><th className="p-2">HSN/SAC</th><th className="p-2">GST</th><th className="p-2">Category</th>
-              <th className="p-2">Purchase</th><th className="p-2">Wholesale</th><th className="p-2">Selling</th><th className="p-2">Profit / Unit</th><th className="p-2">Stock</th><th className="p-2">Stock Value</th>
+              <th className="p-2">Last Purchase</th><th className="p-2">Average Cost</th><th className="p-2">Wholesale</th><th className="p-2">Selling</th><th className="p-2">Profit / Unit</th><th className="p-2">Stock</th><th className="p-2">Stock Value</th>
             </tr></thead>
             <tbody>{visibleItems.map(x => <tr key={x.id} className="border-b">
               <td className="p-2 font-medium">{x.name}</td>
@@ -455,11 +455,12 @@ export default function Inventory() {
               <td className="p-2">{Number(x.gstRate) || 0}%</td>
               <td className="p-2">{x.category || 'General'}</td>
               <td className="p-2">{money(Number(x.purchase) || 0)}</td>
+              <td className="p-2">{money(Number(x.averageCost ?? x.purchase) || 0)}</td>
               <td className="p-2">{money(Number(x.wholesale) || 0)}</td>
               <td className="p-2">{money(Number(x.selling) || 0)}</td>
-              <td className="p-2 font-medium">{money((Number(x.selling) || 0) - (Number(x.purchase) || 0))}</td>
+              <td className="p-2 font-medium">{money((Number(x.selling) || 0) - (Number(x.averageCost ?? x.purchase) || 0))}</td>
               <td className={`p-2 font-semibold ${Number(x.stock) <= Number(lowLimit) ? 'text-[var(--amber)]' : ''}`}>{x.stock}</td>
-              <td className="p-2">{money((Number(x.stock) || 0) * (Number(x.purchase) || 0))}</td>
+              <td className="p-2">{money((Number(x.stock) || 0) * (Number(x.averageCost ?? x.purchase) || 0))}</td>
             </tr>)}</tbody>
           </table>
         </div>
