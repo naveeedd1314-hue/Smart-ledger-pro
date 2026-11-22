@@ -19,6 +19,7 @@ export default function Payments() {
   const [date, setDate] = useState(localDateISO());
   const [salesInvoices, setSalesInvoices] = useState<any[]>([]);
   const [purchaseInvoices, setPurchaseInvoices] = useState<any[]>([]);
+  const [returns, setReturns] = useState<any[]>([]);
   const [invoiceId, setInvoiceId] = useState('');
 
   useEffect(() => {
@@ -29,6 +30,7 @@ export default function Payments() {
     setItems(read('smartledger-pro-payments'));
     setSalesInvoices(read('smartledger-pro-sales'));
     setPurchaseInvoices(read('smartledger-pro-purchases'));
+    setReturns(read('smartledger-pro-returns'));
   }, []);
 
   const invoiceList = type === 'Customer Receipt' ? salesInvoices : purchaseInvoices;
@@ -38,7 +40,9 @@ export default function Payments() {
     const allocated = invoiceAllocations.filter((a: any) => String(a.invoiceId) === id && a.type === type).reduce((sum: number, a: any) => sum + (Number(a.amount) || 0), 0);
     const originalPaid = Number(invoice.paid) || 0;
     const total = Number(invoice.total) || 0;
-    return { ...invoice, id, paidNow: originalPaid + allocated, dueNow: Math.max(0, total - originalPaid - allocated) };
+    const returnType = type === 'Customer Receipt' ? 'Sales Return' : 'Purchase Return';
+    const returnCredit = returns.filter(x => x.type === returnType && String(x.originalId) === id).reduce((sum, x) => sum + (Number(x.totalAmount ?? x.amount) || 0), 0);
+    return { ...invoice, id, paidNow: originalPaid + allocated, returnCredit, dueNow: Math.max(0, total - originalPaid - allocated - returnCredit) };
   }).filter((invoice: any) => invoice.dueNow > 0);
 
   function save() {
@@ -195,7 +199,8 @@ function shareInvoiceHistoryWhatsApp() {
       type: 'Customer',
       total: Number(x.total) || 0,
       paid: (Number(x.paid) || 0) + invoiceAllocations.filter((a: any) => String(a.invoiceId) === String(x.id) && a.type === 'Customer Receipt').reduce((sum: number, a: any) => sum + (Number(a.amount) || 0), 0),
-      remaining: Math.max(0, (Number(x.total) || 0) - (Number(x.paid) || 0) - invoiceAllocations.filter((a: any) => String(a.invoiceId) === String(x.id) && a.type === 'Customer Receipt').reduce((sum: number, a: any) => sum + (Number(a.amount) || 0), 0)),
+      credited: returns.filter(r => r.type === 'Sales Return' && String(r.originalId) === String(x.id)).reduce((sum, r) => sum + (Number(r.totalAmount ?? r.amount) || 0), 0),
+      remaining: Math.max(0, (Number(x.total) || 0) - (Number(x.paid) || 0) - invoiceAllocations.filter((a: any) => String(a.invoiceId) === String(x.id) && a.type === 'Customer Receipt').reduce((sum: number, a: any) => sum + (Number(a.amount) || 0), 0) - returns.filter(r => r.type === 'Sales Return' && String(r.originalId) === String(x.id)).reduce((sum, r) => sum + (Number(r.totalAmount ?? r.amount) || 0), 0)),
     })),
     ...readInvoices('smartledger-pro-purchases').map((x: any) => ({
       id: `purchase-${x.id}`,
@@ -204,11 +209,12 @@ function shareInvoiceHistoryWhatsApp() {
       type: 'Supplier',
       total: Number(x.total) || 0,
       paid: (Number(x.paid) || 0) + invoiceAllocations.filter((a: any) => String(a.invoiceId) === String(x.id) && a.type === 'Supplier Payment').reduce((sum: number, a: any) => sum + (Number(a.amount) || 0), 0),
-      remaining: Math.max(0, (Number(x.total) || 0) - (Number(x.paid) || 0) - invoiceAllocations.filter((a: any) => String(a.invoiceId) === String(x.id) && a.type === 'Supplier Payment').reduce((sum: number, a: any) => sum + (Number(a.amount) || 0), 0)),
+      credited: returns.filter(r => r.type === 'Purchase Return' && String(r.originalId) === String(x.id)).reduce((sum, r) => sum + (Number(r.totalAmount ?? r.amount) || 0), 0),
+      remaining: Math.max(0, (Number(x.total) || 0) - (Number(x.paid) || 0) - invoiceAllocations.filter((a: any) => String(a.invoiceId) === String(x.id) && a.type === 'Supplier Payment').reduce((sum: number, a: any) => sum + (Number(a.amount) || 0), 0) - returns.filter(r => r.type === 'Purchase Return' && String(r.originalId) === String(x.id)).reduce((sum, r) => sum + (Number(r.totalAmount ?? r.amount) || 0), 0)),
     })),
   ].map((x: any) => ({
     ...x,
-    status: x.remaining <= 0 ? 'Fully Paid' : x.paid > 0 ? 'Partially Paid' : 'Unpaid',
+    status: x.remaining <= 0 ? (x.credited > 0 && x.paid < x.total ? 'Settled by return' : 'Fully Paid') : x.paid > 0 || x.credited > 0 ? 'Partially Settled' : 'Unpaid',
   }));
 
   const filteredInvoiceStatusRows = invoiceStatusRows.filter((x: any) =>
@@ -220,9 +226,9 @@ function shareInvoiceHistoryWhatsApp() {
 
   function exportOutstandingCsv() {
     const rows = [
-      ['Invoice', 'Party', 'Type', 'Total', 'Paid', 'Remaining', 'Status'],
+      ['Invoice', 'Party', 'Type', 'Total', 'Paid', 'Return Credit', 'Remaining', 'Status'],
       ...filteredInvoiceStatusRows.map((x: any) => [
-        x.invoice, x.party, x.type, x.total, x.paid, x.remaining, x.status
+        x.invoice, x.party, x.type, x.total, x.paid, x.credited, x.remaining, x.status
       ])
     ];
     const csv = rows.map(row => row.map(value =>
@@ -241,8 +247,8 @@ function shareInvoiceHistoryWhatsApp() {
 function exportOutstandingPdf() {
   const doc = new jsPDF({ orientation: "landscape" });
   const rows = filteredInvoiceStatusRows;
-  const headers = ["Invoice", "Party", "Type", "Total", "Paid", "Remaining", "Status"];
-  const widths = [38, 48, 28, 36, 34, 39, 36];
+  const headers = ["Invoice", "Party", "Type", "Total", "Paid", "Return Credit", "Remaining", "Status"];
+  const widths = [34, 42, 24, 32, 30, 36, 34, 32];
   const left = 14;
 
   const heading = () => {
@@ -279,6 +285,7 @@ function exportOutstandingPdf() {
       row.invoice, row.party, row.type,
       "INR " + Number(row.total || 0).toLocaleString("en-IN", {maximumFractionDigits: 2}),
       "INR " + Number(row.paid || 0).toLocaleString("en-IN", {maximumFractionDigits: 2}),
+      "INR " + Number(row.credited || 0).toLocaleString("en-IN", {maximumFractionDigits: 2}),
       "INR " + Number(row.remaining || 0).toLocaleString("en-IN", {maximumFractionDigits: 2}),
       row.status
     ];
@@ -400,6 +407,8 @@ return <section className="space-y-5">
           <option value="All">All Statuses</option>
           <option value="Unpaid">Unpaid</option>
           <option value="Partially Paid">Partially Paid</option>
+          <option value="Partially Settled">Partially Settled</option>
+          <option value="Settled by return">Settled by return</option>
           <option value="Fully Paid">Fully Paid</option>
         </select>
       </div>
@@ -408,13 +417,13 @@ return <section className="space-y-5">
           <thead><tr className="border-b text-[var(--text-2)]">
             <th className="p-2">Invoice</th><th className="p-2">Party</th>
             <th className="p-2">Type</th><th className="p-2">Total</th>
-            <th className="p-2">Paid</th><th className="p-2">Remaining</th>
+            <th className="p-2">Paid</th><th className="p-2">Return Credit</th><th className="p-2">Remaining</th>
             <th className="p-2">Status</th>
           </tr></thead>
           <tbody>{filteredInvoiceStatusRows.map((x: any) => <tr key={x.id} className="border-b border-[var(--border)] hover:bg-[var(--surface-2)]">
             <td className="p-2">{x.invoice}</td><td className="p-2">{x.party}</td>
             <td className="p-2">{x.type}</td><td className="p-2">{money(x.total)}</td>
-            <td className="p-2">{money(x.paid)}</td><td className="p-2">{money(x.remaining)}</td>
+            <td className="p-2">{money(x.paid)}</td><td className="p-2">{money(x.credited)}</td><td className="p-2">{money(x.remaining)}</td>
             <td className="p-2 font-medium">{x.status}</td>
           </tr>)}</tbody>
         </table>
