@@ -65,13 +65,13 @@ export default function Ledger() {
 
   const customerSales = type === 'Customer' ? sales.filter(x => x.customer === party) : [];
   const customerSalesGrossProfit = customerSales.reduce((sum, sale) => {
-    const cost = Number(sale.purchasePrice);
+    const cost = sale.purchasePrice === undefined || sale.purchasePrice === null ? Number.NaN : Number(sale.purchasePrice);
     const quantity = Number(sale.qty) || 0;
     const rate = Number(sale.rate) || 0;
     return sum + (Number.isFinite(cost) && cost >= 0 ? (rate - cost) * quantity : 0);
   }, 0);
   const customerReturnProfit = type === 'Customer' ? returns.filter(x => x.type === 'Sales Return' && x.party === party).reduce((sum, item) => {
-    const cost = Number(item.purchasePrice);
+    const cost = item.purchasePrice === undefined || item.purchasePrice === null ? Number.NaN : Number(item.purchasePrice);
     const quantity = Number(item.qty) || 0;
     const rate = Number(item.rate) || 0;
     return sum + (Number.isFinite(cost) && cost >= 0 ? (rate - cost) * quantity : 0);
