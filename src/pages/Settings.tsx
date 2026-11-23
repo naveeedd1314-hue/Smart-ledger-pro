@@ -63,14 +63,25 @@ export default function Settings() {
           key.startsWith(BACKUP_PREFIX) && (typeof value === 'string' || value === null || typeof value === 'number' || typeof value === 'boolean' || Array.isArray(value) || (typeof value === 'object' && value !== null))
         );
         if (!entries.length) throw new Error('No valid SmartLedger data was found in this file.');
-        if (!window.confirm(`Restore ${entries.length} SmartLedger data sections? Matching current sections will be overwritten. Other device data will remain unchanged.`)) {
+        const validated = entries.map(([key, value]) => {
+          const stored = typeof value === 'string' ? value : JSON.stringify(value);
+          if (stored === undefined) throw new Error(`Backup section "${key}" cannot be restored.`);
+          try { JSON.parse(stored); } catch { throw new Error(`Backup section "${key}" contains invalid data. Nothing was changed.`); }
+          return [key, stored] as const;
+        });
+        if (!window.confirm(`Restore ${validated.length} SmartLedger data sections? Matching current sections will be overwritten. Invalid data is rejected before any changes are made.`)) {
           setBackupStatus('Restore cancelled.');
           return;
         }
-        entries.forEach(([key, value]) => {
-          const stored = typeof value === 'string' ? value : JSON.stringify(value);
-          if (stored !== undefined) localStorage.setItem(key, stored);
-        });
+        const previous = new Map(validated.map(([key]) => [key, localStorage.getItem(key)]));
+        try {
+          validated.forEach(([key, stored]) => localStorage.setItem(key, stored));
+        } catch (error) {
+          previous.forEach((value, key) => {
+            try { if (value === null) localStorage.removeItem(key); else localStorage.setItem(key, value); } catch {}
+          });
+          throw error;
+        }
         migrateLegacyData(true);
         setBackupStatus(`Restored ${entries.length} data sections. Legacy records were checked for migration. Reload the app to refresh all screens.`);
         window.alert('Backup restored. Reload the app to refresh all screens.');
