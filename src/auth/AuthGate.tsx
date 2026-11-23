@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   browserLocalPersistence,
   createUserWithEmailAndPassword,
@@ -75,7 +75,7 @@ function saveAccountStorage(uid: string): void {
   localStorage.removeItem('smartledger-active-user');
 }
 
-type AuthGateProps = { children: React.ReactNode };
+type AuthGateProps = { children: ReactNode };
 
 export default function AuthGate({ children }: AuthGateProps) {
   const [user, setUser] = useState<User | null>(null);
@@ -84,7 +84,7 @@ export default function AuthGate({ children }: AuthGateProps) {
   );
   const [authReady, setAuthReady] = useState(!firebaseReady);
   const [authError, setAuthError] = useState('');
-  const activeUid = useState<{ current: string | null }>({ current: null })[0];
+  const activeUid = useRef<string | null>(null);
 
   useEffect(() => {
     if (!firebaseAuth) return;
