@@ -3,6 +3,13 @@ import { localDateISO } from '../lib/dateUtils';
 
 type RecordItem = Record<string, any>;
 const roundCurrency = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
+function read(key:string): RecordItem[] {
+  try {
+    const value=JSON.parse(localStorage.getItem(key)||'[]');
+    return Array.isArray(value)?value:[];
+  } catch { return []; }
+}
+
 type ReturnItem = {
   id: string;
   originalId: string;
@@ -39,13 +46,6 @@ export default function Returns() {
   const [historySearch,setHistorySearch] = useState('');
   const [historyType,setHistoryType] = useState('All');
   const savingRef = useRef(false);
-
-  const read = (key:string) => {
-    try {
-      const value=JSON.parse(localStorage.getItem(key)||'[]');
-      return Array.isArray(value)?value:[];
-    } catch { return []; }
-  };
 
   const sources=type==='Sales Return'?sales:purchases;
   const source=sources.find(x=>x.id===sourceId);
