@@ -57,7 +57,7 @@ export default function Returns() {
   const alreadyReturned=returns.filter(x=>x.originalId===sourceId && x.type===type).reduce((s,x)=>s+x.qty,0);
   const remaining=Math.max(0,Number(source?.qty||0)-alreadyReturned);
   const rate=Number(source?.rate)||0;
-  const alreadyReturnedTax = returns.filter(x=>x.originalId===sourceId && x.type===type).reduce((sum,x)=>sum+(x.taxAmount !== undefined ? Number(x.taxAmount)||0 : Math.max(0,(Number(x.totalAmount)||0)-(Number(x.amount)||0))),0);
+  const alreadyReturnedTax = returns.filter(x=>x.originalId===sourceId && x.type===type).reduce((sum,x)=>sum+(x.taxAmount !== undefined ? Number(x.taxAmount)||0 : x.totalAmount !== undefined ? Math.max(0,(Number(x.totalAmount)||0)-(Number(x.amount)||0)) : (Number(x.amount)||0)*(Number(source?.gstRate)||0)/100),0);
   const alreadyReturnedAmount = returns.filter(x=>x.originalId===sourceId && x.type===type).reduce((sum,x)=>sum+(Number(x.amount)||0),0);
   const sourceQty = Number(source?.qty)||0;
   const cumulativeRatio = sourceQty > 0 ? Math.min(1,(alreadyReturned+qty)/sourceQty) : 0;
