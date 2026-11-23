@@ -79,9 +79,7 @@ type AuthGateProps = { children: ReactNode };
 
 export default function AuthGate({ children }: AuthGateProps) {
   const [user, setUser] = useState<User | null>(null);
-  const [offline, setOffline] = useState(
-    () => !firebaseReady && localStorage.getItem('smartledger-offline-session') === '1'
-  );
+  const [offline, setOffline] = useState(false);
   const [authReady, setAuthReady] = useState(!firebaseReady);
   const [authError, setAuthError] = useState('');
   const activeUid = useRef<string | null>(null);
@@ -134,10 +132,7 @@ export default function AuthGate({ children }: AuthGateProps) {
     };
   }, []);
 
-  const continueOffline = () => {
-    localStorage.setItem('smartledger-offline-session', '1');
-    setOffline(true);
-  };
+  const continueOffline = () => setOffline(true);
 
   if (user || offline) return <>{children}</>;
   if (!authReady) {
