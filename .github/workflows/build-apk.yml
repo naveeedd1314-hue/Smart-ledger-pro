@@ -58,6 +58,7 @@ jobs:
               @Override
               public void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
+                  // Register after Capacitor plugins so this callback receives Back first.
                   getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
                       @Override
                       public void handleOnBackPressed() {
