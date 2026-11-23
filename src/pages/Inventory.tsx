@@ -1,6 +1,6 @@
 import DataBackup from '../components/DataBackup';
 import { localDateISO } from '../lib/dateUtils';
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Search, Package, AlertTriangle, IndianRupee, Plus, ClipboardList, FileDown, FileSpreadsheet } from 'lucide-react'
 import jsPDF from 'jspdf'
 
