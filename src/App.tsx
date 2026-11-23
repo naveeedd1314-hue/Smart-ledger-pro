@@ -297,7 +297,7 @@ function App() {
             <div className="sl-dashboard-panel rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 xl:col-span-2">
               <div className="flex items-center justify-between">
                 <div><h3 className="font-bold">Business performance</h3><p className="mt-1 text-xs text-[var(--text-2)]">Your financial activity will appear here.</p></div>
-                <button className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs">This month <ChevronDown className="ml-2 inline" size={13}/></button>
+                <span className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs text-[var(--text-2)]">Last 6 months</span>
               </div>
               <div className="mt-5 h-56 w-full">
                 {monthlyPerformance.length ? <ResponsiveContainer width="100%" height="100%">
