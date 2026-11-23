@@ -144,6 +144,10 @@ export default function BulkItems() {
         if (gst !== null && gst > 100) errors.push(`Row ${rowNumber}: GST rate cannot exceed 100%.`)
         const purchase = number('purchase', 'purchase price')
         const averageCost = number('averageCost', 'average cost', true)
+        const selling = number('selling', 'selling price')
+        const wholesale = number('wholesale', 'wholesale price')
+        const stock = number('stock', 'opening stock')
+        if (selling !== null && selling <= 0) errors.push(`Row ${rowNumber}: selling price must be greater than zero.`)
         parsed.push({
           id: crypto.randomUUID(),
           name,
@@ -153,9 +157,9 @@ export default function BulkItems() {
           gstRate: gst ?? 0,
           purchase: purchase ?? 0,
           averageCost: averageCost !== null && averageCost > 0 ? averageCost : null,
-          selling: number('selling', 'selling price') ?? 0,
-          wholesale: number('wholesale', 'wholesale price') ?? 0,
-          stock: number('stock', 'opening stock') ?? 0,
+          selling: selling ?? 0,
+          wholesale: wholesale ?? 0,
+          stock: stock ?? 0,
         })
       })
       if (errors.length) {
@@ -166,6 +170,18 @@ export default function BulkItems() {
       if (!parsed.length) {
         setPreview([])
         setMessage('No product rows found below the heading row.')
+        return
+      }
+      const existingConflicts = parsed.filter(product => {
+        const sku = String(product.sku || '').trim().toLowerCase()
+        const name = String(product.name || '').trim().toLowerCase()
+        const skuMatch = sku ? items.find(x => String(x.sku || '').trim().toLowerCase() === sku) : undefined
+        const nameMatch = items.find(x => String(x.name || '').trim().toLowerCase() === name)
+        return Boolean(skuMatch && nameMatch && String(skuMatch.id) !== String(nameMatch.id))
+      })
+      if (existingConflicts.length) {
+        setPreview([])
+        setMessage(`Import stopped: ${existingConflicts.length} row(s) have an SKU/barcode that belongs to a different existing item than the product name. Correct those conflicts before importing.`)
         return
       }
       const seenSkus = new Set<string>()
