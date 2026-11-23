@@ -7,6 +7,8 @@ type Business = {
   address?: string;
   gstin?: string;
   state?: string;
+  logo?: string;
+  signature?: string;
 };
 
 type InvoiceRecord = {
@@ -64,9 +66,10 @@ export function downloadInvoicePdf(
   doc.setFillColor(...palette.primary);
   if (theme !== 'minimal') doc.rect(0, 0, pageWidth, 5, 'F');
   doc.setTextColor(...palette.primary);
+  if (business.logo) { try { doc.addImage(business.logo, 'PNG', left, 9, 18, 18, undefined, 'FAST'); } catch {} }
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(19);
-  doc.text(business.name || 'SmartLedger Business', left, y);
+  doc.text(business.name || 'SmartLedger Business', business.logo ? left + 22 : left, y);
 
   y += 8;
   doc.setTextColor(65, 65, 65);
@@ -184,6 +187,7 @@ export function downloadInvoicePdf(
     left, y
   );
   doc.text('Computer-generated document', right, y, { align: 'right' });
+  if (type === 'sales' && business.signature) { try { doc.addImage(business.signature, 'PNG', right - 42, y - 25, 38, 17, undefined, 'FAST'); doc.setFontSize(8); doc.text('Authorised Signatory', right, y - 5, { align: 'right' }); } catch {} }
 
   const safeName = String(record.invoice || 'invoice').replace(/[^a-z0-9-_]/gi, '_');
   if (returnBlob) return doc.output('blob');
