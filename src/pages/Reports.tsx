@@ -78,6 +78,8 @@ export default function Reports() {
       qty,
       rate,
       costPrice,
+      discountAmount: num(x.discountAmount),
+      discountPercent: num(x.discountPercent),
       revenue,
       cost,
       profit: revenue - cost,
@@ -133,8 +135,8 @@ export default function Reports() {
       ['Returns Missing Cost', returnsMissingCost]
     ];
     const salesRows = [
-      ['Invoice','Date','Customer','Product','Quantity','Rate','Revenue','Purchase Cost / Unit','Cost','Profit','Cost Recorded'],
-      ...invoiceProfitRows.map(x => [x.invoice,x.date,x.customer,x.product,x.qty,x.rate,x.revenue,x.hasCost ? x.costPrice : '',x.hasCost ? x.cost : '',x.hasCost ? x.profit : '',x.hasCost ? 'Yes' : 'No'])
+      ['Invoice','Date','Customer','Product','Quantity','Rate','Discount %','Discount Amount','Net Revenue','Purchase Cost / Unit','Cost','Profit','Cost Recorded'],
+      ...invoiceProfitRows.map(x => [x.invoice,x.date,x.customer,x.product,x.qty,x.rate,x.discountPercent,x.discountAmount,x.revenue,x.hasCost ? x.costPrice : '',x.hasCost ? x.cost : '',x.hasCost ? x.profit : '',x.hasCost ? 'Yes' : 'No'])
     ];
     const stockRows = [
       ['Product','Average Cost','Wholesale','Retail','Profit / Unit','Margin %','Stock','Potential Stock Profit'],
