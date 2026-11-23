@@ -1254,3 +1254,9 @@ main :where(.overflow-x-auto,.overflow-auto) {max-width:100%;overflow-x:auto;-we
 @media(max-width:380px) {
   [data-sl-dashboard] .sl-charts-shell {grid-template-columns:minmax(0,1fr)}
 }
+
+/* Keep wide ledgers and reports scrollable inside their own viewport */
+main table {display:block;width:max-content;min-width:100%;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+main table thead,main table tbody {width:100%}
+main :where(.overflow-x-auto,.overflow-auto) {scrollbar-width:thin;scrollbar-color:var(--text-2) var(--surface-2)}
+main :where(.overflow-y-auto,.overflow-auto) {scrollbar-width:thin;scrollbar-color:var(--text-2) var(--surface-2)}
