@@ -148,7 +148,7 @@ function normalizeProducts(rows: Row[]): Row[] {
       hsn: textFrom(row, ['hsn', 'hsnCode']),
       gstRate: numberFrom(row, ['gstRate', 'gst'], 0),
       purchase,
-      averageCost: row.averageCost !== undefined && row.averageCost !== null ? Number(row.averageCost) : purchase > 0 ? purchase : null,
+      averageCost: row.averageCost !== undefined ? (row.averageCost === null ? null : Number(row.averageCost)) : purchase > 0 ? purchase : null,
       selling: numberFrom(row, ['selling', 'sellingPrice', 'rate', 'retail'], 0),
       stock: numberFrom(row, ['stock', 'quantity', 'qty'], 0),
     };
