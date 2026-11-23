@@ -187,7 +187,6 @@ export default function Sales() {
   const businessProfile = () => { try { return JSON.parse(localStorage.getItem('smartledger-pro-settings') || '{}'); } catch { return {}; } };
   const phoneFor = (sale: Sale) => String(customers.find((c: any) => String(c.name || '').trim().toLowerCase() === sale.customer.trim().toLowerCase())?.phone || '').replace(/[^+\\d]/g, '');
   const invoiceMessage = (sale: Sale) => {
-    const phone = phoneFor(sale);
     return `Hello ${sale.customer}, invoice ${sale.invoice} dated ${sale.date}. Total: ${money(sale.total)}. Paid: ${money(invoicePaid(sale))}. Balance due: ${money(invoiceDue(sale))}. Thank you — ${businessProfile().name || 'SmartLedger Business'}.`;
   };
   const shareWhatsApp = (sale: Sale) => { const phone = phoneFor(sale).replace(/^\\+/, ''); const url = `https://wa.me/${phone}?text=${encodeURIComponent(invoiceMessage(sale))}`; window.open(url, '_blank', 'noopener,noreferrer'); };
