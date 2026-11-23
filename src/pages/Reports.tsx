@@ -154,18 +154,18 @@ export default function Reports() {
       <h2 className="font-semibold text-lg">Transaction Summary</h2>
       <div className="divide-y text-sm">
         {[
-          ['Sales invoices',sales.length],
-          ['Purchase entries',purchases.length],
+          ['Sales invoices',periodSales.length],
+          ['Purchase entries',periodPurchases.length],
           ['Sales returns',salesReturns.length],
           ['Purchase returns',purchaseReturns.length],
           ['Sales return value',money(salesReturnTotal)],
           ['Purchase return value',money(purchaseReturnTotal)],
-          ['Expense entries',expenses.length],
-          ['Payment transactions',payments.length],
-          ['Customer receipts',money(received)],
-          ['Supplier payments',money(supplierPaid)],
-          ['Customer refunds',money(customerRefunds)],
-          ['Supplier refunds',money(supplierRefunds)]
+          ['Expense entries',periodExpenses.length],
+          ['Payment transactions',periodPayments.length],
+          ['Customer receipts',money(periodReceived)],
+          ['Supplier payments',money(periodSupplierPaid)],
+          ['Customer refunds',money(periodCustomerRefunds)],
+          ['Supplier refunds',money(periodSupplierRefunds)]
         ].map(([label,value])=><div key={String(label)} className="flex justify-between gap-3 py-3"><span>{label}</span><strong>{value}</strong></div>)}
       </div>
     </div>
