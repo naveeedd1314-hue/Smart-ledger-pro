@@ -87,8 +87,19 @@ export default function AuthGate({ children }: AuthGateProps) {
   const activeUid = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!firebaseAuth) return;
     let mounted = true;
+    const signOutHandler = () => {
+      if (firebaseAuth) {
+        void signOut(firebaseAuth).catch(error => setAuthError(error instanceof Error ? error.message : 'Sign out failed.'));
+      } else {
+        localStorage.removeItem('smartledger-offline-session');
+        setOffline(false);
+      }
+    };
+    window.addEventListener('smartledger:sign-out', signOutHandler);
+    if (!firebaseAuth) {
+      return () => window.removeEventListener('smartledger:sign-out', signOutHandler);
+    }
     void setPersistence(firebaseAuth, browserLocalPersistence).catch(error => {
       if (mounted) setAuthError(error instanceof Error ? error.message : 'Could not enable persistent login.');
     });
@@ -116,16 +127,12 @@ export default function AuthGate({ children }: AuthGateProps) {
       }
       setAuthReady(true);
     });
-    const signOutHandler = () => {
-      if (firebaseAuth) void signOut(firebaseAuth).catch(error => setAuthError(error instanceof Error ? error.message : 'Sign out failed.'));
-    };
-    window.addEventListener('smartledger:sign-out', signOutHandler);
     return () => {
       mounted = false;
       unsubscribe();
       window.removeEventListener('smartledger:sign-out', signOutHandler);
     };
-  }, [activeUid]);
+  }, []);
 
   const continueOffline = () => {
     localStorage.setItem('smartledger-offline-session', '1');
