@@ -93,7 +93,7 @@ const total = roundCurrency(taxableValue + taxAmount);
       const averageCost=oldStock>0&&knownOldCost?((oldStock*oldCost)+(qty*rate))/nextStock:rate;
       return {...p,stock:nextStock,purchase:rate,lastPurchaseRate:rate,averageCost:Number(averageCost.toFixed(4))};
     });
-    const record:Purchase={id:crypto.randomUUID(),productId:selected.id,supplier,invoice:invoice.trim(),date,product:selected.name,qty,rate,total,paid,balance:total-paid,taxableValue,gstRate,taxAmount,cgst,sgst,utgst,igst,placeOfSupply:applyGST?placeOfSupply:'',hsn:selected.hsn||'',supplierGstin:supplierDetails?.gstin||'',supplierAddress:supplierDetails?.address||''};
+    const record:Purchase={id:crypto.randomUUID(),productId:selected.id,supplier,invoice:invoice.trim(),date,product:selected.name,qty,rate,total,paid:roundCurrency(paid),balance:roundCurrency(total-roundCurrency(paid)),taxableValue,gstRate,taxAmount,cgst,sgst,utgst,igst,placeOfSupply:applyGST?placeOfSupply:'',hsn:selected.hsn||'',supplierGstin:supplierDetails?.gstin||'',supplierAddress:supplierDetails?.address||''};
     const updatedItems=[record,...items];
     const stockLog=read<any>('smartledger-pro-stock-adjustments');
     stockLog.unshift({id:crypto.randomUUID(),date,productId:selected.id,product:selected.name,change:qty,movement:'Stock In',stockAfter:selected.stock+qty,reason:`Purchase invoice ${record.invoice}`});
