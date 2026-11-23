@@ -82,6 +82,18 @@ export default function BulkItems() {
     URL.revokeObjectURL(url)
   }
 
+  const exportExcel = () => {
+    const rows = [
+      ['Product Name','Barcode / SKU','Category','HSN Code','GST Rate','Purchase Price','Average Cost','Wholesale Price','Selling Price','Opening Stock'],
+      ...items.map(p => [p.name,p.sku || '',p.category || 'General',p.hsn || '',Number(p.gstRate) || 0,Number(p.purchase) || 0,Number(p.averageCost ?? p.purchase) || 0,Number(p.wholesale) || 0,Number(p.selling) || 0,Number(p.stock) || 0])
+    ]
+    const worksheet = XLSX.utils.aoa_to_sheet(rows)
+    worksheet['!cols'] = [{wch:28},{wch:20},{wch:18},{wch:14},{wch:12},{wch:16},{wch:16},{wch:16},{wch:16},{wch:16}]
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Products')
+    XLSX.writeFile(workbook, 'SmartLedger-Items-Export.xlsx')
+  }
+
   const importCSV = async (file?: File) => {
     if (!file) return
     try {
@@ -292,7 +304,7 @@ export default function BulkItems() {
   return <div data-sl-page="true" className="mx-auto max-w-7xl space-y-6 p-4 md:p-8">
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div><h2 className="text-2xl font-bold">Bulk Items</h2><p className="mt-1 text-sm text-[var(--text-2)]">Manage many inventory items together.</p></div>
-      <div className="flex flex-wrap gap-2"><button onClick={downloadExcelTemplate} className="flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold"><Download size={17}/> Excel Template</button><button onClick={exportCSV} className="flex items-center gap-2 rounded-xl bg-[var(--indigo-ink)] px-4 py-3 text-sm font-semibold text-white"><Download size={17}/> Export CSV</button></div>
+      <div className="flex flex-wrap gap-2"><button onClick={downloadExcelTemplate} className="flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold"><Download size={17}/> Excel Template</button><button onClick={exportCSV} className="flex items-center gap-2 rounded-xl bg-[var(--indigo-ink)] px-4 py-3 text-sm font-semibold text-white"><Download size={17}/> Export CSV</button><button onClick={exportExcel} className="flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold"><Download size={17}/> Export Excel</button></div>
     </div>
 
     <div className="grid gap-4 sm:grid-cols-3">
