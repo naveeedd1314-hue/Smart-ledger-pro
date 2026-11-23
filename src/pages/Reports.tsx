@@ -1,3 +1,4 @@
+import * as XLSX from 'xlsx';
 import { useState } from 'react';
 
 type Row = Record<string, unknown>;
@@ -109,6 +110,43 @@ export default function Reports() {
   });
   const totalPotentialStockProfit = productMarginRows.reduce((sum, x) => sum + x.stockProfit, 0);
 
+  const exportFinancialWorkbook = () => {
+    const summary = [
+      ['SmartLedger Financial Report'],
+      ['From date', fromDate || 'All'],
+      ['To date', toDate || 'All'],
+      [],
+      ['Metric', 'Amount'],
+      ['Net Sales Revenue', netSales],
+      ['Net Purchase Value', netPurchases],
+      ['Business Expenses', expenseTotal],
+      ['Customer Outstanding (all time)', customerDue],
+      ['Supplier Outstanding (all time)', supplierDue],
+      ['Estimated Cash Movement', netMovement],
+      ['Gross Profit (recorded costs only)', invoiceGrossProfit],
+      ['Estimated Profit After Expenses', estimatedNetProfit],
+      ['Invoices Missing Cost', invoicesMissingCost],
+      ['Returns Missing Cost', returnsMissingCost]
+    ];
+    const salesRows = [
+      ['Invoice','Date','Customer','Product','Quantity','Rate','Revenue','Purchase Cost / Unit','Cost','Profit','Cost Recorded'],
+      ...invoiceProfitRows.map(x => [x.invoice,x.date,x.customer,String(periodSales.find(s => String(s.invoice || s.invoiceNo || s.billNo || '') === x.invoice)?.product || ''),Number(periodSales.find(s => String(s.invoice || s.invoiceNo || s.billNo || '') === x.invoice)?.qty) || 0,Number(periodSales.find(s => String(s.invoice || s.invoiceNo || s.billNo || '') === x.invoice)?.rate) || 0,x.revenue, x.cost ? x.cost / Math.max(1,Number(periodSales.find(s => String(s.invoice || s.invoiceNo || s.billNo || '') === x.invoice)?.qty) || 1) : '',x.hasCost ? x.cost : '',x.hasCost ? x.profit : '',x.hasCost ? 'Yes' : 'No'])
+    ];
+    const stockRows = [
+      ['Product','Average Cost','Wholesale','Retail','Profit / Unit','Margin %','Stock','Potential Stock Profit'],
+      ...productMarginRows.map(x => [x.name,x.cost,x.wholesale,x.retail,x.unitProfit,x.margin,x.stock,x.stockProfit])
+    ];
+    const workbook = XLSX.utils.book_new();
+    const add = (name: string, rows: (string | number)[][]) => {
+      const sheet = XLSX.utils.aoa_to_sheet(rows);
+      XLSX.utils.book_append_sheet(workbook, sheet, name);
+    };
+    add('Summary', summary);
+    add('Sales Profit', salesRows);
+    add('Stock Margins', stockRows);
+    XLSX.writeFile(workbook, `SmartLedger-Financial-Report-${fromDate || 'All'}-to-${toDate || 'All'}.xlsx`);
+  };
+
   const cards = [
     ['Net Sales Revenue',netSales],
     ['Net Purchase Value',netPurchases],
@@ -134,9 +172,7 @@ export default function Reports() {
     
     <div><h1 className="text-2xl font-bold">Financial Reports</h1><p className="mt-1 text-sm text-[var(--text-2)]">Financial performance and cash movement for the selected period; outstanding balances remain all-time.</p>
       <div className="mt-3 grid gap-3 sm:grid-cols-3 print:hidden"><label className="text-xs font-medium text-[var(--text-2)]">From date<input type="date" value={fromDate} onChange={e=>setFromDate(e.target.value)} className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] p-2 text-sm text-[var(--text)]"/></label><label className="text-xs font-medium text-[var(--text-2)]">To date<input type="date" value={toDate} onChange={e=>setToDate(e.target.value)} className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] p-2 text-sm text-[var(--text)]"/></label><button type="button" onClick={()=>{setFromDate("");setToDate("")}} className="self-end rounded-lg border border-[var(--border)] px-3 py-2 text-sm">Clear dates</button></div>{fromDate&&toDate&&fromDate>toDate&&<p className="mt-2 text-sm text-[var(--rose)]">From date must be on or before the To date.</p>}
-      <button type="button" onClick={() => window.print()} className="mt-3 rounded-lg sl-primary px-5 py-3 font-semibold text-white print:hidden">
-        Print Financial Report
-      </button><p className="text-sm text-[var(--text-2)]">Summary based on records currently stored in this device.</p></div>
+      <div className="mt-3 flex flex-wrap gap-2 print:hidden"><button type="button" onClick={exportFinancialWorkbook} className="rounded-lg sl-primary px-5 py-3 font-semibold text-white">Export Excel Workbook</button><button type="button" onClick={() => window.print()} className="rounded-lg border border-[var(--border)] px-5 py-3 font-semibold">Print Financial Report</button></div><p className="text-sm text-[var(--text-2)]">Summary based on records currently stored in this device.</p></div>
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
       {cards.map(([label,value])=><div key={String(label)} className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><p className="text-sm text-[var(--text-2)]">{label}</p><strong className="text-xl">{money(Number(value))}</strong></div>)}
     </div>
