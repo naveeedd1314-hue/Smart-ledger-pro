@@ -43,3 +43,18 @@ button:disabled {
   background: var(--indigo-tint);
   color: var(--text);
 }
+
+
+/* Consistent mobile spacing and alignment */
+html, body, #root { width: 100%; min-height: 100%; }
+body { overflow-x: hidden; }
+input, select, textarea { max-width: 100%; min-width: 0; }
+img { max-width: 100%; }
+table { border-collapse: collapse; }
+@media (max-width: 640px) {
+  main { min-width: 0; }
+  main > section { width: 100%; min-width: 0; padding: 1rem; }
+  main > section > div, main > section article { min-width: 0; }
+  main :is(input, select, textarea) { min-height: 42px; }
+  main :is(button) { touch-action: manipulation; }
+}
