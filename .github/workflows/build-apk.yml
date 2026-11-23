@@ -39,7 +39,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Install Capacitor
-        run: npm install --no-save @capacitor/core @capacitor/android @capacitor/cli @capacitor/app
+        run: npm install --no-save @capacitor/core @capacitor/android @capacitor/cli @capacitor/app firebase
       - name: Build web app
         run: npm run build
       - name: Generate Android project
