@@ -26,7 +26,7 @@ import {
   Users, Truck, Wallet, ChartNoAxesCombined, FileText,
   Settings, Bell, Search, Menu, Plus, ArrowUpRight,
   ArrowDownRight, Boxes, CreditCard,
-  Receipt, ChevronDown, BookOpen, Sun, Moon, X, Zap, UserPlus, PackagePlus, RotateCcw
+  Receipt, ChevronDown, BookOpen, Sun, Moon, X, Zap, PackagePlus, RotateCcw
 } from 'lucide-react'
 
 const navigation = [
