@@ -30,7 +30,7 @@ const cell = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`
 function parseCSV(text: string): string[][] {
   const rows: string[][] = []
   const firstLine = text.split(/\r?\n/, 1)[0] || ''
-  const delimiter = [',', '\\t', ';'].sort((a,b) => firstLine.split(b).length - firstLine.split(a).length)[0]
+  const delimiter = [',', '\t', ';'].sort((a,b) => firstLine.split(b).length - firstLine.split(a).length)[0]
   let row: string[] = [], value = '', quoted = false
   for (let i = 0; i < text.length; i++) {
     const c = text[i]
@@ -168,12 +168,15 @@ export default function BulkItems() {
         setMessage('No product rows found below the heading row.')
         return
       }
-      const seen = new Set<string>()
+      const seenSkus = new Set<string>()
+      const seenNames = new Set<string>()
       const duplicates = parsed.filter(product => {
-        const key = product.sku ? `sku:${product.sku.toLowerCase()}` : `name:${product.name.toLowerCase()}`
-        if (seen.has(key)) return true
-        seen.add(key)
-        return false
+        const sku = String(product.sku || '').trim().toLowerCase()
+        const name = String(product.name || '').trim().toLowerCase()
+        const duplicate = (sku && seenSkus.has(sku)) || seenNames.has(name)
+        if (sku) seenSkus.add(sku)
+        seenNames.add(name)
+        return duplicate
       })
       if (duplicates.length) {
         setPreview([])
