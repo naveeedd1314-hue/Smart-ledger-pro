@@ -144,7 +144,7 @@ export default function Sales() {
     const sale: Sale = {
       id: crypto.randomUUID(),
       productId: selected.id,
-      invoice: `SL-${Date.now().toString().slice(-8)}`,
+      invoice: `SL-${crypto.randomUUID().replace(/-/g, '').slice(0, 8).toUpperCase()}`,
       date: localDateISO(),
       customer: customerName,
       product: selected.name,
