@@ -9,6 +9,8 @@ export default function Reports() {
   const [payments, setPayments] = useState<Row[]>([]);
   const [returns, setReturns] = useState<Row[]>([]);
   const [products, setProducts] = useState<Row[]>([]);
+  const [customers, setCustomers] = useState<Row[]>([]);
+  const [suppliers, setSuppliers] = useState<Row[]>([]);
 
   useEffect(() => {
     const read = (key: string): Row[] => {
@@ -23,6 +25,8 @@ export default function Reports() {
     setPayments(read('smartledger-pro-payments'));
     setReturns(read('smartledger-pro-returns'));
     setProducts(read('smartledger-products'));
+    setCustomers(read('smartledger-pro-customers'));
+    setSuppliers(read('smartledger-pro-suppliers'));
   }, []);
 
   const num = (v: unknown) => Number(v) || 0;
@@ -43,8 +47,10 @@ const customerRefunds = payments.filter(x=>x.type==='Customer Refund').reduce((s
 const supplierRefunds = payments.filter(x=>x.type==='Supplier Refund').reduce((s,x)=>s+num(x.amount),0);
   const salesPaid = sales.reduce((s,x)=>s+num(x.paid),0);
   const purchasePaid = purchases.reduce((s,x)=>s+num(x.paid),0);
-  const customerDue = Math.max(0, sales.reduce((s,x)=>s+(x.total !== undefined && x.total !== null ? Math.max(0,num(x.total)-num(x.paid)) : num(x.balance)),0) + customerRefunds - received - salesReturnTotal);
-  const supplierDue = Math.max(0, purchases.reduce((s,x)=>s+(x.total !== undefined && x.total !== null ? Math.max(0,num(x.total)-num(x.paid)) : (x.amount !== undefined ? Math.max(0,num(x.amount)-num(x.paid)) : Math.max(0,num(x.qty)*num(x.rate)-num(x.paid)))),0) + supplierRefunds - supplierPaid - purchaseReturnTotal);
+  const customerOpening = customers.reduce((sum,x)=>sum+num(x.opening),0);
+  const supplierOpening = suppliers.reduce((sum,x)=>sum+num(x.opening),0);
+  const customerDue = Math.max(0, customerOpening + sales.reduce((s,x)=>s+(x.total !== undefined && x.total !== null ? Math.max(0,num(x.total)-num(x.paid)) : num(x.balance)),0) + customerRefunds - received - salesReturnTotal);
+  const supplierDue = Math.max(0, supplierOpening + purchases.reduce((s,x)=>s+(x.total !== undefined && x.total !== null ? Math.max(0,num(x.total)-num(x.paid)) : (x.amount !== undefined ? Math.max(0,num(x.amount)-num(x.paid)) : Math.max(0,num(x.qty)*num(x.rate)-num(x.paid)))),0) + supplierRefunds - supplierPaid - purchaseReturnTotal);
   const netMovement = salesPaid + received + supplierRefunds - purchasePaid - supplierPaid - customerRefunds - expenseTotal;
   const money = (n:number)=>`₹${n.toLocaleString('en-IN',{maximumFractionDigits:2})}`;
 
