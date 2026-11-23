@@ -20,7 +20,7 @@ import BusinessCommandCentre from './pages/BusinessCommandCentre'
 import { useEffect, useState } from 'react'
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from 'recharts'
 import {
-  LayoutDashboard, ShoppingCart, ShoppingBag, Package,
+  LayoutDashboard, ShoppingCart, ShoppingBag, Package, ArrowLeft,
   Users, Truck, Wallet, ChartNoAxesCombined, FileText,
   Settings, Bell, Search, Menu, Plus, ArrowUpRight,
   ArrowDownRight, Boxes, CreditCard,
@@ -176,6 +176,27 @@ function App() {
   const [active, setActive] = useState('Dashboard')
   const [menuOpen, setMenuOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
+  const navigate = (page: string) => {
+    if (page === active) return;
+    window.history.pushState({ smartLedgerPage: page }, '', '#page=' + encodeURIComponent(page));
+    setActive(page);
+    setMenuOpen(false);
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  };
+  useEffect(() => {
+    window.history.replaceState({ smartLedgerPage: 'Dashboard' }, '', window.location.pathname + window.location.search + '#page=Dashboard');
+    const onBack = (event: PopStateEvent) => {
+      const page = typeof event.state?.smartLedgerPage === 'string' ? event.state.smartLedgerPage : 'Dashboard';
+      setActive(page);
+      setMenuOpen(false);
+      if (!event.state?.smartLedgerPage) {
+        window.history.pushState({ smartLedgerPage: 'Dashboard' }, '', window.location.pathname + window.location.search + '#page=Dashboard');
+      }
+    };
+    window.addEventListener('popstate', onBack);
+    return () => window.removeEventListener('popstate', onBack);
+  }, []);
+
   const [searchQuery, setSearchQuery] = useState('')
   const searchResults = searchBusinessRecords(searchQuery)
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('smartledger-theme') === 'dark')
@@ -224,7 +245,7 @@ function App() {
                 {group.items.map(item => {
                   const Icon = item.icon
                   return (
-                    <button key={item.name} onClick={() => { setActive(item.name); setMenuOpen(false) }}
+                    <button key={item.name} onClick={() => { navigate(item.name) }}
                       className={`sl-nav-item flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm transition ${active === item.name ? 'is-active border-[var(--indigo)]/20 bg-[var(--indigo-tint)] font-semibold text-[var(--indigo-ink)] shadow-sm' : 'border-transparent text-[var(--text-2)] hover:border-[var(--border)] hover:bg-[var(--surface-2)] hover:text-[var(--text)]'}`}>
                       <span className="sl-nav-icon"><Icon size={17} strokeWidth={2.2} /></span><span>{item.name}</span><span className="sl-nav-chevron">›</span>
                     </button>
@@ -250,13 +271,14 @@ function App() {
               <h2 className="text-lg font-bold">{active}</h2>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <button type="button" aria-label="Back to previous screen" title="Back" onClick={() => window.history.back()} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2.5 text-[var(--text)]"><ArrowLeft size={18}/></button>
             <button aria-label="Toggle colour theme" title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} onClick={() => setDarkMode(v => !v)} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2.5 text-[var(--text)]">
               {darkMode ? <Sun size={18}/> : <Moon size={18}/>}
             </button>
             <button type="button" aria-label="Search business records" title="Search (Ctrl+K)" onClick={() => setSearchOpen(true)} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2.5 text-[var(--text)] transition hover:bg-[var(--surface-2)]"><Search size={18}/></button>
-            <button type="button" aria-label="Open business command centre" title="Business alerts and insights" onClick={() => setActive("Command Centre")} className="relative rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2.5 text-[var(--text)] transition hover:bg-[var(--surface-2)]"><Bell size={18}/><span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[var(--amber)]"/></button>
-            <button type="button" onClick={() => setActive("Settings")} title="Business settings" className="hidden items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2 text-[var(--text)] transition hover:bg-[var(--surface-2)] sm:flex">
+            <button type="button" aria-label="Open business command centre" title="Business alerts and insights" onClick={() => navigate("Command Centre")} className="relative rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2.5 text-[var(--text)] transition hover:bg-[var(--surface-2)]"><Bell size={18}/><span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[var(--amber)]"/></button>
+            <button type="button" onClick={() => navigate("Settings")} title="Business settings" className="hidden items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2 text-[var(--text)] transition hover:bg-[var(--surface-2)] sm:flex">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--surface-2)] text-sm font-bold">S</div>
               <span className="hidden text-xs font-semibold sm:block">My Business</span>
               <ChevronDown size={14}/>
@@ -264,26 +286,33 @@ function App() {
           </div>
         </header>
 
-        <nav aria-label="Quick actions" className="sticky top-20 z-20 border-b border-[var(--border)] bg-[var(--bg)]/95 px-3 py-2 backdrop-blur md:px-8">
-          <div className="mx-auto flex max-w-full items-center gap-2 overflow-x-auto pb-1">
-            <span className="sticky left-0 z-10 flex shrink-0 items-center gap-1 bg-[var(--bg)] pr-2 text-[10px] font-extrabold uppercase tracking-wider text-[var(--text-2)]"><Zap size={14}/> Quick</span>
-            {[
-              {label:'New Sale',page:'Sales',icon:ShoppingCart},
-              {label:'New Purchase',page:'Purchases',icon:ShoppingBag},
-              {label:'Add Item',page:'Inventory',icon:PackagePlus},
-              {label:'Bulk Import',page:'Bulk Items',icon:Boxes},
-              {label:'Add Customer',page:'Customers',icon:UserPlus},
-              {label:'Add Supplier',page:'Suppliers',icon:Truck},
-              {label:'Add Expense',page:'Expenses',icon:Wallet},
-              {label:'Record Payment',page:'Payments',icon:CreditCard},
-              {label:'Returns',page:'Returns',icon:RotateCcw},
-              {label:'GST',page:'GST & Tax',icon:FileText},
-              {label:'Ledger',page:'Ledger',icon:BookOpen},
-              {label:'Reports',page:'Reports',icon:ChartNoAxesCombined},
-              {label:'Settings',page:'Settings',icon:Settings},
-            ].map(action=>{const Icon=action.icon;return <button key={action.label} type="button" onClick={()=>setActive(action.page)} aria-label={action.label} title={action.label} className={`flex shrink-0 items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition hover:border-[var(--indigo)] hover:bg-[var(--indigo-tint)] hover:text-[var(--indigo-ink)] ${active===action.page?'border-[var(--indigo)] bg-[var(--indigo-tint)] text-[var(--indigo-ink)]':'border-[var(--border)] bg-[var(--surface)] text-[var(--text)]'}`}><Icon size={15}/>{action.label}</button>})}
-          </div>
-        </nav>
+        {(() => {
+          const shortcuts: Record<string, {label:string;page:string;icon:any}[]> = {
+            Dashboard:[{label:'New Sale',page:'Sales',icon:ShoppingCart},{label:'New Purchase',page:'Purchases',icon:ShoppingBag},{label:'Add Item',page:'Inventory',icon:PackagePlus},{label:'Reports',page:'Reports',icon:FileText}],
+            Inventory:[{label:'Add Item',page:'Inventory',icon:PackagePlus},{label:'Bulk Import',page:'Bulk Items',icon:Boxes},{label:'Stock & Valuation',page:'Reports',icon:ChartNoAxesCombined},{label:'Purchases',page:'Purchases',icon:ShoppingBag}],
+            'Bulk Items':[{label:'Inventory',page:'Inventory',icon:Package},{label:'Add Customer',page:'Customers',icon:Users}],
+            Sales:[{label:'New Purchase',page:'Purchases',icon:ShoppingBag},{label:'Customers',page:'Customers',icon:Users},{label:'Payments',page:'Payments',icon:CreditCard},{label:'Sales Returns',page:'Returns',icon:RotateCcw}],
+            Purchases:[{label:'Inventory',page:'Inventory',icon:Package},{label:'Suppliers',page:'Suppliers',icon:Truck},{label:'Payments',page:'Payments',icon:CreditCard},{label:'Purchase Returns',page:'Returns',icon:RotateCcw}],
+            Customers:[{label:'New Sale',page:'Sales',icon:ShoppingCart},{label:'Customer Ledger',page:'Ledger',icon:BookOpen},{label:'Payments',page:'Payments',icon:CreditCard}],
+            Suppliers:[{label:'New Purchase',page:'Purchases',icon:ShoppingBag},{label:'Supplier Ledger',page:'Ledger',icon:BookOpen},{label:'Payments',page:'Payments',icon:CreditCard}],
+            Expenses:[{label:'Add Payment',page:'Payments',icon:CreditCard},{label:'Reports',page:'Reports',icon:FileText}],
+            Payments:[{label:'Customers',page:'Customers',icon:Users},{label:'Suppliers',page:'Suppliers',icon:Truck},{label:'Ledger',page:'Ledger',icon:BookOpen}],
+            Reports:[{label:'Analytics',page:'Analytics',icon:ChartNoAxesCombined},{label:'Ledger',page:'Ledger',icon:BookOpen},{label:'Expenses',page:'Expenses',icon:Wallet}],
+            Ledger:[{label:'Customers',page:'Customers',icon:Users},{label:'Suppliers',page:'Suppliers',icon:Truck},{label:'Payments',page:'Payments',icon:CreditCard}],
+            Returns:[{label:'Sales',page:'Sales',icon:ShoppingCart},{label:'Purchases',page:'Purchases',icon:ShoppingBag},{label:'Inventory',page:'Inventory',icon:Package}],
+            'GST & Tax':[{label:'Sales',page:'Sales',icon:ShoppingCart},{label:'Purchases',page:'Purchases',icon:ShoppingBag},{label:'Reports',page:'Reports',icon:FileText}],
+            Analytics:[{label:'Reports',page:'Reports',icon:FileText},{label:'Ledger',page:'Ledger',icon:BookOpen}],
+            'Command Centre':[{label:'Inventory',page:'Inventory',icon:Package},{label:'Reports',page:'Reports',icon:FileText},{label:'Analytics',page:'Analytics',icon:ChartNoAxesCombined}],
+            Settings:[{label:'Dashboard',page:'Dashboard',icon:LayoutDashboard},{label:'Backup & Restore',page:'Settings',icon:FileText}]
+          };
+          const actions=shortcuts[active]||shortcuts.Dashboard;
+          return <nav aria-label={active + ' shortcuts'} className="sticky top-20 z-20 border-b border-[var(--border)] bg-[var(--bg)]/95 px-3 py-2 backdrop-blur md:px-8">
+            <div className="mx-auto flex max-w-full items-center gap-2 overflow-x-auto pb-1">
+              <span className="sticky left-0 z-10 flex shrink-0 items-center gap-1 bg-[var(--bg)] pr-2 text-[10px] font-extrabold uppercase tracking-wider text-[var(--text-2)]"><Zap size={14}/>{active}</span>
+              {actions.map(action=>{const Icon=action.icon;return <button key={action.label} type="button" onClick={()=>navigate(action.page)} aria-label={action.label} title={action.label} className="flex shrink-0 items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-xs font-semibold text-[var(--text)] transition hover:border-[var(--indigo)] hover:bg-[var(--indigo-tint)] hover:text-[var(--indigo-ink)]"><Icon size={15}/>{action.label}</button>})}
+            </div>
+          </nav>;
+        })()}
 
         {active === 'Command Centre' ? <BusinessCommandCentre /> : active === 'Analytics' ? <Analytics /> : active === 'Sales' ? <Sales /> : active === 'Purchases' ? <Purchases /> : active === 'Inventory' ? <Inventory /> : active === 'Bulk Items' ? <BulkItems /> : active === 'Customers' ? <Customers /> : active === 'Suppliers' ? <Suppliers /> : active === 'Expenses' ? <Expenses /> : active === 'Payments' ? <Payments /> : active === 'Reports' ? <Reports /> : active === 'Ledger' ? <Ledger /> : active === 'Returns' ? <Returns /> : active === 'GST & Tax' ? <GST /> : active === 'Settings' ? <SettingsPage /> : (
         <div className="mx-auto max-w-7xl p-4 md:p-8">
@@ -293,7 +322,7 @@ function App() {
               <h2 className="mt-1 text-2xl font-extrabold tracking-tight">Business overview</h2>
               <p className="mt-1 text-sm text-[var(--text-2)]">Monitor your business performance from one place.</p>
             </div>
-            <button onClick={() => setActive('Sales')} className="sl-new-transaction flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-bold text-white">
+            <button onClick={() => navigate('Sales')} className="sl-new-transaction flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-bold text-white">
               <Plus size={17}/> New transaction
             </button>
           </div>
@@ -347,7 +376,7 @@ function App() {
                   {name:'Record payment / receipt',icon:CreditCard,page:'Payments'},
                 ].map(action => {
                   const Icon = action.icon
-                  return <button key={action.name} onClick={() => setActive(action.page)} className="flex w-full items-center gap-3 rounded-xl border border-[var(--border)] p-3 text-left text-sm font-medium hover:bg-[var(--bg)]"><Icon size={18} className="text-[var(--indigo)]"/>{action.name}<ArrowUpRight size={15} className="ml-auto text-[var(--text-2)]"/></button>
+                  return <button key={action.name} onClick={() => navigate(action.page)} className="flex w-full items-center gap-3 rounded-xl border border-[var(--border)] p-3 text-left text-sm font-medium hover:bg-[var(--bg)]"><Icon size={18} className="text-[var(--indigo)]"/>{action.name}<ArrowUpRight size={15} className="ml-auto text-[var(--text-2)]"/></button>
                 })}
               </div>
             </div>
@@ -356,7 +385,7 @@ function App() {
           <section className="sl-dashboard-panel mt-6 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6">
             <div className="flex items-center justify-between">
               <div><h3 className="font-bold">Recent transactions</h3><p className="mt-1 text-xs text-[var(--text-2)]">Your latest business activity</p></div>
-              <button onClick={() => setActive('Reports')} className="text-xs font-semibold text-[var(--indigo)]">View reports →</button>
+              <button onClick={() => navigate('Reports')} className="text-xs font-semibold text-[var(--indigo)]">View reports →</button>
             </div>
             <div className="mt-4 overflow-x-auto">
               {recentTransactions.length ? <table className="w-full text-left text-sm">
@@ -379,7 +408,7 @@ function App() {
       <div className="w-full max-w-2xl overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] text-[var(--text)] shadow-2xl">
         <div className="flex items-center gap-3 border-b border-[var(--border)] p-4"><Search size={20} className="text-[var(--text-2)]"/><input autoFocus value={searchQuery} onChange={event=>setSearchQuery(event.target.value)} placeholder="Search products, invoices, customers, suppliers…" className="min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-[var(--text-2)]"/><button type="button" onClick={()=>{setSearchOpen(false);setSearchQuery('')}} className="rounded-lg px-3 py-2 text-sm text-[var(--text-2)] hover:bg-[var(--surface-2)]">Esc</button></div>
         <div className="max-h-[60vh] overflow-y-auto p-2">
-          {searchQuery.trim().length<2?<p className="p-4 text-sm text-[var(--text-2)]">Enter at least two characters to search your saved business records.</p>:searchResults.length?searchResults.map(result=><button type="button" key={result.page+result.id} onClick={()=>{setActive(result.page);setSearchOpen(false);setSearchQuery('')}} className="flex w-full items-start gap-3 rounded-xl p-3 text-left transition hover:bg-[var(--surface-2)]"><span className="mt-0.5 rounded-lg bg-[var(--indigo-tint)] px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-[var(--indigo-ink)]">{result.page}</span><span className="min-w-0"><strong className="block truncate text-sm">{result.title}</strong><span className="block truncate text-xs text-[var(--text-2)]">{result.detail}</span></span><ArrowUpRight size={15} className="ml-auto shrink-0 text-[var(--text-2)]"/></button>):<p className="p-4 text-sm text-[var(--text-2)]">No matching records found.</p>}
+          {searchQuery.trim().length<2?<p className="p-4 text-sm text-[var(--text-2)]">Enter at least two characters to search your saved business records.</p>:searchResults.length?searchResults.map(result=><button type="button" key={result.page+result.id} onClick={()=>{navigate(result.page);setSearchOpen(false);setSearchQuery('')}} className="flex w-full items-start gap-3 rounded-xl p-3 text-left transition hover:bg-[var(--surface-2)]"><span className="mt-0.5 rounded-lg bg-[var(--indigo-tint)] px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-[var(--indigo-ink)]">{result.page}</span><span className="min-w-0"><strong className="block truncate text-sm">{result.title}</strong><span className="block truncate text-xs text-[var(--text-2)]">{result.detail}</span></span><ArrowUpRight size={15} className="ml-auto shrink-0 text-[var(--text-2)]"/></button>):<p className="p-4 text-sm text-[var(--text-2)]">No matching records found.</p>}
         </div>
       </div>
     </div>}
