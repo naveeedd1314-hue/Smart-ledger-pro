@@ -356,7 +356,7 @@ export default function Inventory() {
   }
 
   return (
-    <section className="space-y-5">
+    <section data-sl-inventory-root="true" className="sl-inventory-page space-y-5">
       <DataBackup />
 
       <div>
