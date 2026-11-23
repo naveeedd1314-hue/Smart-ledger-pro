@@ -64,7 +64,22 @@ export default function Inventory() {
   const [reason, setReason] = useState('Stock correction')
   const [movementFilter, setMovementFilter] = useState('All Movements')
   const [movementSearch, setMovementSearch] = useState('')
-  useEffect(() => { const openAdd = () => setShowAddForm(true); window.addEventListener('smartledger:inventory-add', openAdd); return () => window.removeEventListener('smartledger:inventory-add', openAdd); }, []);
+  useEffect(() => {
+    const openAdd = () => { setShowAddForm(true); window.setTimeout(() => document.getElementById('add-product')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50); };
+    const openAdjustment = () => document.getElementById('stock-adjustment')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const exportCsv = () => exportInventoryCsv();
+    const exportPdf = () => exportInventoryPdf();
+    window.addEventListener('smartledger:inventory-add', openAdd);
+    window.addEventListener('smartledger:inventory-adjust', openAdjustment);
+    window.addEventListener('smartledger:inventory-export-csv', exportCsv);
+    window.addEventListener('smartledger:inventory-export-pdf', exportPdf);
+    return () => {
+      window.removeEventListener('smartledger:inventory-add', openAdd);
+      window.removeEventListener('smartledger:inventory-adjust', openAdjustment);
+      window.removeEventListener('smartledger:inventory-export-csv', exportCsv);
+      window.removeEventListener('smartledger:inventory-export-pdf', exportPdf);
+    };
+  }, []);
   const addProductLock = useRef(false);
   const stockAdjustLock = useRef(false);
 
