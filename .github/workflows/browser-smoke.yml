@@ -107,10 +107,26 @@ jobs:
                   await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
                   await page.waitForTimeout(250);
                 };
-                await swipe(Math.round(size.width/2),size.height-110,Math.round(size.height/3));
-                const touchPageScroll=await page.evaluate(()=>window.scrollY);
-                if(state.bodyHeight>state.viewportHeight && touchPageScroll<=0) throw new Error('Touch swipe did not scroll the page');
-                await page.evaluate(()=>window.scrollTo(0,0));
+                const touchTarget=await page.evaluate(()=>{
+                  const candidates=[...document.querySelectorAll('main,main *,[data-sl-dashboard]')].filter(el=>{
+                    const cs=getComputedStyle(el),r=el.getBoundingClientRect();
+                    return el.scrollHeight>el.clientHeight+30 && ['auto','scroll'].includes(cs.overflowY) && r.width>80 && r.height>100 && !el.closest('aside');
+                  }).sort((x,y)=>(y.clientHeight*y.clientWidth)-(x.clientHeight*x.clientWidth));
+                  const el=candidates[0];
+                  if(!el) return null;
+                  const r=el.getBoundingClientRect();
+                  return {selector:el.tagName.toLowerCase()+(el.className&&typeof el.className==='string'?'.'+el.className.trim().split(/\\s+/).slice(0,2).join('.') : ''),x:Math.round(r.left+r.width/2),yStart:Math.round(r.bottom-35),yEnd:Math.round(r.top+35),before:el.scrollTop};
+                });
+                if(touchTarget) {
+                  await swipe(touchTarget.x,touchTarget.yStart,touchTarget.yEnd);
+                  const after=await page.evaluate(sel=>{
+                    const el=[...document.querySelectorAll('main,main *,[data-sl-dashboard]')].find(e=>e.tagName.toLowerCase()+(e.className&&typeof e.className==='string'?'.'+e.className.trim().split(/\\s+/).slice(0,2).join('.') : '')===sel);
+                    return el?.scrollTop ?? 0;
+                  },touchTarget.selector);
+                  if(after<=touchTarget.before) throw new Error('Touch swipe did not scroll main content container '+touchTarget.selector);
+                } else {
+                  throw new Error('No vertically scrollable main content container found for touch test');
+                }
                 await page.getByRole('button',{name:'Open navigation menu'}).click();
                 const navBox=await page.locator('[data-sl-dashboard] aside nav').boundingBox();
                 if(navBox && sidebarScroll.scrollHeight>sidebarScroll.clientHeight) {
@@ -128,9 +144,9 @@ jobs:
                 else await page.getByRole('button',{name:'Open navigation menu'}).click();
               }
               await page.locator('[data-sl-dashboard] aside nav').getByRole('button',{name:'Inventory'}).click();
-              await page.getByRole('heading',{name:'Inventory'}).waitFor({state:'visible',timeout:10000});
+              await page.getByRole('heading',{name:'Inventory',exact:true}).waitFor({state:'visible',timeout:10000});
               await page.getByRole('button',{name:'Back to previous screen'}).click();
-              await page.getByRole('heading',{name:'Dashboard'}).waitFor({state:'visible',timeout:10000});
+              await page.getByRole('heading',{name:'Dashboard',exact:true}).waitFor({state:'visible',timeout:10000});
 
               // Verify both theme modes update tokens and restore the original setting.
               const themeButton = page.getByRole('button',{name:'Toggle colour theme'});
