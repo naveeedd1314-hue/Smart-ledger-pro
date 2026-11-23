@@ -43,6 +43,7 @@ const money = (n: number) =>
 
 export default function Inventory() {
   const [items, setItems] = useState<Product[]>(() => read<Product>('smartledger-products'))
+  const [showAddForm, setShowAddForm] = useState(false)
   const [adjustments, setAdjustments] = useState<Adjustment[]>(() => read<Adjustment>('smartledger-pro-stock-adjustments'))
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('All')
@@ -343,8 +344,15 @@ export default function Inventory() {
         })}
       </div>
 
-      <div className="rounded-xl bg-[var(--surface)] p-5 shadow-sm space-y-4">
-        <h2 className="text-lg font-semibold">Add New Product</h2>
+      <div className="flex flex-wrap gap-2">
+        <button type="button" onClick={()=>setShowAddForm(v=>!v)} className="flex items-center gap-2 rounded-xl sl-primary px-4 py-3 text-sm font-semibold text-white"><Plus size={17}/>{showAddForm?'Close product form':'Add new item'}</button>
+        <button type="button" onClick={()=>document.getElementById('stock-adjustment')?.scrollIntoView({behavior:'smooth',block:'start'})} className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm font-semibold"><ClipboardList size={17}/>Adjust stock</button>
+        <button type="button" onClick={exportInventoryCsv} className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm font-semibold"><FileSpreadsheet size={17}/>Export CSV</button>
+        <button type="button" onClick={exportInventoryPdf} className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm font-semibold"><FileDown size={17}/>Stock report</button>
+      </div>
+
+      {showAddForm && <div id="add-product" className="scroll-mt-28 rounded-xl bg-[var(--surface)] p-5 shadow-sm space-y-4">
+        <div className="flex items-center justify-between gap-2"><h2 className="text-lg font-semibold">Add New Product</h2><button type="button" onClick={()=>setShowAddForm(false)} className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs">Close</button></div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <label className="text-sm">Product name
             <input className="mt-1 w-full rounded-lg border p-3" value={name} onChange={e => setName(e.target.value)} placeholder="Product name" />
@@ -379,9 +387,9 @@ export default function Inventory() {
         <button onClick={addProduct} className="flex items-center gap-2 rounded-lg sl-primary px-5 py-3 font-semibold text-white">
           <Plus size={18} /> Add Product
         </button>
-      </div>
+      </div>}
 
-      <div className="rounded-xl bg-[var(--surface)] p-5 shadow-sm space-y-4">
+      <div id="stock-adjustment" className="scroll-mt-28 rounded-xl bg-[var(--surface)] p-5 shadow-sm space-y-4">
         <h2 className="text-lg font-semibold">Stock Adjustment</h2>
         <p className="text-sm text-[var(--text-2)]">Use positive quantity for stock inward and negative quantity for stock reduction. Every adjustment is recorded.</p>
         <div className="grid gap-3 sm:grid-cols-3">
