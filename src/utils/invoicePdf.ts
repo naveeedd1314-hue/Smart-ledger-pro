@@ -45,23 +45,30 @@ const money = (value: number) =>
 export function downloadInvoicePdf(
   record: InvoiceRecord,
   business: Business,
-  type: 'sales' | 'purchase'
+  type: 'sales' | 'purchase',
+  theme: 'classic' | 'modern' | 'minimal' | 'bold' = 'modern'
 ) {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const left = 15;
   const right = pageWidth - 15;
+  const palettes = { classic: { primary: [40, 55, 75] as [number, number, number], accent: [190, 150, 75] as [number, number, number] }, modern: { primary: [43, 72, 145] as [number, number, number], accent: [75, 115, 210] as [number, number, number] }, minimal: { primary: [65, 65, 65] as [number, number, number], accent: [145, 145, 145] as [number, number, number] }, bold: { primary: [20, 95, 75] as [number, number, number], accent: [25, 145, 105] as [number, number, number] } };
+  const palette = palettes[theme];
   let y = 20;
 
   const title = type === 'sales'
     ? (Number(record.taxAmount) > 0 ? 'TAX INVOICE' : 'SALES INVOICE')
     : 'PURCHASE RECORD';
 
+  doc.setFillColor(...palette.primary);
+  if (theme !== 'minimal') doc.rect(0, 0, pageWidth, 5, 'F');
+  doc.setTextColor(...palette.primary);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(19);
   doc.text(business.name || 'SmartLedger Business', left, y);
 
   y += 8;
+  doc.setTextColor(65, 65, 65);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
 
@@ -74,6 +81,7 @@ export function downloadInvoicePdf(
   });
 
   y += 7;
+  doc.setTextColor(...palette.accent);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(16);
   doc.text(title, right, 20, { align: 'right' });
