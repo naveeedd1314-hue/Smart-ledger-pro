@@ -43,6 +43,9 @@ jobs:
         run: npm install --no-save @capacitor/core @capacitor/android @capacitor/cli @capacitor/app @capacitor/assets firebase
       - name: Build web app
         run: npm run build
+      - name: Verify Firebase configuration is bundled
+        run: |
+          node -e "const fs=require('fs');const path=require('path');const walk=d=>fs.readdirSync(d,{withFileTypes:true}).flatMap(e=>e.isDirectory()?walk(path.join(d,e.name)):[path.join(d,e.name)]);const files=walk('dist').filter(f=>f.endsWith('.js'));const bundle=files.map(f=>fs.readFileSync(f,'utf8')).join('\\n');for(const value of ['smart-ledger-pro-2e75d.firebaseapp.com','smart-ledger-pro-2e75d']){if(!bundle.includes(value)){console.error('Missing Firebase config value:',value);process.exit(1)}}console.log('Firebase project configuration is present in the production bundle.')"
       - name: Generate Android project
         run: npx cap add android
       - name: Generate premium Android app icon and splash
