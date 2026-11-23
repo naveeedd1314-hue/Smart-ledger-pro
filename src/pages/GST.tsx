@@ -38,16 +38,20 @@ export default function GST() {
   const purchaseReturnSgst = returns.filter(x => x.type === 'Purchase Return').reduce((s, x) => s + (Number(x.sgst) || 0), 0)
   const purchaseReturnUtgst = returns.filter(x => x.type === 'Purchase Return').reduce((s, x) => s + (Number(x.utgst) || 0), 0)
   const purchaseReturnIgst = returns.filter(x => x.type === 'Purchase Return').reduce((s, x) => s + (Number(x.igst) || 0), 0)
-  const cgstOut = sales.reduce((s, x) => s + (Number(x.cgst) || 0), 0) - salesReturnCgst
-  const sgstOut = sales.reduce((s, x) => s + (Number(x.sgst) || 0), 0) - salesReturnSgst
-  const igstOut = sales.reduce((s, x) => s + (Number(x.igst) || 0), 0) - salesReturnIgst
-  const utgstOut = sales.reduce((s, x) => s + (Number(x.utgst) || 0), 0) - salesReturnUtgst
-  const cgstIn = purchases.reduce((s, x) => s + (Number(x.cgst) || 0), 0) - purchaseReturnCgst
-  const sgstIn = purchases.reduce((s, x) => s + (Number(x.sgst) || 0), 0) - purchaseReturnSgst
-  const igstIn = purchases.reduce((s, x) => s + (Number(x.igst) || 0), 0) - purchaseReturnIgst
-  const utgstIn = purchases.reduce((s, x) => s + (Number(x.utgst) || 0), 0) - purchaseReturnUtgst
-  const taxableSales = sales.reduce((s, x) => s + (Number(x.taxableValue) || 0), 0)
-  const taxablePurchases = purchases.reduce((s, x) => s + (Number(x.taxableValue) || 0), 0)
+  const cgstOut = Math.max(0, sales.reduce((s, x) => s + (Number(x.cgst) || 0), 0) - salesReturnCgst)
+  const sgstOut = Math.max(0, sales.reduce((s, x) => s + (Number(x.sgst) || 0), 0) - salesReturnSgst)
+  const igstOut = Math.max(0, sales.reduce((s, x) => s + (Number(x.igst) || 0), 0) - salesReturnIgst)
+  const utgstOut = Math.max(0, sales.reduce((s, x) => s + (Number(x.utgst) || 0), 0) - salesReturnUtgst)
+  const cgstIn = Math.max(0, purchases.reduce((s, x) => s + (Number(x.cgst) || 0), 0) - purchaseReturnCgst)
+  const sgstIn = Math.max(0, purchases.reduce((s, x) => s + (Number(x.sgst) || 0), 0) - purchaseReturnSgst)
+  const igstIn = Math.max(0, purchases.reduce((s, x) => s + (Number(x.igst) || 0), 0) - purchaseReturnIgst)
+  const utgstIn = Math.max(0, purchases.reduce((s, x) => s + (Number(x.utgst) || 0), 0) - purchaseReturnUtgst)
+  const grossTaxableSales = sales.reduce((s, x) => s + (Number(x.taxableValue) || 0), 0)
+  const grossTaxablePurchases = purchases.reduce((s, x) => s + (Number(x.taxableValue) || 0), 0)
+  const salesReturnTaxable = returns.filter(x => x.type === 'Sales Return').reduce((s, x) => s + (Number(x.amount) || 0), 0)
+  const purchaseReturnTaxable = returns.filter(x => x.type === 'Purchase Return').reduce((s, x) => s + (Number(x.amount) || 0), 0)
+  const taxableSales = Math.max(0, grossTaxableSales - salesReturnTaxable)
+  const taxablePurchases = Math.max(0, grossTaxablePurchases - purchaseReturnTaxable)
   const missingSales = sales.filter(x => x.taxAmount === undefined).length
   const missingPurchases = purchases.filter(x => x.taxAmount === undefined).length
 
@@ -55,8 +59,8 @@ export default function GST() {
     ['Output GST (Sales)', outputTax],
     ['Input GST (Purchases)', inputTax],
     ['Estimated Net GST', outputTax - inputTax],
-    ['Taxable Sales', taxableSales],
-    ['Taxable Purchases', taxablePurchases],
+    ['Net Taxable Sales', taxableSales],
+    ['Net Taxable Purchases', taxablePurchases],
     ['Sales Return GST Reversal', salesReturnTax],
     ['Purchase Return GST Reversal', purchaseReturnTax]
   ]
@@ -64,7 +68,7 @@ export default function GST() {
   return <section className="space-y-5">
     <div>
       <h1 className="text-2xl font-bold">GST & Tax Management</h1>
-      <p className="text-sm text-[var(--text-2)]">GST overview based on tax details saved in invoices.</p>
+      <p className="text-sm text-[var(--text-2)]">GST overview after recorded sales and purchase returns, based on tax details saved in invoices.</p>
     </div>
 
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
