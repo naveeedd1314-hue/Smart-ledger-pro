@@ -1,7 +1,7 @@
 import DataBackup from '../components/DataBackup';
 import { localDateISO } from '../lib/dateUtils';
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Search, Package, AlertTriangle, IndianRupee, Plus, ClipboardList, FileDown, FileSpreadsheet } from 'lucide-react'
+import { Search, Package, AlertTriangle, IndianRupee, Plus, ClipboardList, FileDown, FileSpreadsheet, Pencil, X } from 'lucide-react'
 import jsPDF from 'jspdf'
 
 type Product = {
@@ -44,6 +44,8 @@ const money = (n: number) =>
 export default function Inventory() {
   const [items, setItems] = useState<Product[]>(() => read<Product>('smartledger-products'))
   const [showAddForm, setShowAddForm] = useState(false)
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null)
+  const [editDraft, setEditDraft] = useState<Product | null>(null)
   const [adjustments, setAdjustments] = useState<Adjustment[]>(() => read<Adjustment>('smartledger-pro-stock-adjustments'))
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('All')
@@ -300,6 +302,23 @@ export default function Inventory() {
     alert('Product added successfully.')
   }
 
+  function openEdit(product: Product) { setEditingProduct(product); setEditDraft({ ...product }); }
+
+  function saveEdit() {
+    if (!editingProduct || !editDraft) return;
+    const draft = { ...editDraft, name: editDraft.name.trim(), sku: String(editDraft.sku || '').trim(), category: String(editDraft.category || 'General').trim() || 'General', purchase: Number(editDraft.purchase), selling: Number(editDraft.selling), wholesale: Number(editDraft.wholesale || 0), stock: Number(editDraft.stock), gstRate: Number(editDraft.gstRate || 0) };
+    if (!draft.name || ![draft.purchase,draft.selling,draft.wholesale,draft.stock,draft.gstRate].every(Number.isFinite) || draft.purchase < 0 || draft.selling < 0 || draft.wholesale < 0 || draft.stock < 0 || draft.gstRate < 0 || draft.gstRate > 100) { alert('Check item name, prices, stock and GST rate.'); return; }
+    if (items.some(x => x.id !== editingProduct.id && x.name.trim().toLowerCase() === draft.name.toLowerCase())) { alert('Another item already uses this name.'); return; }
+    if (draft.sku && items.some(x => x.id !== editingProduct.id && String(x.sku || '').toLowerCase() === draft.sku.toLowerCase())) { alert('This SKU / barcode is already used.'); return; }
+    const history = read<any>('smartledger-pro-price-history'); const now = new Date().toISOString();
+    if (Number(editingProduct.purchase) !== draft.purchase) history.unshift({ id: crypto.randomUUID(), productId: draft.id, productName: draft.name, field: 'purchase', oldPrice: Number(editingProduct.purchase)||0, newPrice: draft.purchase, date: localDateISO(), savedAt: now, source: 'Inventory item edit' });
+    if (Number(editingProduct.selling) !== draft.selling) history.unshift({ id: crypto.randomUUID(), productId: draft.id, productName: draft.name, field: 'selling', oldPrice: Number(editingProduct.selling)||0, newPrice: draft.selling, date: localDateISO(), savedAt: now, source: 'Inventory item edit' });
+    localStorage.setItem('smartledger-pro-price-history', JSON.stringify(history));
+    const stockDelta = draft.stock - Number(editingProduct.stock || 0); const next = items.map(x => x.id === draft.id ? draft : x); saveItems(next);
+    if (stockDelta) saveAdjustments([{ id: crypto.randomUUID(), date: localDateISO(), productId: draft.id, product: draft.name, change: stockDelta, movement: stockDelta > 0 ? 'Stock In' : 'Stock Out', stockAfter: draft.stock, reason: 'Manual item edit / stock correction' }, ...adjustments]);
+    setEditingProduct(null); setEditDraft(null);
+  }
+
   function changeStock() {
     if (stockAdjustLock.current) return;
     stockAdjustLock.current = true;
@@ -476,11 +495,11 @@ export default function Inventory() {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead><tr className="border-b text-[var(--text-2)]">
-              <th className="p-2">Product</th><th className="p-2">SKU</th><th className="p-2">HSN/SAC</th><th className="p-2">GST</th><th className="p-2">Category</th>
-              <th className="p-2">Last Purchase</th><th className="p-2">Average Cost</th><th className="p-2">Wholesale</th><th className="p-2">Selling</th><th className="p-2">Profit / Unit</th><th className="p-2">Stock</th><th className="p-2">Stock Value</th>
+              <th className="p-2">No.</th><th className="p-2">Product</th><th className="p-2">SKU</th><th className="p-2">HSN/SAC</th><th className="p-2">GST</th><th className="p-2">Category</th>
+              <th className="p-2">Last Purchase</th><th className="p-2">Average Cost</th><th className="p-2">Wholesale</th><th className="p-2">Selling</th><th className="p-2">Profit / Unit</th><th className="p-2">Stock</th><th className="p-2">Stock Value</th><th className="p-2">Actions</th>
             </tr></thead>
-            <tbody>{visibleItems.map(x => <tr key={x.id} className="border-b">
-              <td className="p-2 font-medium">{x.name}</td>
+            <tbody>{visibleItems.map((x, index) => <tr key={x.id} className="border-b hover:bg-[var(--surface-2)]">
+              <td className="p-2 text-[var(--text-2)]">{index + 1}</td><td className="p-2 font-medium">{x.name}</td>
               <td className="p-2">{x.sku || '—'}</td>
               <td className="p-2">{x.hsn || '—'}</td>
               <td className="p-2">{Number(x.gstRate) || 0}%</td>
@@ -492,11 +511,14 @@ export default function Inventory() {
               <td className="p-2 font-medium">{money((Number(x.selling) || 0) - (Number(x.averageCost ?? x.purchase) || 0))}</td>
               <td className={`p-2 font-semibold ${Number(x.stock) <= Number(lowLimit) ? 'text-[var(--amber)]' : ''}`}>{x.stock}</td>
               <td className="p-2">{money(Math.max(0, Number(x.stock) || 0) * (Number(x.averageCost ?? x.purchase) || 0))}</td>
+              <td className="p-2"><button type="button" onClick={() => openEdit(x)} title="Edit item and adjust stock" className="inline-flex items-center gap-1 rounded-lg border border-[var(--border)] px-3 py-2 text-xs font-semibold"><Pencil size={14}/> Edit / Adjust</button></td>
             </tr>)}</tbody>
           </table>
         </div>
         {filtered.length === 0 && <p className="py-6 text-center text-[var(--text-2)]">No matching products found.</p>}
       </div>
+
+      {editingProduct && editDraft && <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-3" role="dialog" aria-modal="true" aria-label="Edit inventory item"><div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-2xl"><div className="mb-4 flex items-center justify-between"><div><h2 className="text-lg font-bold">Edit item</h2><p className="text-xs text-[var(--text-2)]">Stock changes are recorded in audit history.</p></div><button type="button" onClick={()=>{setEditingProduct(null);setEditDraft(null)}} className="rounded-lg border p-2" aria-label="Close"><X size={18}/></button></div><div className="grid gap-3 sm:grid-cols-2">{([{key:'name',label:'Item name',type:'text'},{key:'sku',label:'SKU / Barcode',type:'text'},{key:'category',label:'Category',type:'text'},{key:'hsn',label:'HSN / SAC',type:'text'},{key:'purchase',label:'Last purchase price',type:'number'},{key:'selling',label:'Selling price',type:'number'},{key:'wholesale',label:'Wholesale price',type:'number'},{key:'stock',label:'Current stock (adjustable)',type:'number'},{key:'gstRate',label:'GST %',type:'number'}] as const).map(field=><label key={field.key} className="text-sm">{field.label}<input type={field.type} min={field.type==='number'?0:undefined} step={field.type==='number'?'any':undefined} value={String(editDraft[field.key] ?? '')} onChange={e=>setEditDraft({ ...editDraft, [field.key]: field.type==='number' ? Number(e.target.value) : e.target.value })} className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3"/></label>)}</div><div className="mt-5 flex flex-wrap justify-end gap-2"><button type="button" onClick={()=>{setEditingProduct(null);setEditDraft(null)}} className="rounded-xl border px-4 py-3 text-sm">Cancel</button><button type="button" onClick={saveEdit} className="rounded-xl sl-primary px-5 py-3 text-sm font-semibold text-white">Save changes</button></div></div></div>}
 
       <div className="rounded-xl bg-[var(--surface)] p-5 shadow-sm space-y-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
