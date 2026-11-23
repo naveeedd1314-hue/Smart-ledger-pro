@@ -9,18 +9,25 @@ import { migrateLegacyData } from './lib/dataMigration'
 
 migrateLegacyData()
 
-// Register once before React mounts so Android Back is always intercepted.
-if (Capacitor.isNativePlatform()) {
-  void CapacitorApp.addListener('backButton', () => {
-    window.dispatchEvent(new Event('smartledger:native-back'))
-  })
+// Await native listener registration before mounting the UI. Capacitor's
+// default Android Back action exits the activity when no listener is ready.
+async function bootstrap() {
+  if (Capacitor.getPlatform() === 'android') {
+    await CapacitorApp.addListener('backButton', ({ canGoBack }) => {
+      window.dispatchEvent(new CustomEvent('smartledger:native-back', {
+        detail: { canGoBack },
+      }))
+    })
+  }
+
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  )
 }
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+void bootstrap()
 
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
