@@ -12,7 +12,7 @@ SmartLedger Pro is a mobile-first business management application for retail and
 - Sales and purchase returns with stock and party-balance adjustments.
 - Reports, product margins, customer profitability, business analytics and strategy recommendations.
 - Market quotation and recorded price-movement tracking.
-- Local JSON backup and restore, plus a data-quality audit.
+- Local JSON backup and restore, a data-quality audit, and non-destructive one-time migration from legacy SmartLedger records.
 - Configurable minimum gross-margin alerts.
 - Installable web-app manifest and offline app-shell caching.
 
@@ -47,7 +47,7 @@ The app shell and previously loaded assets are cached for offline reopening afte
 
 ## Data and privacy
 
-Business records are currently stored in the browser's local storage on the device. Backup files should be exported regularly and stored somewhere safe. Restoring a backup overwrites matching SmartLedger data sections on that device.
+Business records are currently stored in the browser's local storage on the device. The first 5.0 launch checks for legacy SmartLedger keys and copies older records into the current sections without deleting the originals. Backup files should be exported regularly and stored somewhere safe. Restoring a backup overwrites matching SmartLedger data sections on that device.
 
 There is currently no cloud synchronisation or multi-device database.
 
