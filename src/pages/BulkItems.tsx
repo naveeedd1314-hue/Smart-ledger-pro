@@ -102,9 +102,14 @@ export default function BulkItems() {
       if (extension === 'xls' || extension === 'xlsx') {
         const buffer = await file.arrayBuffer()
         const workbook = XLSX.read(buffer, { type: 'array', cellDates: false })
-        const sheet = workbook.Sheets[workbook.SheetNames[0]]
-        if (!sheet) throw new Error('The workbook does not contain a readable worksheet.')
-        rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: false }) as string[][]
+        if (!workbook.SheetNames.length) throw new Error('The workbook does not contain a readable worksheet.')
+        const normalizeHeader = (value: unknown) => String(value ?? '').toLowerCase().replace(/[^a-z0-9]/g, '')
+        const productNameHeaders = new Set(['name','product','item','itemname','productname','itemdescription','description','stockitem','particulars'])
+        const worksheets = workbook.SheetNames.map(sheetName => {
+          const sheet = workbook.Sheets[sheetName]
+          return sheet ? XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: false }) as string[][] : []
+        })
+        rows = worksheets.find(sheetRows => sheetRows.some(row => row.some(value => productNameHeaders.has(normalizeHeader(value))))) || worksheets[0]
       } else if (extension === 'csv' || extension === 'tsv' || extension === 'txt') {
         rows = parseCSV(await file.text())
       } else {
