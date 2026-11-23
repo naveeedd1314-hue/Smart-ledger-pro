@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { localDateISO } from '../lib/dateUtils';
 import DataQualityMonitor from '../components/DataQualityMonitor';
+import { migrateLegacyData } from '../lib/dataMigration';
 
 const BACKUP_PREFIX = 'smartledger-';
 
@@ -66,7 +67,8 @@ export default function Settings() {
           const stored = typeof value === 'string' ? value : JSON.stringify(value);
           if (stored !== undefined) localStorage.setItem(key, stored);
         });
-        setBackupStatus(`Restored ${entries.length} data sections. Reload the app to refresh all screens.`);
+        migrateLegacyData(true);
+        setBackupStatus(`Restored ${entries.length} data sections. Legacy records were checked for migration. Reload the app to refresh all screens.`);
         window.alert('Backup restored. Reload the app to refresh all screens.');
       } catch (error) {
         setBackupStatus(error instanceof Error ? error.message : 'Invalid backup file.');
