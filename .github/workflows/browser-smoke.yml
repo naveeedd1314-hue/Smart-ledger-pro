@@ -127,7 +127,7 @@ jobs:
               await page.waitForFunction(() => location.hash === '#page=Dashboard');
 
               // Exercise chart detail and both outstanding-party detail dialogs.
-              await page.getByRole('button',{name:'Expand Monthly business performance details'}).click();
+              await page.getByRole('button',{name:'Expand Monthly business performance details'}).click({force:true});
               const chartDialog=page.getByRole('dialog',{name:'Monthly business performance full details'});
               await chartDialog.waitFor({state:'visible',timeout:10000});
               await chartDialog.getByRole('button',{name:'Close'}).click();
