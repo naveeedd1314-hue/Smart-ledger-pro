@@ -182,7 +182,7 @@ function App() {
   useEffect(() => {
     const handleShortcut = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); setSearchOpen(true); }
-      if (event.key === 'Escape') setSearchOpen(false);
+      if (event.key === 'Escape') { setSearchOpen(false); setSearchQuery(''); }
     };
     window.addEventListener('keydown', handleShortcut);
     return () => window.removeEventListener('keydown', handleShortcut);
