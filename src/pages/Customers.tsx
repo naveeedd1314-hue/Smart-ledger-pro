@@ -35,7 +35,7 @@ export default function Customers() {
 
   const filtered = items.filter(x => `${x.name} ${x.phone} ${x.address}`.toLowerCase().includes(search.toLowerCase()));
   const money = (n: number) => `₹${n.toLocaleString('en-IN')}`;
-  function editParty(item: Customer | Supplier) { setEditingId(item.id); setName(item.name); setPhone(item.phone || ''); setGstin(item.gstin || ''); setAddress(item.address || ''); setOpening(Number(item.opening) || 0); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  function editParty(item: Customer) { setEditingId(item.id); setName(item.name); setPhone(item.phone || ''); setGstin(item.gstin || ''); setAddress(item.address || ''); setOpening(Number(item.opening) || 0); window.scrollTo({ top: 0, behavior: 'smooth' }); }
   function cancelEdit() { setEditingId(null); setName(''); setPhone(''); setGstin(''); setAddress(''); setOpening(0); }
 
   return <section className="space-y-5">
