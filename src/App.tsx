@@ -317,17 +317,7 @@ function App() {
                   <td className="p-3">{x.detail}</td>
                   <td className="p-3 text-right font-semibold">₹{x.amount.toLocaleString('en-IN', {maximumFractionDigits: 2})}</td>
                 </tr>)}</tbody>
-              </table> : <div className="mt-4 overflow-x-auto">
-              {recentTransactions.length ? <table className="w-full text-left text-sm">
-                <thead><tr className="border-b text-[var(--text-2)]"><th className="p-2">Date</th><th className="p-2">Transaction</th><th className="p-2">Reference</th><th className="p-2 text-right">Amount</th></tr></thead>
-                <tbody>{recentTransactions.map((x, i) => <tr className="border-b border-[var(--border)]" key={`${x.kind}-${x.date}-${i}`}>
-                  <td className="p-3 whitespace-nowrap">{x.date || '—'}</td>
-                  <td className="p-3"><span className="font-medium">{x.title}</span><p className="text-xs text-[var(--text-2)]">{x.kind}</p></td>
-                  <td className="p-3">{x.detail}</td>
-                  <td className="p-3 text-right font-semibold">₹{x.amount.toLocaleString('en-IN', {maximumFractionDigits: 2})}</td>
-                </tr>)}</tbody>
               </table> : <div className="flex h-32 items-center justify-center text-sm text-[var(--text-2)]">No transactions recorded yet.</div>}
-            </div>}
             </div>
           </section>
 
@@ -335,7 +325,6 @@ function App() {
         </div>
         )}
       </main>
-      {menuOpen && <button aria-label="Close menu" onClick={() => setMenuOpen(false)} className="fixed inset-0 z-30 bg-black/55 backdrop-blur-[2px] md:hidden"/>}
     <BusinessAI />
 <BusinessIntelligence />
 <PriceAnalysis />
