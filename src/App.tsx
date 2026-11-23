@@ -24,7 +24,7 @@ import {
   Users, Truck, Wallet, ChartNoAxesCombined, FileText,
   Settings, Bell, Search, Menu, Plus, ArrowUpRight,
   ArrowDownRight, Boxes, CreditCard,
-  Receipt, ChevronDown, BookOpen, Sun, Moon, X
+  Receipt, ChevronDown, BookOpen, Sun, Moon, X, Zap, UserPlus, PackagePlus, FilePlus2, RotateCcw, Landmark
 } from 'lucide-react'
 
 const navigation = [
@@ -263,6 +263,27 @@ function App() {
             </button>
           </div>
         </header>
+
+        <nav aria-label="Quick actions" className="sticky top-20 z-20 border-b border-[var(--border)] bg-[var(--bg)]/95 px-3 py-2 backdrop-blur md:px-8">
+          <div className="mx-auto flex max-w-full items-center gap-2 overflow-x-auto pb-1">
+            <span className="sticky left-0 z-10 flex shrink-0 items-center gap-1 bg-[var(--bg)] pr-2 text-[10px] font-extrabold uppercase tracking-wider text-[var(--text-2)]"><Zap size={14}/> Quick</span>
+            {[
+              {label:'New Sale',page:'Sales',icon:ShoppingCart},
+              {label:'New Purchase',page:'Purchases',icon:ShoppingBag},
+              {label:'Add Item',page:'Inventory',icon:PackagePlus},
+              {label:'Bulk Import',page:'Bulk Items',icon:Boxes},
+              {label:'Add Customer',page:'Customers',icon:UserPlus},
+              {label:'Add Supplier',page:'Suppliers',icon:Truck},
+              {label:'Add Expense',page:'Expenses',icon:Wallet},
+              {label:'Record Payment',page:'Payments',icon:CreditCard},
+              {label:'Returns',page:'Returns',icon:RotateCcw},
+              {label:'GST',page:'GST & Tax',icon:FileText},
+              {label:'Ledger',page:'Ledger',icon:BookOpen},
+              {label:'Reports',page:'Reports',icon:ChartNoAxesCombined},
+              {label:'Settings',page:'Settings',icon:Settings},
+            ].map(action=>{const Icon=action.icon;return <button key={action.label} type="button" onClick={()=>setActive(action.page)} aria-label={action.label} title={action.label} className={`flex shrink-0 items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition hover:border-[var(--indigo)] hover:bg-[var(--indigo-tint)] hover:text-[var(--indigo-ink)] ${active===action.page?'border-[var(--indigo)] bg-[var(--indigo-tint)] text-[var(--indigo-ink)]':'border-[var(--border)] bg-[var(--surface)] text-[var(--text)]'}`}><Icon size={15}/>{action.label}</button>})}
+          </div>
+        </nav>
 
         {active === 'Command Centre' ? <BusinessCommandCentre /> : active === 'Analytics' ? <Analytics /> : active === 'Sales' ? <Sales /> : active === 'Purchases' ? <Purchases /> : active === 'Inventory' ? <Inventory /> : active === 'Bulk Items' ? <BulkItems /> : active === 'Customers' ? <Customers /> : active === 'Suppliers' ? <Suppliers /> : active === 'Expenses' ? <Expenses /> : active === 'Payments' ? <Payments /> : active === 'Reports' ? <Reports /> : active === 'Ledger' ? <Ledger /> : active === 'Returns' ? <Returns /> : active === 'GST & Tax' ? <GST /> : active === 'Settings' ? <SettingsPage /> : (
         <div className="mx-auto max-w-7xl p-4 md:p-8">
