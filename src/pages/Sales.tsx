@@ -5,7 +5,7 @@ import { MessageCircle, MessageSquare, Phone, Printer } from 'lucide-react';
 
 type Product = { id: string; name: string; selling: number; purchase: number; averageCost?: number | null; wholesale?: number; stock: number; sku?: string; category?: string; gstRate?: number; hsn?: string };
 const roundCurrency = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
-type Sale = { id: string; productId?: string; invoice: string; date: string; customer: string; product: string; qty: number; rate: number; total: number; paid: number; balance: number; purchasePrice?: number | null; taxableValue?: number; gstRate?: number; taxAmount?: number; cgst?: number; sgst?: number; utgst?: number; igst?: number; placeOfSupply?: string; hsn?: string; customerGstin?: string; customerAddress?: string };
+type Sale = { id: string; productId?: string; invoice: string; date: string; customer: string; product: string; qty: number; rate: number; discountPercent?: number; discountAmount?: number; total: number; paid: number; balance: number; purchasePrice?: number | null; taxableValue?: number; gstRate?: number; taxAmount?: number; cgst?: number; sgst?: number; utgst?: number; igst?: number; placeOfSupply?: string; hsn?: string; customerGstin?: string; customerAddress?: string };
 
 const readArray = <T,>(key: string): T[] => {
   try {
