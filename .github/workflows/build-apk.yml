@@ -38,7 +38,7 @@ jobs:
         with:
           packages: 'platform-tools'
       - name: Install dependencies
-        run: npm ci
+        run: npm install
       - name: Install Capacitor
         run: npm install --no-save @capacitor/core @capacitor/android @capacitor/cli @capacitor/app @capacitor/assets firebase
       - name: Build web app
