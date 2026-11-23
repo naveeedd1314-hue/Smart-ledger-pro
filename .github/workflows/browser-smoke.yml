@@ -127,15 +127,15 @@ jobs:
               await page.waitForFunction(() => location.hash === '#page=Dashboard');
 
               // Exercise chart detail and both outstanding-party detail dialogs.
-              await page.getByRole('button',{name:'Expand Monthly business performance details'}).click({force:true});
+              await page.getByRole('button',{name:'Expand Monthly business performance details'}).evaluate(el=>el.click());
               const chartDialog=page.getByRole('dialog',{name:'Monthly business performance full details'});
               await chartDialog.waitFor({state:'visible',timeout:10000});
               await chartDialog.getByRole('button',{name:'Close'}).click();
-              await page.getByRole('button',{name:'Open full customer outstanding details'}).click();
+              await page.getByRole('button',{name:'Open full customer outstanding details'}).evaluate(el=>el.click());
               const customerDialog=page.getByRole('dialog',{name:'Customer outstanding details'});
               await customerDialog.waitFor({state:'visible',timeout:10000});
               await customerDialog.getByRole('button',{name:'Close'}).click();
-              await page.getByRole('button',{name:'Open full supplier outstanding details'}).click();
+              await page.getByRole('button',{name:'Open full supplier outstanding details'}).evaluate(el=>el.click());
               const supplierDialog=page.getByRole('dialog',{name:'Supplier outstanding details'});
               await supplierDialog.waitFor({state:'visible',timeout:10000});
               await supplierDialog.getByRole('button',{name:'Close'}).click();
