@@ -176,12 +176,13 @@ function App() {
   const [active, setActive] = useState('Dashboard')
   const activeRef = useRef('Dashboard')
   const pageStack = useRef<string[]>(['Dashboard'])
-  const [menuOpen, setMenuOpen] = useState(false)
-  const [searchOpen, setSearchOpen] = useState(false)
-  const menuOpenRef = useRef(menuOpen)
-  const searchOpenRef = useRef(searchOpen)
-  menuOpenRef.current = menuOpen
-  searchOpenRef.current = searchOpen
+  const [menuOpen, setMenuOpenState] = useState(false)
+  const [searchOpen, setSearchOpenState] = useState(false)
+  const menuOpenRef = useRef(false)
+  const searchOpenRef = useRef(false)
+  const setMenuOpen = (value: boolean) => { menuOpenRef.current = value; setMenuOpenState(value); }
+  const setSearchOpen = (value: boolean) => { searchOpenRef.current = value; setSearchOpenState(value); }
+  const [searchQuery, setSearchQuery] = useState('')
   const setCurrentPage = (page: string) => { activeRef.current = page; setActive(page); };
   const navigate = (page: string) => {
     if (page === activeRef.current) return;
@@ -232,7 +233,6 @@ function App() {
     return () => window.removeEventListener('popstate', onBack);
   }, []);
 
-  const [searchQuery, setSearchQuery] = useState('')
   const searchResults = searchBusinessRecords(searchQuery)
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('smartledger-theme') === 'dark')
   useEffect(() => {
