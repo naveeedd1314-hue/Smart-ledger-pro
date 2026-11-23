@@ -64,6 +64,7 @@ export default function Inventory() {
   const [reason, setReason] = useState('Stock correction')
   const [movementFilter, setMovementFilter] = useState('All Movements')
   const [movementSearch, setMovementSearch] = useState('')
+  useEffect(() => { const openAdd = () => setShowAddForm(true); window.addEventListener('smartledger:inventory-add', openAdd); return () => window.removeEventListener('smartledger:inventory-add', openAdd); }, []);
   const addProductLock = useRef(false);
   const stockAdjustLock = useRef(false);
 
