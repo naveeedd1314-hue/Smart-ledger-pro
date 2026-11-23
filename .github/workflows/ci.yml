@@ -31,10 +31,5 @@ jobs:
           node --input-type=module -e "import fs from 'node:fs'; const manifest = JSON.parse(fs.readFileSync('public/manifest.webmanifest', 'utf8')); if (!manifest.name || !manifest.start_url || !Array.isArray(manifest.icons) || !manifest.icons.length) throw new Error('Invalid PWA manifest'); for (const icon of manifest.icons) if (!fs.existsSync('public/' + icon.src.replace(/^\\.\\//, ''))) throw new Error('Missing PWA icon: ' + icon.src)"
       - name: TypeScript and Vite production build
         run: npm run build
-        env:
-          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
-          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
-          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
-          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
       - name: ESLint code quality check
         run: npm run lint
