@@ -104,9 +104,14 @@ jobs:
                 }
                 await page.locator('[data-sl-dashboard] aside nav').getByRole('button',{name:moduleName}).click();
                 await page.waitForFunction(name => location.hash === '#page='+encodeURIComponent(name),moduleName,{timeout:10000});
-                const moduleState=await page.locator('[data-sl-dashboard] > main').evaluate(el=>({text:el.innerText.trim(),children:el.children.length}));
-                if(!moduleState.children || !moduleState.text) throw new Error(moduleName+' did not render content');
+                const moduleState=await page.evaluate(()=>{
+                  const root=document.querySelector('[data-sl-dashboard="true"]');
+                  const main=root?.querySelector('main');
+                  return {root:!!root,main:!!main,text:main?.innerText?.trim()||'',children:main?.children?.length||0,body:document.body.innerText.slice(0,900)};
+                });
+                if(!moduleState.root || !moduleState.main || !moduleState.children || !moduleState.text) throw new Error(moduleName+' did not render app shell/content: '+JSON.stringify(moduleState)+' runtime='+pageErrors.join(' | '));
                 if(pageErrors.length) throw new Error(moduleName+' triggered browser errors: '+pageErrors.join(' | '));
+                console.log('MODULE PASS '+size.name+' '+moduleName);
               }
               if (size.width < 768) {
                 const menuButton=page.getByRole('button',{name:'Open navigation menu'});
