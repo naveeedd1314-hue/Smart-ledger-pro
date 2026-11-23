@@ -24,7 +24,7 @@ jobs:
       - name: Install dependencies
         run: |
           npm ci
-          npm install --no-save @capacitor/core @capacitor/app
+          npm install --no-save @capacitor/core @capacitor/app firebase
       - name: Validate PWA manifest and service worker
         run: |
           node --check public/sw.js
