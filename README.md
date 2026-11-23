@@ -38,7 +38,7 @@ GitHub Actions runs the production build and ESLint checks on pushes to `main`.
 
 The application includes a web-app manifest and service worker. To publish it from this repository:
 
-1. Open **Settings → Pages** and set **Build and deployment → Source** to **GitHub Actions**.
+1. Open [**Settings → Pages**](https://github.com/naveeedd1314-hue/Smart-ledger-pro/settings/pages) and set **Build and deployment → Source** to **GitHub Actions**.
 2. Open **Actions → Deploy SmartLedger Pro PWA → Run workflow** on the `main` branch.
 3. After deployment succeeds, open [SmartLedger Pro](https://naveeedd1314-hue.github.io/Smart-ledger-pro/) in Chrome on Android.
 4. Open Chrome's menu and choose **Install app** or **Add to Home screen**.
