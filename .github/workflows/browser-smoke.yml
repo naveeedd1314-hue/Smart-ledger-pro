@@ -95,17 +95,29 @@ jobs:
 
               // On touch-enabled mobile emulation, send real Chromium touch input
               // through CDP (not synthetic DOM events) and verify native scrolling.
-              // Verify app navigation and the in-app back control.
+              // Visit every primary module without creating or changing business records.
+              const modules=['Command Centre','Analytics','Sales','Purchases','Inventory','Bulk Items','Customers','Suppliers','Expenses','Payments','Reports','Ledger','Returns','GST & Tax','Settings'];
+              for (const moduleName of modules) {
+                if (size.width < 768) {
+                  const menuButton=page.getByRole('button',{name:'Open navigation menu'});
+                  if (await menuButton.isVisible()) await menuButton.click();
+                }
+                await page.locator('[data-sl-dashboard] aside nav').getByRole('button',{name:moduleName,exact:true}).click();
+                await page.waitForFunction(name => location.hash === '#page='+encodeURIComponent(name),moduleName,{timeout:10000});
+                const moduleState=await page.locator('[data-sl-dashboard] > main').evaluate(el=>({text:el.innerText.trim(),children:el.children.length}));
+                if(!moduleState.children || !moduleState.text) throw new Error(moduleName+' did not render content');
+                if(pageErrors.length) throw new Error(moduleName+' triggered browser errors: '+pageErrors.join(' | '));
+              }
               if (size.width < 768) {
                 const menuButton=page.getByRole('button',{name:'Open navigation menu'});
-                if(await menuButton.isVisible()) await menuButton.click();
-                else await page.getByRole('button',{name:'Open navigation menu'}).click();
+                if (await menuButton.isVisible()) await menuButton.click();
               }
-              await page.locator('[data-sl-dashboard] aside nav').getByRole('button',{name:'Inventory'}).click();
-              await page.getByRole('heading',{name:'Inventory',exact:true}).waitFor({state:'visible',timeout:10000});
+              await page.locator('[data-sl-dashboard] aside nav').getByRole('button',{name:'Dashboard',exact:true}).click();
+              await page.waitForFunction(() => location.hash === '#page=Dashboard');
+              // Confirm the native/in-app back stack returns to the prior module.
+              await page.locator('[data-sl-dashboard] aside nav').getByRole('button',{name:'Inventory',exact:true}).click();
               await page.getByRole('button',{name:'Back to previous screen'}).click();
-              await page.getByRole('heading',{name:'Dashboard',exact:true}).waitFor({state:'visible',timeout:10000});
-
+              await page.waitForFunction(() => location.hash === '#page=Dashboard');
               // Verify both theme modes update tokens and restore the original setting.
               const themeButton = page.getByRole('button',{name:'Toggle colour theme'});
               const beforeTheme = await page.locator('html').getAttribute('data-theme');
