@@ -4,6 +4,8 @@ import DataQualityMonitor from '../components/DataQualityMonitor';
 import { migrateLegacyData } from '../lib/dataMigration';
 
 const BACKUP_PREFIX = 'smartledger-';
+const RESERVED_BACKUP_KEYS = new Set(['smartledger-auth-initialized', 'smartledger-active-user', 'smartledger-offline-session']);
+const isBusinessBackupKey = (key: string) => key.startsWith(BACKUP_PREFIX) && !key.startsWith('smartledger-user:') && !RESERVED_BACKUP_KEYS.has(key);
 
 type BusinessSettings = { name:string; phone:string; email:string; address:string; gstin:string; state:string; invoicePrefix:string; financialYear:string; targetMarginPercent:string; logo:string; signature:string };
 
@@ -26,7 +28,7 @@ export default function Settings() {
 
   function backup() {
     const data: Record<string, string> = {};
-    Object.keys(localStorage).filter(key => key.startsWith(BACKUP_PREFIX)).forEach(key => {
+    Object.keys(localStorage).filter(isBusinessBackupKey).forEach(key => {
       const value = localStorage.getItem(key);
       if (value !== null) data[key] = value;
     });
@@ -60,7 +62,7 @@ export default function Settings() {
           ? root.data as Record<string, unknown>
           : root;
         const entries = Object.entries(source).filter(([key, value]) =>
-          key.startsWith(BACKUP_PREFIX) && (typeof value === 'string' || value === null || typeof value === 'number' || typeof value === 'boolean' || Array.isArray(value) || (typeof value === 'object' && value !== null))
+          isBusinessBackupKey(key) && (typeof value === 'string' || value === null || typeof value === 'number' || typeof value === 'boolean' || Array.isArray(value) || (typeof value === 'object' && value !== null))
         );
         if (!entries.length) throw new Error('No valid SmartLedger data was found in this file.');
         const validated = entries.map(([key, value]) => {
