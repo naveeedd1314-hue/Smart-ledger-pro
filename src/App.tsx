@@ -122,6 +122,24 @@ function getRecentTransactions() {
   return records.sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''))).slice(0, 8)
 }
 
+type GlobalSearchResult = { title: string; detail: string; page: string; id: string };
+function searchBusinessRecords(query: string): GlobalSearchResult[] {
+  const q=query.trim().toLowerCase(); if(q.length<2)return [];
+  const results:GlobalSearchResult[]=[];
+  const add=(key:string,page:string,title:(x:any)=>string,detail:(x:any)=>string,searchable:(x:any)=>string)=>{
+    readData(key).forEach((item,index)=>{if(searchable(item).toLowerCase().includes(q))results.push({title:title(item),detail:detail(item),page,id:String(item.id??index)});});
+  };
+  add("smartledger-products","Inventory",x=>String(x.name||"Product"),x=>[x.sku,x.category].filter(Boolean).join(" · ")||"Inventory item",x=>[x.name,x.sku,x.category,x.hsn].join(" "));
+  add("smartledger-pro-sales","Sales",x=>String(x.invoice||"Sales invoice"),x=>[x.customer,x.product].filter(Boolean).join(" · "),x=>[x.invoice,x.customer,x.product].join(" "));
+  add("smartledger-pro-purchases","Purchases",x=>String(x.invoice||"Purchase invoice"),x=>[x.supplier,x.product].filter(Boolean).join(" · "),x=>[x.invoice,x.supplier,x.product].join(" "));
+  add("smartledger-pro-customers","Customers",x=>String(x.name||"Customer"),x=>[x.phone,x.address].filter(Boolean).join(" · "),x=>[x.name,x.phone,x.address,x.gstin].join(" "));
+  add("smartledger-pro-suppliers","Suppliers",x=>String(x.name||"Supplier"),x=>[x.phone,x.address].filter(Boolean).join(" · "),x=>[x.name,x.phone,x.address,x.gstin].join(" "));
+  add("smartledger-pro-payments","Payments",x=>String(x.type||"Payment"),x=>[x.party,x.reference,x.date].filter(Boolean).join(" · "),x=>[x.type,x.party,x.reference,x.note,x.date].join(" "));
+  add("smartledger-pro-expenses","Expenses",x=>String(x.category||"Expense"),x=>[x.description,x.date].filter(Boolean).join(" · "),x=>[x.category,x.description,x.date].join(" "));
+  add("smartledger-pro-returns","Returns",x=>String(x.invoice||x.type||"Return"),x=>[x.type,x.party,x.product,x.date].filter(Boolean).join(" · "),x=>[x.invoice,x.type,x.party,x.product,x.reason].join(" "));
+  return results.slice(0,12);
+}
+
 
 
 function getMonthlyPerformance() {
@@ -157,7 +175,18 @@ function getMonthlyPerformance() {
 function App() {
   const [active, setActive] = useState('Dashboard')
   const [menuOpen, setMenuOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const searchResults = searchBusinessRecords(searchQuery)
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('smartledger-theme') === 'dark')
+  useEffect(() => {
+    const handleShortcut = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); setSearchOpen(true); }
+      if (event.key === 'Escape') setSearchOpen(false);
+    };
+    window.addEventListener('keydown', handleShortcut);
+    return () => window.removeEventListener('keydown', handleShortcut);
+  }, [])
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light')
     localStorage.setItem('smartledger-theme', darkMode ? 'dark' : 'light')
@@ -225,13 +254,13 @@ function App() {
             <button aria-label="Toggle colour theme" title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} onClick={() => setDarkMode(v => !v)} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2.5 text-[var(--text)]">
               {darkMode ? <Sun size={18}/> : <Moon size={18}/>}
             </button>
-            <button className="hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2.5 sm:block"><Search size={18}/></button>
-            <button className="relative rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2.5"><Bell size={18}/><span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[var(--amber)]"/></button>
-            <div className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2">
+            <button type="button" aria-label="Search business records" title="Search (Ctrl+K)" onClick={() => setSearchOpen(true)} className="hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2.5 text-[var(--text)] transition hover:bg-[var(--surface-2)] sm:block"><Search size={18}/></button>
+            <button type="button" aria-label="Open business command centre" title="Business alerts and insights" onClick={() => setActive("Command Centre")} className="relative rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2.5 text-[var(--text)] transition hover:bg-[var(--surface-2)]"><Bell size={18}/><span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[var(--amber)]"/></button>
+            <button type="button" onClick={() => setActive("Settings")} title="Business settings" className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2 text-[var(--text)] transition hover:bg-[var(--surface-2)]">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--surface-2)] text-sm font-bold">S</div>
               <span className="hidden text-xs font-semibold sm:block">My Business</span>
               <ChevronDown size={14}/>
-            </div>
+            </button>
           </div>
         </header>
 
@@ -325,6 +354,14 @@ function App() {
         </div>
         )}
       </main>
+    {searchOpen && <div className="fixed inset-0 z-[10000] flex items-start justify-center bg-slate-950/60 p-3 pt-[12vh] backdrop-blur-sm sm:p-6" role="dialog" aria-modal="true" aria-label="Search business records" onMouseDown={event=>{if(event.target===event.currentTarget)setSearchOpen(false);}}>
+      <div className="w-full max-w-2xl overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] text-[var(--text)] shadow-2xl">
+        <div className="flex items-center gap-3 border-b border-[var(--border)] p-4"><Search size={20} className="text-[var(--text-2)]"/><input autoFocus value={searchQuery} onChange={event=>setSearchQuery(event.target.value)} placeholder="Search products, invoices, customers, suppliers…" className="min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-[var(--text-2)]"/><button type="button" onClick={()=>{setSearchOpen(false);setSearchQuery('')}} className="rounded-lg px-3 py-2 text-sm text-[var(--text-2)] hover:bg-[var(--surface-2)]">Esc</button></div>
+        <div className="max-h-[60vh] overflow-y-auto p-2">
+          {searchQuery.trim().length<2?<p className="p-4 text-sm text-[var(--text-2)]">Enter at least two characters to search your saved business records.</p>:searchResults.length?searchResults.map(result=><button type="button" key={result.page+result.id} onClick={()=>{setActive(result.page);setSearchOpen(false);setSearchQuery('')}} className="flex w-full items-start gap-3 rounded-xl p-3 text-left transition hover:bg-[var(--surface-2)]"><span className="mt-0.5 rounded-lg bg-[var(--indigo-tint)] px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-[var(--indigo-ink)]">{result.page}</span><span className="min-w-0"><strong className="block truncate text-sm">{result.title}</strong><span className="block truncate text-xs text-[var(--text-2)]">{result.detail}</span></span><ArrowUpRight size={15} className="ml-auto shrink-0 text-[var(--text-2)]"/></button>):<p className="p-4 text-sm text-[var(--text-2)]">No matching records found.</p>}
+        </div>
+      </div>
+    </div>}
     <BusinessAI />
 <BusinessIntelligence />
 <PriceAnalysis />
