@@ -36,6 +36,8 @@ export default function Returns() {
   const [qty,setQty] = useState(1);
   const [reason,setReason] = useState('Damaged goods');
   const [date,setDate] = useState(localDateISO());
+  const [historySearch,setHistorySearch] = useState('');
+  const [historyType,setHistoryType] = useState('All');
   const savingRef = useRef(false);
 
   const read = (key:string) => {
@@ -141,6 +143,8 @@ export default function Returns() {
     alert('Return recorded and inventory adjusted.');
   }
 
+  const filteredReturns=returns.filter(x=>(historyType==='All'||x.type===historyType)&&`${x.date} ${x.type} ${x.invoice} ${x.party} ${x.product} ${x.reason}`.toLowerCase().includes(historySearch.trim().toLowerCase()));
+
   const totalSales=returns.filter(x=>x.type==='Sales Return').reduce((s,x)=>s+(x.totalAmount ?? x.amount),0);
   const totalPurchases=returns.filter(x=>x.type==='Purchase Return').reduce((s,x)=>s+(x.totalAmount ?? x.amount),0);
 
@@ -224,7 +228,8 @@ export default function Returns() {
     </div>
 
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
-      <h2 className="mb-4 font-semibold">Return History ({returns.length})</h2>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><h2 className="font-semibold">Return History ({filteredReturns.length} of {returns.length})</h2><select aria-label="Filter return type" className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-2 text-sm" value={historyType} onChange={e=>setHistoryType(e.target.value)}><option>All</option><option>Sales Return</option><option>Purchase Return</option></select></div>
+      <input aria-label="Search return history" className="mb-4 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3 text-sm" value={historySearch} onChange={e=>setHistorySearch(e.target.value)} placeholder="Search invoice, party, product, date or reason"/>
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead><tr className="border-b text-[var(--text-2)]">
@@ -233,7 +238,7 @@ export default function Returns() {
             <th className="p-2">Product</th><th className="p-2">Qty</th>
             <th className="p-2">Value</th>
           </tr></thead>
-          <tbody>{returns.map(x=><tr key={x.id} className="border-b border-[var(--border)] hover:bg-[var(--surface-2)]">
+          <tbody>{filteredReturns.map(x=><tr key={x.id} className="border-b border-[var(--border)] hover:bg-[var(--surface-2)]">
             <td className="p-2">{x.date}</td><td className="p-2">{x.type}</td>
             <td className="p-2">{x.invoice}</td><td className="p-2">{x.party}</td>
             <td className="p-2">{x.product}</td><td className="p-2">{x.qty}</td>
@@ -241,7 +246,7 @@ export default function Returns() {
           </tr>)}</tbody>
         </table>
       </div>
-      {returns.length===0&&<p className="py-5 text-center text-[var(--text-2)]">No returns recorded yet.</p>}
+      {filteredReturns.length===0&&<p className="py-5 text-center text-[var(--text-2)]">{returns.length?'No returns match these filters.':'No returns recorded yet.'}</p>}
     </div>
   </section>;
 }
