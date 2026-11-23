@@ -1,3 +1,5 @@
+import { App as CapacitorApp } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
 import BusinessAdvisor from "./components/BusinessAdvisor";
 import PriceAnalysis from "./components/PriceAnalysis";
 import BusinessIntelligence from "./components/BusinessIntelligence";
@@ -181,8 +183,16 @@ function App() {
     window.history.pushState({ smartLedgerPage: page }, '', '#page=' + encodeURIComponent(page));
     setActive(page);
     setMenuOpen(false);
-    window.scrollTo({ top: 0, behavior: 'instant' });
+    window.scrollTo({ top: 0, behavior: 'auto' });
   };
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    const listener = CapacitorApp.addListener('backButton', () => {
+      if (active !== 'Dashboard') window.history.back();
+      else window.history.pushState({ smartLedgerPage: 'Dashboard' }, '', window.location.pathname + window.location.search + '#page=Dashboard');
+    });
+    return () => { void listener.then(handle => handle.remove()); };
+  }, [active]);
   useEffect(() => {
     window.history.replaceState({ smartLedgerPage: 'Dashboard' }, '', window.location.pathname + window.location.search + '#page=Dashboard');
     const onBack = (event: PopStateEvent) => {
@@ -309,7 +319,7 @@ function App() {
           return <nav aria-label={active + ' shortcuts'} className="sticky top-20 z-20 border-b border-[var(--border)] bg-[var(--bg)]/95 px-3 py-2 backdrop-blur md:px-8">
             <div className="mx-auto flex max-w-full items-center gap-2 overflow-x-auto pb-1">
               <span className="sticky left-0 z-10 flex shrink-0 items-center gap-1 bg-[var(--bg)] pr-2 text-[10px] font-extrabold uppercase tracking-wider text-[var(--text-2)]"><Zap size={14}/>{active}</span>
-              {actions.map(action=>{const Icon=action.icon;return <button key={action.label} type="button" onClick={()=>navigate(action.page)} aria-label={action.label} title={action.label} className="flex shrink-0 items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-xs font-semibold text-[var(--text)] transition hover:border-[var(--indigo)] hover:bg-[var(--indigo-tint)] hover:text-[var(--indigo-ink)]"><Icon size={15}/>{action.label}</button>})}
+              {actions.map(action=>{const Icon=action.icon;return <button key={action.label} type="button" onClick={()=>{ if(action.page===active && active==='Inventory' && action.label==='Add Item') window.dispatchEvent(new Event('smartledger:inventory-add')); else navigate(action.page); }} aria-label={action.label} title={action.label} className="flex shrink-0 items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-xs font-semibold text-[var(--text)] transition hover:border-[var(--indigo)] hover:bg-[var(--indigo-tint)] hover:text-[var(--indigo-ink)]"><Icon size={15}/>{action.label}</button>})}
             </div>
           </nav>;
         })()}
