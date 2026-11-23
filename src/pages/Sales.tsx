@@ -3,6 +3,7 @@ import { localDateISO } from '../lib/dateUtils';
 import { downloadInvoicePdf } from '../utils/invoicePdf';
 
 type Product = { id: string; name: string; selling: number; purchase: number; averageCost?: number | null; wholesale?: number; stock: number; sku?: string; category?: string; gstRate?: number; hsn?: string };
+const roundCurrency = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
 type Sale = { id: string; productId?: string; invoice: string; date: string; customer: string; product: string; qty: number; rate: number; total: number; paid: number; balance: number; purchasePrice?: number | null; taxableValue?: number; gstRate?: number; taxAmount?: number; cgst?: number; sgst?: number; utgst?: number; igst?: number; placeOfSupply?: string; hsn?: string; customerGstin?: string; customerAddress?: string };
 
 const readArray = <T,>(key: string): T[] => {
@@ -39,19 +40,19 @@ export default function Sales() {
   const scanFrameRef = useRef<number | null>(null);
 
   const selected = products.find(p => p.id === productId);
-  const taxableValue = qty * rate;
+  const taxableValue = roundCurrency(qty * rate);
   const gstRate = applyGST ? Number(selected?.gstRate) || 0 : 0;
-  const taxAmount = taxableValue * gstRate / 100;
+  const taxAmount = roundCurrency(taxableValue * gstRate / 100);
   const normalizeState = (value: string) => { const compact = value.trim().toLowerCase().replace(/[^a-z0-9]/g, ''); return compact === 'jk' || compact === '01' || compact === 'jammukashmir' ? 'jammuandkashmir' : compact; };
   const normalizedBusinessState = normalizeState(businessState);
   const normalizedPlaceState = normalizeState(placeOfSupply);
   const sameState = Boolean(normalizedBusinessState && normalizedPlaceState && normalizedPlaceState === normalizedBusinessState);
   const isJammuKashmir = normalizedBusinessState === 'jammuandkashmir';
-  const cgst = applyGST && sameState ? taxAmount / 2 : 0;
-  const sgst = applyGST && sameState && !isJammuKashmir ? taxAmount / 2 : 0;
-  const utgst = applyGST && sameState && isJammuKashmir ? taxAmount / 2 : 0;
+  const cgst = applyGST && sameState ? roundCurrency(taxAmount / 2) : 0;
+  const sgst = applyGST && sameState && !isJammuKashmir ? roundCurrency(taxAmount - cgst) : 0;
+  const utgst = applyGST && sameState && isJammuKashmir ? roundCurrency(taxAmount - cgst) : 0;
   const igst = applyGST && !sameState ? taxAmount : 0;
-  const total = taxableValue + taxAmount;
+  const total = roundCurrency(taxableValue + taxAmount);
   const saleCost = selected ? Number(selected.averageCost ?? selected.purchase) : 0;
   const estimatedGrossProfit = selected && Number.isFinite(saleCost) && saleCost > 0 && Number.isFinite(rate) ? (rate - saleCost) * qty : null;
 
