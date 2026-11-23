@@ -64,6 +64,8 @@ export default function DataBackup() {
           });
           throw error;
         }
+        setStatus(`Restored ${validated.length} data sections. Reloading the app…`);
+        window.setTimeout(() => window.location.reload(), 250);
       } catch (error) {
         setStatus(error instanceof Error ? error.message : 'Invalid SmartLedger backup file.');
       }
