@@ -98,27 +98,20 @@ jobs:
               if (size.width < 600) {
                 const cdp = await context.newCDPSession(page);
                 await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});
-                const swipe = async (x, yStart, yEnd) => {
-                  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y:yStart}]});
-                  for (let step=1; step<=5; step++) {
-                    const y=yStart+(yEnd-yStart)*step/5;
-                    await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x,y}]});
-                    await page.waitForTimeout(25);
-                  }
-                  await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
-                  await page.waitForTimeout(250);
-                };
                 await page.evaluate(()=>window.scrollTo(0,0));
-                await swipe(Math.round(size.width/2),size.height-110,Math.round(size.height/3));
+                await cdp.send('Input.synthesizeScrollGesture',{x:Math.round(size.width/2),y:Math.round(size.height/2),yDistance:-420,gestureSourceType:'touch',speed:900});
+                await page.waitForTimeout(350);
                 const touchPageScroll=await page.evaluate(()=>window.scrollY);
-                if(state.bodyHeight>state.viewportHeight && touchPageScroll<=0) throw new Error('Chromium touch swipe did not scroll the mobile page');
+                if(state.bodyHeight>state.viewportHeight && touchPageScroll<=0) throw new Error('Chromium touch gesture did not scroll the mobile page');
                 await page.evaluate(()=>window.scrollTo(0,0));
                 await page.getByRole('button',{name:'Open navigation menu'}).click();
                 const navBox=await page.locator('[data-sl-dashboard] aside nav').boundingBox();
                 if(navBox && sidebarScroll.scrollHeight>sidebarScroll.clientHeight) {
-                  await swipe(Math.round(navBox.x+navBox.width/2),Math.round(navBox.y+navBox.height-35),Math.round(navBox.y+35));
-                  const touchSidebarScroll=await sidebarNav.evaluate(el=>el.scrollTop);
-                  if(touchSidebarScroll<=0) throw new Error('Touch swipe did not scroll the sidebar');
+                  const navBefore=await sidebarNav.evaluate(el=>el.scrollTop);
+                  await cdp.send('Input.synthesizeScrollGesture',{x:Math.round(navBox.x+navBox.width/2),y:Math.round(navBox.y+navBox.height/2),yDistance:-360,gestureSourceType:'touch',speed:900});
+                  await page.waitForTimeout(350);
+                  const navAfter=await sidebarNav.evaluate(el=>el.scrollTop);
+                  if(navAfter<=navBefore) throw new Error('Chromium touch gesture did not scroll the mobile sidebar');
                 }
                 await cdp.detach();
               }
