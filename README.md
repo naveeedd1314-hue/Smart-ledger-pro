@@ -36,9 +36,14 @@ GitHub Actions runs the production build and ESLint checks on pushes to `main`.
 
 ## Android installation
 
-The application includes a web-app manifest and service worker. Deploy it over HTTPS, open it in Chrome on Android, then use **Install app** or **Add to Home screen** from the browser menu. The app shell and previously loaded assets are cached for offline reopening after the first successful visit.
+The application includes a web-app manifest and service worker. To publish it from this repository:
 
-This creates an installable web app (PWA), not an Android APK or a Google Play Store release.
+1. Open **Settings → Pages** and set **Build and deployment → Source** to **GitHub Actions**.
+2. Open **Actions → Deploy SmartLedger Pro PWA → Run workflow** on the `main` branch.
+3. After deployment succeeds, open [SmartLedger Pro](https://naveeedd1314-hue.github.io/Smart-ledger-pro/) in Chrome on Android.
+4. Open Chrome's menu and choose **Install app** or **Add to Home screen**.
+
+The app shell and previously loaded assets are cached for offline reopening after the first successful visit. This creates an installable web app (PWA), not an Android APK or a Google Play Store release. Business records remain on the device, so export backups regularly.
 
 ## Data and privacy
 
