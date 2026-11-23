@@ -93,9 +93,39 @@ jobs:
               });
               if (sidebarScroll.scrollHeight > sidebarScroll.clientHeight && !sidebarScroll.reached) throw new Error('Sidebar navigation did not scroll');
 
+              // On touch-enabled mobile emulation, send real Chromium touch input
+              // through CDP (not synthetic DOM events) and verify native scrolling.
+              if (size.width < 600) {
+                const cdp = await context.newCDPSession(page);
+                const swipe = async (x, yStart, yEnd) => {
+                  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y:yStart}]});
+                  for (let step=1; step<=5; step++) {
+                    const y=yStart+(yEnd-yStart)*step/5;
+                    await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x,y}]});
+                    await page.waitForTimeout(25);
+                  }
+                  await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+                  await page.waitForTimeout(250);
+                };
+                await swipe(Math.round(size.width/2),size.height-110,Math.round(size.height/3));
+                const touchPageScroll=await page.evaluate(()=>window.scrollY);
+                if(state.bodyHeight>state.viewportHeight && touchPageScroll<=0) throw new Error('Touch swipe did not scroll the page');
+                await page.evaluate(()=>window.scrollTo(0,0));
+                await page.getByRole('button',{name:'Open navigation menu'}).click();
+                const navBox=await page.locator('[data-sl-dashboard] aside nav').boundingBox();
+                if(navBox && sidebarScroll.scrollHeight>sidebarScroll.clientHeight) {
+                  await swipe(Math.round(navBox.x+navBox.width/2),Math.round(navBox.y+navBox.height-35),Math.round(navBox.y+35));
+                  const touchSidebarScroll=await sidebarNav.evaluate(el=>el.scrollTop);
+                  if(touchSidebarScroll<=0) throw new Error('Touch swipe did not scroll the sidebar');
+                }
+                await cdp.detach();
+              }
+
               // Verify app navigation and the in-app back control.
               if (size.width < 768) {
-                await page.getByRole('button',{name:'Open navigation menu'}).click();
+                const menuButton=page.getByRole('button',{name:'Open navigation menu'});
+                if(await menuButton.isVisible()) await menuButton.click();
+                else await page.getByRole('button',{name:'Open navigation menu'}).click();
               }
               await page.locator('[data-sl-dashboard] aside nav').getByRole('button',{name:'Inventory'}).click();
               await page.getByRole('heading',{name:'Inventory'}).waitFor({state:'visible',timeout:10000});
