@@ -120,10 +120,25 @@ jobs:
               }
               await page.locator('[data-sl-dashboard] aside nav').getByRole('button',{name:'Dashboard'}).click();
               await page.waitForFunction(() => location.hash === '#page=Dashboard');
-              // Confirm the native/in-app back stack returns to the prior module.
+              // Confirm the in-app back control returns to the previous module.
+              if (size.width < 768) await page.getByRole('button',{name:'Open navigation menu'}).click();
               await page.locator('[data-sl-dashboard] aside nav').getByRole('button',{name:'Inventory'}).click();
               await page.getByRole('button',{name:'Back to previous screen'}).click();
               await page.waitForFunction(() => location.hash === '#page=Dashboard');
+
+              // Exercise chart detail and both outstanding-party detail dialogs.
+              await page.getByRole('button',{name:'Expand Monthly business performance details'}).click();
+              const chartDialog=page.getByRole('dialog',{name:'Monthly business performance full details'});
+              await chartDialog.waitFor({state:'visible',timeout:10000});
+              await chartDialog.getByRole('button',{name:'Close'}).click();
+              await page.getByRole('button',{name:'Open full customer outstanding details'}).click();
+              const customerDialog=page.getByRole('dialog',{name:'Customer outstanding details'});
+              await customerDialog.waitFor({state:'visible',timeout:10000});
+              await customerDialog.getByRole('button',{name:'Close'}).click();
+              await page.getByRole('button',{name:'Open full supplier outstanding details'}).click();
+              const supplierDialog=page.getByRole('dialog',{name:'Supplier outstanding details'});
+              await supplierDialog.waitFor({state:'visible',timeout:10000});
+              await supplierDialog.getByRole('button',{name:'Close'}).click();
               // Verify both theme modes update tokens and restore the original setting.
               const themeButton = page.getByRole('button',{name:'Toggle colour theme'});
               const beforeTheme = await page.locator('html').getAttribute('data-theme');
