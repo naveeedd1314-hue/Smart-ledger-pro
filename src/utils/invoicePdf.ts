@@ -29,6 +29,8 @@ type InvoiceRecord = {
   balance: number;
   returnCredit?: number;
   taxableValue?: number;
+  discountPercent?: number;
+  discountAmount?: number;
   gstRate?: number;
   taxAmount?: number;
   cgst?: number;
@@ -133,7 +135,7 @@ export function downloadInvoicePdf(
   doc.text(record.hsn || '-', 85, y, { align: 'right' });
   doc.text(String(record.qty || 0), 108, y, { align: 'right' });
   doc.text(money(record.rate), 145, y, { align: 'right' });
-  doc.text(money(record.taxableValue ?? record.qty * record.rate), right, y, { align: 'right' });
+  doc.text(money(record.qty * record.rate), right, y, { align: 'right' });
 
   y += 12;
   doc.line(105, y, right, y);
@@ -145,6 +147,8 @@ export function downloadInvoicePdf(
     y += 7;
   };
 
+  addRow('Gross value', record.qty * record.rate);
+  if (Number(record.discountAmount) > 0) addRow(`Discount (${Number(record.discountPercent) || 0}%)`, Number(record.discountAmount) || 0);
   addRow('Taxable value', record.taxableValue ?? record.qty * record.rate);
 
   if (Number(record.taxAmount) > 0) {
