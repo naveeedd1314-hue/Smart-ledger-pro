@@ -26,6 +26,7 @@ export default function Sales() {
   const [customers] = useState<any[]>(() => readArray<any>('smartledger-pro-customers'));
   const [customer, setCustomer] = useState('Walk-in Customer');
   const [productSearch, setProductSearch] = useState('');
+  const [historySearch, setHistorySearch] = useState('');
   const [productId, setProductId] = useState('');
   const [qty, setQty] = useState(1);
   const [rate, setRate] = useState(0);
@@ -43,6 +44,7 @@ export default function Sales() {
   const scanFrameRef = useRef<number | null>(null);
 
   const selected = products.find(p => String(p.id) === String(productId));
+  const filteredSales = sales.filter(s => `${s.invoice} ${s.date} ${s.customer} ${s.product}`.toLowerCase().includes(historySearch.trim().toLowerCase()));
   const matchingProducts = products.filter(p => `${p.name} ${p.sku || ''} ${p.category || ''}`.toLowerCase().includes(productSearch.trim().toLowerCase())).slice(0, 12);
   const chooseProduct = (raw: string) => {
     setProductSearch(raw);
@@ -252,13 +254,13 @@ export default function Sales() {
       <button onClick={saveSale} className="rounded-lg sl-primary px-5 py-3 font-semibold text-white">Save Invoice</button>
     </div>
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
-      <h2 className="mb-4 font-semibold text-lg">Recent Sales</h2>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><h2 className="font-semibold text-lg">Sales History ({filteredSales.length} of {sales.length})</h2><input aria-label="Search sales history" className="w-full max-w-sm rounded-lg border border-[var(--border)] bg-[var(--surface-2)] p-3 text-sm" value={historySearch} onChange={e=>setHistorySearch(e.target.value)} placeholder="Search invoice, customer, product or date"/></div>
+      <div className="mb-3 flex flex-wrap items-center gap-2"><label className="text-sm font-medium">Invoice design <select className="ml-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-2" value={invoiceTheme} onChange={e=>setInvoiceTheme(e.target.value as typeof invoiceTheme)}><option value="modern">Modern</option><option value="classic">Classic</option><option value="minimal">Minimal</option><option value="bold">Bold</option></select></label><span className="text-xs text-[var(--text-2)]">Choose a design before downloading or printing.</span></div>
       <div className="overflow-x-auto"><table className="w-full text-left text-sm">
-        <div className="mb-3 flex flex-wrap items-center gap-2"><label className="text-sm font-medium">Invoice design <select className="ml-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-2" value={invoiceTheme} onChange={e=>setInvoiceTheme(e.target.value as typeof invoiceTheme)}><option value="modern">Modern</option><option value="classic">Classic</option><option value="minimal">Minimal</option><option value="bold">Bold</option></select></label><span className="text-xs text-[var(--text-2)]">Choose a design before downloading or printing.</span></div>
         <thead><tr className="border-b text-[var(--text-2)]"><th className="p-2">Invoice</th><th className="p-2">Date</th><th className="p-2">Customer</th><th className="p-2">Product</th><th className="p-2">Total</th><th className="p-2">Paid</th><th className="p-2">Return Credit</th><th className="p-2">Due</th><th className="p-2">Actions</th></tr></thead>
-        <tbody>{sales.map(s => <tr key={s.id} className="border-b border-[var(--border)] hover:bg-[var(--surface-2)]"><td className="p-2">{s.invoice}</td><td className="p-2">{s.date}</td><td className="p-2">{s.customer}</td><td className="p-2">{s.product} × {s.qty}</td><td className="p-2">{money(s.total)}</td><td className="p-2">{money(invoicePaid(s))}</td><td className="p-2">{money(invoiceReturnCredit(s))}</td><td className="p-2">{money(invoiceDue(s))}</td><td className="p-2"><div className="flex min-w-[190px] flex-wrap gap-1"><button title="Download invoice PDF" onClick={()=>downloadSaleInvoice(s)} className="rounded-lg sl-primary px-2 py-2 text-white"><Printer size={15}/></button><button title="Share invoice details on WhatsApp" onClick={()=>shareWhatsApp(s)} className="rounded-lg border border-[var(--border)] p-2"><MessageCircle size={15}/></button><button title="Send SMS" onClick={()=>shareSms(s)} className="rounded-lg border border-[var(--border)] p-2"><MessageSquare size={15}/></button><button title="Call customer" onClick={()=>callCustomer(s)} className="rounded-lg border border-[var(--border)] p-2"><Phone size={15}/></button></div></td></tr>)}</tbody>
+        <tbody>{filteredSales.map(s => <tr key={s.id} className="border-b border-[var(--border)] hover:bg-[var(--surface-2)]"><td className="p-2">{s.invoice}</td><td className="p-2">{s.date}</td><td className="p-2">{s.customer}</td><td className="p-2">{s.product} × {s.qty}</td><td className="p-2">{money(s.total)}</td><td className="p-2">{money(invoicePaid(s))}</td><td className="p-2">{money(invoiceReturnCredit(s))}</td><td className="p-2">{money(invoiceDue(s))}</td><td className="p-2"><div className="flex min-w-[190px] flex-wrap gap-1"><button title="Download invoice PDF" onClick={()=>downloadSaleInvoice(s)} className="rounded-lg sl-primary px-2 py-2 text-white"><Printer size={15}/></button><button title="Share invoice details on WhatsApp" onClick={()=>shareWhatsApp(s)} className="rounded-lg border border-[var(--border)] p-2"><MessageCircle size={15}/></button><button title="Send SMS" onClick={()=>shareSms(s)} className="rounded-lg border border-[var(--border)] p-2"><MessageSquare size={15}/></button><button title="Call customer" onClick={()=>callCustomer(s)} className="rounded-lg border border-[var(--border)] p-2"><Phone size={15}/></button></div></td></tr>)}</tbody>
       </table></div>
-      {sales.length === 0 && <p className="py-6 text-center text-[var(--text-2)]">No sales invoices yet.</p>}
+      {filteredSales.length === 0 && <p className="py-6 text-center text-[var(--text-2)]">{sales.length ? 'No invoices match this search.' : 'No sales invoices yet.'}</p>}
     </div>
   </section>;
 }
