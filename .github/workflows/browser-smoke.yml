@@ -1,4 +1,5 @@
 name: SmartLedger Pro browser smoke tests
+# Post-deploy verification for current main build.
 
 on:
   workflow_dispatch:
