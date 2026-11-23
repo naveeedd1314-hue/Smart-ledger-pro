@@ -25,6 +25,7 @@ export default function Sales() {
   const [returns] = useState<any[]>(() => readArray<any>('smartledger-pro-returns'));
   const [customers] = useState<any[]>(() => readArray<any>('smartledger-pro-customers'));
   const [customer, setCustomer] = useState('Walk-in Customer');
+  const [productSearch, setProductSearch] = useState('');
   const [productId, setProductId] = useState('');
   const [qty, setQty] = useState(1);
   const [rate, setRate] = useState(0);
@@ -41,7 +42,14 @@ export default function Sales() {
   const scanStreamRef = useRef<MediaStream | null>(null);
   const scanFrameRef = useRef<number | null>(null);
 
-  const selected = products.find(p => p.id === productId);
+  const selected = products.find(p => String(p.id) === String(productId));
+  const matchingProducts = products.filter(p => `${p.name} ${p.sku || ''} ${p.category || ''}`.toLowerCase().includes(productSearch.trim().toLowerCase())).slice(0, 12);
+  const chooseProduct = (raw: string) => {
+    setProductSearch(raw);
+    const match = products.find(p => `${p.name}${p.sku ? ` (${p.sku})` : ''}`.toLowerCase() === raw.trim().toLowerCase()) || products.find(p => String(p.sku || '').toLowerCase() === raw.trim().toLowerCase());
+    if (match) { setProductId(String(match.id)); setRate(Number(match.selling) || 0); }
+    else if (!raw.trim()) { setProductId(''); setRate(0); }
+  };
   const taxableValue = roundCurrency(qty * rate);
   const gstRate = applyGST ? Number(selected?.gstRate) || 0 : 0;
   const taxAmount = roundCurrency(taxableValue * gstRate / 100);
@@ -64,6 +72,7 @@ export default function Sales() {
     const match = products.find(p => String(p.sku || '').trim().toLowerCase() === code || String((p as any).barcode || '').trim().toLowerCase() === code);
     if (!match) { setScanError(`No inventory item matches barcode/SKU: ${rawCode.trim()}`); return; }
     setProductId(String(match.id));
+    setProductSearch(`${match.name}${match.sku ? ` (${match.sku})` : ''}`);
     setRate(Number(match.selling) || 0);
     setBarcodeInput(rawCode.trim());
     setScanError('');
@@ -168,6 +177,7 @@ export default function Sales() {
     setSales(updatedSales);
     setCustomer('Walk-in Customer');
     setProductId('');
+    setProductSearch('');
     setQty(1);
     setRate(0);
     setPaid(0);
@@ -204,13 +214,13 @@ export default function Sales() {
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm space-y-4">
       <h2 className="font-semibold text-lg">New Sales Invoice</h2>
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="text-sm">Customer name<input className="mt-1 w-full rounded-lg border p-3" value={customer} onChange={e => setCustomer(e.target.value)} /></label>
+        <label className="text-sm">Customer name<input list="sl-customer-options" autoComplete="off" className="mt-1 w-full rounded-lg border p-3" value={customer} onChange={e => setCustomer(e.target.value)} placeholder="Search or enter customer name" /><datalist id="sl-customer-options">{customers.map((c:any)=><option key={c.id || c.name} value={c.name}>{c.phone || ''}</option>)}</datalist></label>
         <div className="space-y-2 sm:col-span-2">
         <div className="flex flex-wrap gap-2"><input className="min-w-0 flex-1 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3" placeholder="Enter barcode / SKU" value={barcodeInput} onChange={e=>setBarcodeInput(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();findProductByBarcode(barcodeInput);}}}/><button type="button" onClick={()=>findProductByBarcode(barcodeInput)} className="rounded-xl border border-[var(--border)] px-3 py-2 text-sm">Find SKU</button><button type="button" onClick={scanning?stopBarcodeScan:startBarcodeScan} className="rounded-xl bg-[var(--indigo)] px-3 py-2 text-sm font-semibold text-white">{scanning?'Stop camera':'Scan barcode'}</button></div>
         <video ref={videoRef} autoPlay playsInline muted className={scanning?'w-full max-h-64 rounded-xl bg-black object-contain':'hidden'} />
         {scanError && <p role="status" className="text-xs text-[var(--amber)]">{scanError}</p>}
       </div>
-      <label className="text-sm">Product<select className="mt-1 w-full rounded-lg border p-3" value={productId} onChange={e => { const p = products.find(x => x.id === e.target.value); setProductId(e.target.value); setRate(p?.selling || 0); }}><option value="">Select product</option>{products.map(p => <option key={p.id} value={p.id}>{p.name} — Stock: {p.stock}</option>)}</select></label>
+      <label className="text-sm sm:col-span-2">Search and select item<input list="sl-product-options" autoComplete="off" className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3" value={productSearch} onChange={e=>chooseProduct(e.target.value)} placeholder="Type item name, SKU or category…" /><datalist id="sl-product-options">{matchingProducts.map(p=><option key={p.id} value={`${p.name}${p.sku ? ` (${p.sku})` : ''}`}>{`Stock ${p.stock} · ₹${Number(p.selling)||0}`}</option>)}</datalist>{selected && <span className="mt-2 block text-xs text-[var(--text-2)]">Selected: {selected.name} · Available stock: {selected.stock} · Retail price: {money(Number(selected.selling)||0)}</span>}</label>
         <label className="text-sm">Quantity<input type="number" min="0.01" step="any" className="mt-1 w-full rounded-lg border p-3" value={qty} onChange={e => setQty(Number(e.target.value))} /></label>
         <label className="text-sm">Selling rate<input type="number" min="0" step="any" className="mt-1 w-full rounded-lg border p-3" value={rate} onChange={e => setRate(Number(e.target.value))} /></label>
         <div className="flex flex-wrap items-end gap-2"><button type="button" disabled={!selected} onClick={() => setRate(Number(selected?.selling) || 0)} className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm disabled:opacity-40">Retail ₹{money(Number(selected?.selling) || 0)}</button><button type="button" disabled={!selected || !(Number(selected.wholesale) > 0)} onClick={() => setRate(Number(selected?.wholesale) || 0)} className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm disabled:opacity-40">Wholesale ₹{money(Number(selected?.wholesale) || 0)}</button></div>
