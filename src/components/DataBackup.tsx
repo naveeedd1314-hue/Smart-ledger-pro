@@ -2,13 +2,15 @@ import { localDateISO } from '../lib/dateUtils';
 import { useState } from 'react';
 
 const PREFIX = 'smartledger-';
+const RESERVED_BACKUP_KEYS = new Set(['smartledger-auth-initialized', 'smartledger-active-user', 'smartledger-offline-session']);
+const isBusinessBackupKey = (key: string) => key.startsWith(PREFIX) && !key.startsWith('smartledger-user:') && !RESERVED_BACKUP_KEYS.has(key);
 
 export default function DataBackup() {
   const [status, setStatus] = useState('');
 
   const backup = () => {
     const data: Record<string, string> = {};
-    Object.keys(localStorage).filter(key => key.startsWith(PREFIX)).forEach(key => {
+    Object.keys(localStorage).filter(isBusinessBackupKey).forEach(key => {
       const value = localStorage.getItem(key);
       if (value !== null) data[key] = value;
     });
@@ -42,7 +44,7 @@ export default function DataBackup() {
           ? root.data as Record<string, unknown>
           : root;
         const entries = Object.entries(source).filter(([key, value]) =>
-          key.startsWith(PREFIX) && (typeof value === 'string' || value === null || typeof value === 'number' || typeof value === 'boolean' || Array.isArray(value) || (typeof value === 'object' && value !== null))
+          isBusinessBackupKey(key) && (typeof value === 'string' || value === null || typeof value === 'number' || typeof value === 'boolean' || Array.isArray(value) || (typeof value === 'object' && value !== null))
         );
         if (!entries.length) throw new Error('No valid SmartLedger data was found in this file.');
         const validated = entries.map(([key, value]) => {
