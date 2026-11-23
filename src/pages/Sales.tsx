@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { localDateISO } from '../lib/dateUtils';
 import { downloadInvoicePdf } from '../utils/invoicePdf';
+import { MessageCircle, MessageSquare, Phone, Printer } from 'lucide-react';
 
 type Product = { id: string; name: string; selling: number; purchase: number; averageCost?: number | null; wholesale?: number; stock: number; sku?: string; category?: string; gstRate?: number; hsn?: string };
 const roundCurrency = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
@@ -28,6 +29,7 @@ export default function Sales() {
   const [qty, setQty] = useState(1);
   const [rate, setRate] = useState(0);
   const [paid, setPaid] = useState(0);
+  const [invoiceTheme, setInvoiceTheme] = useState<'classic' | 'modern' | 'minimal' | 'bold'>('modern');
   const [applyGST, setApplyGST] = useState(false);
   const [businessState] = useState(readBusinessState);
   const [placeOfSupply, setPlaceOfSupply] = useState(readBusinessState);
@@ -181,6 +183,17 @@ export default function Sales() {
   const invoicePaid = (sale: Sale) => (Number(sale.paid) || 0) + payments.filter(p => p.type === 'Customer Receipt').reduce((sum, p) => sum + (Array.isArray(p.allocations) ? p.allocations.filter((a: any) => String(a.invoiceId) === String(sale.id)).reduce((part: number, a: any) => part + (Number(a.amount) || 0), 0) : 0), 0);
   const invoiceDue = (sale: Sale) => { const total = Number(sale.total); const storedDue = Number.isFinite(total) ? Math.max(0, total - Number(sale.paid || 0)) : Math.max(0, Number(sale.balance) || 0); const allocated = invoicePaid(sale) - (Number(sale.paid) || 0); return Math.max(0, storedDue - allocated - invoiceReturnCredit(sale)); };
   const money = (n: number) => `₹${n.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
+  const invoiceRecord = (sale: Sale) => ({ ...sale, paid: invoicePaid(sale), returnCredit: invoiceReturnCredit(sale), balance: invoiceDue(sale) });
+  const businessProfile = () => { try { return JSON.parse(localStorage.getItem('smartledger-pro-settings') || '{}'); } catch { return {}; } };
+  const phoneFor = (sale: Sale) => String(customers.find((c: any) => String(c.name || '').trim().toLowerCase() === sale.customer.trim().toLowerCase())?.phone || '').replace(/[^+\\d]/g, '');
+  const invoiceMessage = (sale: Sale) => {
+    const phone = phoneFor(sale);
+    return `Hello ${sale.customer}, invoice ${sale.invoice} dated ${sale.date}. Total: ${money(sale.total)}. Paid: ${money(invoicePaid(sale))}. Balance due: ${money(invoiceDue(sale))}. Thank you — ${businessProfile().name || 'SmartLedger Business'}.`;
+  };
+  const shareWhatsApp = (sale: Sale) => { const phone = phoneFor(sale).replace(/^\\+/, ''); const url = `https://wa.me/${phone}?text=${encodeURIComponent(invoiceMessage(sale))}`; window.open(url, '_blank', 'noopener,noreferrer'); };
+  const shareSms = (sale: Sale) => { const phone = phoneFor(sale); window.location.href = `sms:${phone}?body=${encodeURIComponent(invoiceMessage(sale))}`; };
+  const callCustomer = (sale: Sale) => { const phone = phoneFor(sale); if (!phone) { alert('Add a phone number to this customer first.'); return; } window.location.href = `tel:${phone}`; };
+  const downloadSaleInvoice = (sale: Sale) => downloadInvoicePdf(invoiceRecord(sale), businessProfile(), 'sales', invoiceTheme);
 
   return <section className="space-y-6">
     <div><h1 className="text-2xl font-bold">Sales & Invoices</h1><p className="text-sm text-[var(--text-2)]">Create sales invoices and track customer balances.</p></div>
@@ -232,8 +245,9 @@ export default function Sales() {
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
       <h2 className="mb-4 font-semibold text-lg">Recent Sales</h2>
       <div className="overflow-x-auto"><table className="w-full text-left text-sm">
-        <thead><tr className="border-b text-[var(--text-2)]"><th className="p-2">Invoice</th><th className="p-2">Date</th><th className="p-2">Customer</th><th className="p-2">Product</th><th className="p-2">Total</th><th className="p-2">Paid</th><th className="p-2">Return Credit</th><th className="p-2">Due</th><th className="p-2">PDF</th></tr></thead>
-        <tbody>{sales.map(s => <tr key={s.id} className="border-b border-[#eee9dd] hover:bg-[var(--surface-2)]"><td className="p-2">{s.invoice}</td><td className="p-2">{s.date}</td><td className="p-2">{s.customer}</td><td className="p-2">{s.product} × {s.qty}</td><td className="p-2">{money(s.total)}</td><td className="p-2">{money(invoicePaid(s))}</td><td className="p-2">{money(invoiceReturnCredit(s))}</td><td className="p-2">{money(invoiceDue(s))}</td><td className="p-2"><button onClick={() => { let b = {}; try { b = JSON.parse(localStorage.getItem('smartledger-pro-settings') || '{}'); } catch {} downloadInvoicePdf({ ...s, paid: invoicePaid(s), returnCredit: invoiceReturnCredit(s), balance: invoiceDue(s) }, b, 'sales'); }} className="rounded sl-primary px-3 py-2 text-white">Download PDF</button></td></tr>)}</tbody>
+        <div className="mb-3 flex flex-wrap items-center gap-2"><label className="text-sm font-medium">Invoice design <select className="ml-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-2" value={invoiceTheme} onChange={e=>setInvoiceTheme(e.target.value as typeof invoiceTheme)}><option value="modern">Modern</option><option value="classic">Classic</option><option value="minimal">Minimal</option><option value="bold">Bold</option></select></label><span className="text-xs text-[var(--text-2)]">Choose a design before downloading or printing.</span></div>
+        <thead><tr className="border-b text-[var(--text-2)]"><th className="p-2">Invoice</th><th className="p-2">Date</th><th className="p-2">Customer</th><th className="p-2">Product</th><th className="p-2">Total</th><th className="p-2">Paid</th><th className="p-2">Return Credit</th><th className="p-2">Due</th><th className="p-2">Actions</th></tr></thead>
+        <tbody>{sales.map(s => <tr key={s.id} className="border-b border-[var(--border)] hover:bg-[var(--surface-2)]"><td className="p-2">{s.invoice}</td><td className="p-2">{s.date}</td><td className="p-2">{s.customer}</td><td className="p-2">{s.product} × {s.qty}</td><td className="p-2">{money(s.total)}</td><td className="p-2">{money(invoicePaid(s))}</td><td className="p-2">{money(invoiceReturnCredit(s))}</td><td className="p-2">{money(invoiceDue(s))}</td><td className="p-2"><div className="flex min-w-[190px] flex-wrap gap-1"><button title="Download invoice PDF" onClick={()=>downloadSaleInvoice(s)} className="rounded-lg sl-primary px-2 py-2 text-white"><Printer size={15}/></button><button title="Share invoice details on WhatsApp" onClick={()=>shareWhatsApp(s)} className="rounded-lg border border-[var(--border)] p-2"><MessageCircle size={15}/></button><button title="Send SMS" onClick={()=>shareSms(s)} className="rounded-lg border border-[var(--border)] p-2"><MessageSquare size={15}/></button><button title="Call customer" onClick={()=>callCustomer(s)} className="rounded-lg border border-[var(--border)] p-2"><Phone size={15}/></button></div></td></tr>)}</tbody>
       </table></div>
       {sales.length === 0 && <p className="py-6 text-center text-[var(--text-2)]">No sales invoices yet.</p>}
     </div>
