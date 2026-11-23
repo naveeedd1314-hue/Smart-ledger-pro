@@ -85,6 +85,30 @@ export default function Analytics() {
 
     const netSales = total('sales') - total('salesReturns');
     const netPurchases = total('purchases') - total('purchaseReturns');
+    let costedSalesRevenue = 0;
+    let costOfGoodsSold = 0;
+    let salesRevenueMissingCost = 0;
+    sales.filter(x => selected.has(findMonth(x.date))).forEach(x => {
+      const revenue = taxableValue(x);
+      const cost = Number(x.purchasePrice);
+      if (Number.isFinite(cost) && cost > 0) {
+        costedSalesRevenue += revenue;
+        costOfGoodsSold += (Number(x.qty) || 0) * cost;
+      } else {
+        salesRevenueMissingCost += revenue;
+      }
+    });
+    let costedSalesReturnRevenue = 0;
+    let returnedCost = 0;
+    returns.filter(x => x.type === 'Sales Return' && selected.has(findMonth(x.date))).forEach(x => {
+      const cost = Number(x.purchasePrice);
+      if (Number.isFinite(cost) && cost > 0) {
+        costedSalesReturnRevenue += Number(x.amount ?? x.totalAmount) || 0;
+        returnedCost += (Number(x.qty) || 0) * cost;
+      }
+    });
+    const costedGrossProfit = costedSalesRevenue - costedSalesReturnRevenue - costOfGoodsSold + returnedCost;
+    const costedNetProfit = costedGrossProfit - total('expenses');
 
     return {
       months,
@@ -95,6 +119,9 @@ export default function Analytics() {
       purchaseReturns: total('purchaseReturns'),
       netSales,
       netPurchases,
+      costedGrossProfit,
+      costedNetProfit,
+      salesRevenueMissingCost,
       products: Object.values(productMap).sort((a, b) => b.revenue - a.revenue).slice(0, 5),
       categories: Object.entries(expenseMap).sort((a, b) => b[1] - a[1]),
       salesCount: sales.filter(x => selected.has(findMonth(x.date))).length,
@@ -125,7 +152,10 @@ export default function Analytics() {
           ['Total Expenses', money(analytics.expenseTotal)],
           ['Sales Returns', money(analytics.salesReturns)],
           ['Sales Invoices', analytics.salesCount.toLocaleString('en-IN')],
-          ['Purchase Invoices', analytics.purchaseCount.toLocaleString('en-IN')]
+          ['Purchase Invoices', analytics.purchaseCount.toLocaleString('en-IN')],
+          ['Gross Profit (costed sales)', money(analytics.costedGrossProfit)],
+          ['Net Profit (costed sales)', money(analytics.costedNetProfit)],
+          ['Sales missing item cost', money(analytics.salesRevenueMissingCost)]
         ].map(([label, value]) => (
           <div key={label} className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
             <p className="text-sm text-[var(--text-2)]">{label}</p>
@@ -134,6 +164,7 @@ export default function Analytics() {
         ))}
       </div>
 
+      <p className="text-xs text-[var(--text-2)]">Profit figures include only sales with a recorded item purchase cost. Sales returns reduce costed revenue and restore the recorded returned-item cost. Expenses are deducted from this costed gross profit; no customer-level expense allocation is assumed.</p>
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
         <h2 className="mb-4 font-semibold">Monthly Performance</h2>
         {analytics.months.some(x => x.sales || x.purchases || x.expenses) ? (
