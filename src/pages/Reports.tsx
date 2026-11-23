@@ -1,35 +1,25 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 type Row = Record<string, unknown>;
 
+function readRecords(key: string): Row[] {
+  try {
+    const value = JSON.parse(localStorage.getItem(key) || '[]');
+    return Array.isArray(value) ? value : [];
+  } catch { return []; }
+}
+
 export default function Reports() {
-  const [sales, setSales] = useState<Row[]>([]);
-  const [purchases, setPurchases] = useState<Row[]>([]);
-  const [expenses, setExpenses] = useState<Row[]>([]);
-  const [payments, setPayments] = useState<Row[]>([]);
-  const [returns, setReturns] = useState<Row[]>([]);
-  const [products, setProducts] = useState<Row[]>([]);
-  const [customers, setCustomers] = useState<Row[]>([]);
-  const [suppliers, setSuppliers] = useState<Row[]>([]);
+  const [sales] = useState<Row[]>(() => readRecords('smartledger-pro-sales'));
+  const [purchases] = useState<Row[]>(() => readRecords('smartledger-pro-purchases'));
+  const [expenses] = useState<Row[]>(() => readRecords('smartledger-pro-expenses'));
+  const [payments] = useState<Row[]>(() => readRecords('smartledger-pro-payments'));
+  const [returns] = useState<Row[]>(() => readRecords('smartledger-pro-returns'));
+  const [products] = useState<Row[]>(() => readRecords('smartledger-products'));
+  const [customers] = useState<Row[]>(() => readRecords('smartledger-pro-customers'));
+  const [suppliers] = useState<Row[]>(() => readRecords('smartledger-pro-suppliers'));
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
-
-  useEffect(() => {
-    const read = (key: string): Row[] => {
-      try {
-        const value = JSON.parse(localStorage.getItem(key) || '[]');
-        return Array.isArray(value) ? value : [];
-      } catch { return []; }
-    };
-    setSales(read('smartledger-pro-sales'));
-    setPurchases(read('smartledger-pro-purchases'));
-    setExpenses(read('smartledger-pro-expenses'));
-    setPayments(read('smartledger-pro-payments'));
-    setReturns(read('smartledger-pro-returns'));
-    setProducts(read('smartledger-products'));
-    setCustomers(read('smartledger-pro-customers'));
-    setSuppliers(read('smartledger-pro-suppliers'));
-  }, []);
 
   const num = (v: unknown) => Number(v) || 0;
   const inRange = (row: Row) => {
