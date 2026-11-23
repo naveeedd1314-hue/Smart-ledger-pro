@@ -65,7 +65,7 @@ export default function Returns() {
   const targetCumulativeAmount = roundCurrency(sourceTaxable*cumulativeRatio);
   const amount = Math.max(0,roundCurrency(targetCumulativeAmount-alreadyReturnedAmount));
   const gstRate=Number(source?.gstRate)||0;
-  const targetCumulativeTax = source?.taxAmount !== undefined ? roundCurrency((Number(source.taxAmount)||0)*cumulativeRatio) : roundCurrency(amount*gstRate/100);
+  const targetCumulativeTax = source?.taxAmount !== undefined ? roundCurrency((Number(source.taxAmount)||0)*cumulativeRatio) : roundCurrency(sourceTaxable*gstRate/100*cumulativeRatio);
   const taxAmount = Math.max(0,roundCurrency(targetCumulativeTax-alreadyReturnedTax));
   const sourceHasIgst = (Number(source?.igst)||0)>0;
   const sourceHasCgst = (Number(source?.cgst)||0)>0;
