@@ -44,10 +44,10 @@ export default function Payments() {
     const id = String(invoice.id);
     const allocated = invoiceAllocations.filter((a: any) => String(a.invoiceId) === id && a.type === type).reduce((sum: number, a: any) => sum + (Number(a.amount) || 0), 0);
     const originalPaid = Number(invoice.paid) || 0;
-    const total = Number(invoice.total) || 0;
+    const total = Number(invoice.total ?? invoice.amount) || (Number(invoice.qty) * Number(invoice.rate)) || 0;
     const returnType = type === 'Customer Receipt' ? 'Sales Return' : 'Purchase Return';
     const returnCredit = returns.filter(x => x.type === returnType && String(x.originalId) === id).reduce((sum, x) => sum + (Number(x.totalAmount ?? x.amount) || 0), 0);
-    return { ...invoice, id, paidNow: originalPaid + allocated, returnCredit, dueNow: Math.max(0, total - originalPaid - allocated - returnCredit) };
+    return { ...invoice, id, total, paidNow: originalPaid + allocated, returnCredit, dueNow: Math.max(0, total - originalPaid - allocated - returnCredit) };
   }).filter((invoice: any) => invoice.dueNow > 0);
 
   const customerCredit = (name: string) => {
@@ -229,7 +229,7 @@ function shareInvoiceHistoryWhatsApp() {
       invoice: x.invoice || x.id,
       party: x.customer || 'Customer',
       type: 'Customer',
-      total: Number(x.total) || 0,
+      total: Number(x.total ?? x.amount) || (Number(x.qty) * Number(x.rate)) || 0,
       paid: (Number(x.paid) || 0) + invoiceAllocations.filter((a: any) => String(a.invoiceId) === String(x.id) && a.type === 'Customer Receipt').reduce((sum: number, a: any) => sum + (Number(a.amount) || 0), 0),
       credited: returns.filter(r => r.type === 'Sales Return' && String(r.originalId) === String(x.id)).reduce((sum, r) => sum + (Number(r.totalAmount ?? r.amount) || 0), 0),
       remaining: Math.max(0, (Number(x.total) || 0) - (Number(x.paid) || 0) - invoiceAllocations.filter((a: any) => String(a.invoiceId) === String(x.id) && a.type === 'Customer Receipt').reduce((sum: number, a: any) => sum + (Number(a.amount) || 0), 0) - returns.filter(r => r.type === 'Sales Return' && String(r.originalId) === String(x.id)).reduce((sum, r) => sum + (Number(r.totalAmount ?? r.amount) || 0), 0)),
@@ -246,7 +246,7 @@ function shareInvoiceHistoryWhatsApp() {
     })),
   ].map((x: any) => ({
     ...x,
-    status: x.remaining <= 0 ? (x.credited > 0 && x.paid < x.total ? 'Settled by return' : 'Fully Paid') : x.paid > 0 || x.credited > 0 ? 'Partially Settled' : 'Unpaid',
+    status: x.remaining <= 0 ? (x.credited > 0 && x.paid < x.total ? 'Settled by return' : 'Fully Paid') : x.paid > 0 ? 'Partially Paid' : x.credited > 0 ? 'Partially Settled' : 'Unpaid',
   }));
 
   const filteredInvoiceStatusRows = invoiceStatusRows.filter((x: any) =>
