@@ -5,6 +5,7 @@ import './smartledger-pro-theme.css'
 import { App as CapacitorApp } from '@capacitor/app'
 import { Capacitor } from '@capacitor/core'
 import App from './App.tsx'
+import AuthGate from './auth/AuthGate'
 import { migrateLegacyData } from './lib/dataMigration'
 
 migrateLegacyData()
@@ -22,7 +23,7 @@ async function bootstrap() {
 
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
-      <App />
+      <AuthGate><App /></AuthGate>
     </StrictMode>,
   )
 }
