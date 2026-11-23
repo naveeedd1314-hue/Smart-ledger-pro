@@ -102,7 +102,7 @@ jobs:
                   const menuButton=page.getByRole('button',{name:'Open navigation menu'});
                   if (await menuButton.isVisible()) await menuButton.click();
                 }
-                await page.locator('[data-sl-dashboard] aside nav').getByRole('button',{name:moduleName,exact:true}).click();
+                await page.locator('[data-sl-dashboard] aside nav').getByRole('button',{name:moduleName}).click();
                 await page.waitForFunction(name => location.hash === '#page='+encodeURIComponent(name),moduleName,{timeout:10000});
                 const moduleState=await page.locator('[data-sl-dashboard] > main').evaluate(el=>({text:el.innerText.trim(),children:el.children.length}));
                 if(!moduleState.children || !moduleState.text) throw new Error(moduleName+' did not render content');
@@ -112,10 +112,10 @@ jobs:
                 const menuButton=page.getByRole('button',{name:'Open navigation menu'});
                 if (await menuButton.isVisible()) await menuButton.click();
               }
-              await page.locator('[data-sl-dashboard] aside nav').getByRole('button',{name:'Dashboard',exact:true}).click();
+              await page.locator('[data-sl-dashboard] aside nav').getByRole('button',{name:'Dashboard'}).click();
               await page.waitForFunction(() => location.hash === '#page=Dashboard');
               // Confirm the native/in-app back stack returns to the prior module.
-              await page.locator('[data-sl-dashboard] aside nav').getByRole('button',{name:'Inventory',exact:true}).click();
+              await page.locator('[data-sl-dashboard] aside nav').getByRole('button',{name:'Inventory'}).click();
               await page.getByRole('button',{name:'Back to previous screen'}).click();
               await page.waitForFunction(() => location.hash === '#page=Dashboard');
               // Verify both theme modes update tokens and restore the original setting.
