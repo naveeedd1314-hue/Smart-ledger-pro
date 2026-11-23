@@ -44,6 +44,34 @@ jobs:
         run: npm run build
       - name: Generate Android project
         run: npx cap add android
+      - name: Install native hardware Back handler
+        run: |
+          mkdir -p android/app/src/main/java/com/srenterprises/smartledger
+          cat > android/app/src/main/java/com/srenterprises/smartledger/MainActivity.java <<'EOF'
+          package com.srenterprises.smartledger;
+
+          import android.os.Bundle;
+          import androidx.activity.OnBackPressedCallback;
+          import com.getcapacitor.BridgeActivity;
+
+          public class MainActivity extends BridgeActivity {
+              @Override
+              public void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+                      @Override
+                      public void handleOnBackPressed() {
+                          if (getBridge() != null && getBridge().getWebView() != null) {
+                              getBridge().getWebView().evaluateJavascript(
+                                  "window.dispatchEvent(new Event('smartledger:native-back'))",
+                                  null
+                              );
+                          }
+                      }
+                  });
+              }
+          }
+          EOF
       - name: Sync Android project
         run: npx cap sync android
       - name: Build debug APK
