@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { localDateISO } from '../lib/dateUtils';
 
 type RecordItem = Record<string, any>;
+const roundCurrency = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
 type ReturnItem = {
   id: string;
   originalId: string;
@@ -56,15 +57,25 @@ export default function Returns() {
   const alreadyReturned=returns.filter(x=>x.originalId===sourceId && x.type===type).reduce((s,x)=>s+x.qty,0);
   const remaining=Math.max(0,Number(source?.qty||0)-alreadyReturned);
   const rate=Number(source?.rate)||0;
-  const amount=qty*rate;
+  const alreadyReturnedTax = returns.filter(x=>x.originalId===sourceId && x.type===type).reduce((sum,x)=>sum+(x.taxAmount !== undefined ? Number(x.taxAmount)||0 : Math.max(0,(Number(x.totalAmount)||0)-(Number(x.amount)||0))),0);
+  const alreadyReturnedAmount = returns.filter(x=>x.originalId===sourceId && x.type===type).reduce((sum,x)=>sum+(Number(x.amount)||0),0);
+  const sourceQty = Number(source?.qty)||0;
+  const cumulativeRatio = sourceQty > 0 ? Math.min(1,(alreadyReturned+qty)/sourceQty) : 0;
+  const sourceTaxable = Number(source?.taxableValue ?? (sourceQty*rate))||0;
+  const targetCumulativeAmount = roundCurrency(sourceTaxable*cumulativeRatio);
+  const amount = Math.max(0,roundCurrency(targetCumulativeAmount-alreadyReturnedAmount));
   const gstRate=Number(source?.gstRate)||0;
-  const returnRatio = source && Number(source.qty) > 0 ? qty / Number(source.qty) : 0;
-  const taxAmount = source?.taxAmount !== undefined ? (Number(source.taxAmount) || 0) * returnRatio : amount * gstRate / 100;
-  const cgst = (Number(source?.cgst) || 0) * returnRatio;
-  const sgst = (Number(source?.sgst) || 0) * returnRatio;
-  const utgst = (Number(source?.utgst) || 0) * returnRatio;
-  const igst = (Number(source?.igst) || 0) * returnRatio;
-  const totalAmount=amount+taxAmount;
+  const targetCumulativeTax = source?.taxAmount !== undefined ? roundCurrency((Number(source.taxAmount)||0)*cumulativeRatio) : roundCurrency(amount*gstRate/100);
+  const taxAmount = Math.max(0,roundCurrency(targetCumulativeTax-alreadyReturnedTax));
+  const sourceHasIgst = (Number(source?.igst)||0)>0;
+  const sourceHasCgst = (Number(source?.cgst)||0)>0;
+  const sourceHasSgst = (Number(source?.sgst)||0)>0;
+  const sourceHasUtgst = (Number(source?.utgst)||0)>0;
+  const cgst = sourceHasCgst ? roundCurrency(taxAmount/2) : 0;
+  const sgst = sourceHasSgst ? roundCurrency(taxAmount-cgst) : 0;
+  const utgst = sourceHasUtgst ? roundCurrency(taxAmount-cgst) : 0;
+  const igst = sourceHasIgst ? taxAmount : 0;
+  const totalAmount=roundCurrency(amount+taxAmount);
   const money=(n:number)=>`₹${n.toLocaleString('en-IN',{maximumFractionDigits:2})}`;
 
   function changeType(next:'Sales Return'|'Purchase Return') {
