@@ -250,6 +250,38 @@ function App() {
   const metrics = getDashboardMetrics()
   const recentTransactions = getRecentTransactions()
   const monthlyPerformance = getMonthlyPerformance()
+  const [detailType, setDetailType] = useState<'Customer' | 'Supplier' | null>(null)
+  const salesByProduct = Object.values(readData('smartledger-pro-sales').reduce((map: Record<string, { name: string; amount: number }>, item: any) => {
+    const name = String(item.product || 'Other')
+    map[name] ||= { name, amount: 0 }
+    map[name].amount += Number(item.taxableValue ?? item.total ?? ((Number(item.qty) || 0) * (Number(item.rate) || 0))) || 0
+    return map
+  }, {})).sort((a,b)=>b.amount-a.amount).slice(0,6)
+  const expensesByCategory = Object.values(readData('smartledger-pro-expenses').reduce((map: Record<string, { name: string; amount: number }>, item: any) => {
+    const name = String(item.category || 'General')
+    map[name] ||= { name, amount: 0 }
+    map[name].amount += Number(item.amount) || 0
+    return map
+  }, {})).sort((a,b)=>b.amount-a.amount).slice(0,6)
+  const partyDetails = detailType ? (() => {
+    const isCustomer = detailType === 'Customer'
+    const parties = readData(isCustomer ? 'smartledger-pro-customers' : 'smartledger-pro-suppliers')
+    const invoices = readData(isCustomer ? 'smartledger-pro-sales' : 'smartledger-pro-purchases')
+    const payments = readData('smartledger-pro-payments')
+    const returns = readData('smartledger-pro-returns')
+    return parties.map((party: any) => {
+      const name = String(party.name || '')
+      const invoiceDue = invoices.filter((x: any) => (isCustomer ? x.customer : x.supplier) === name).reduce((sum: number, x: any) => {
+        const total = Number(x.total)
+        return sum + (Number.isFinite(total) ? Math.max(0, total - (Number(x.paid) || 0)) : Math.max(0, Number(x.balance) || 0))
+      }, 0)
+      const paid = payments.filter((x: any) => x.party === name && x.type === (isCustomer ? 'Customer Receipt' : 'Supplier Payment')).reduce((s: number,x: any)=>s+(Number(x.amount)||0),0)
+      const refunds = payments.filter((x: any) => x.party === name && x.type === (isCustomer ? 'Customer Refund' : 'Supplier Refund')).reduce((s: number,x: any)=>s+(Number(x.amount)||0),0)
+      const returnCredit = returns.filter((x: any) => x.party === name && x.type === (isCustomer ? 'Sales Return' : 'Purchase Return')).reduce((s: number,x: any)=>s+(Number(x.totalAmount ?? x.amount)||0),0)
+      const balance = Math.max(0, (Number(party.opening)||0) + invoiceDue + refunds - paid - returnCredit)
+      return { name, phone: party.phone || '', balance }
+    }).filter((x: any)=>x.balance>0).sort((a: any,b: any)=>b.balance-a.balance)
+  })() : []
 
   return (
     <div data-sl-dashboard="true" className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
@@ -357,57 +389,43 @@ function App() {
             </button>
           </div>
 
-          <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-2">
             {metrics.map((metric) => {
               const Icon = metric.icon
+              const detail = metric.label === 'To Collect' ? 'Customer' : metric.label === 'To Pay' ? 'Supplier' : null
               return (
-                <div key={metric.label} className="sl-metric-card rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
+                <button key={metric.label} type="button" onClick={() => detail && setDetailType(detail)} disabled={!detail}
+                  className={`sl-metric-card rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 text-left shadow-sm transition ${detail ? 'cursor-pointer hover:-translate-y-0.5 hover:border-[var(--indigo)] hover:shadow-md' : 'cursor-default'}`}
+                  aria-label={detail ? `Open full ${detail.toLowerCase()} outstanding details` : metric.label}>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-[var(--text-2)]">{metric.label}</span>
                     <span className="sl-metric-icon rounded-2xl p-3"><Icon size={20}/></span>
                   </div>
                   <p className="mt-5 text-2xl font-bold tracking-tight">{metric.value}</p>
-                  <p className="mt-2 text-xs text-[var(--text-2)]">{metric.change}</p>
-                </div>
+                  <p className="mt-2 text-xs text-[var(--text-2)]">{metric.change}{detail ? ' · Tap to view details' : ''}</p>
+                </button>
               )
             })}
           </section>
 
-          <section className="mt-6 grid grid-cols-1 gap-5 xl:grid-cols-3">
-            <div className="sl-dashboard-panel rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 xl:col-span-2">
-              <div className="flex items-center justify-between">
-                <div><h3 className="font-bold">Business performance</h3><p className="mt-1 text-xs text-[var(--text-2)]">Your financial activity will appear here.</p></div>
-                <span className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs text-[var(--text-2)]">Last 6 months</span>
-              </div>
-              <div className="mt-5 h-56 w-full">
-                {monthlyPerformance.length ? <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={monthlyPerformance}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip formatter={(value) => `₹${Number(value).toLocaleString('en-IN')}`} />
-                    <Legend />
-                    <Bar dataKey="sales" name="Net sales (before GST)" fill="var(--indigo)" />
-                    <Bar dataKey="purchases" name="Net purchases (before GST)" fill="var(--emerald)" />
-                    <Bar dataKey="expenses" name="Expenses" fill="var(--rose)" />
-                  </BarChart>
-                </ResponsiveContainer> : <p className="pt-20 text-center text-sm text-[var(--text-2)]">Add dated transactions to view performance.</p>}
-              </div>
+          <section className="mt-6 grid grid-cols-1 gap-5 xl:grid-cols-2">
+            <div className="sl-dashboard-panel rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5">
+              <h3 className="font-bold">Monthly business performance</h3><p className="mt-1 text-xs text-[var(--text-2)]">Sales, purchases and expenses</p>
+              <div className="mt-4 h-64">{monthlyPerformance.length ? <ResponsiveContainer width="100%" height="100%"><BarChart data={monthlyPerformance}><CartesianGrid strokeDasharray="3 3"/><XAxis dataKey="month"/><YAxis/><Tooltip formatter={(v)=>`₹${Number(v).toLocaleString('en-IN')}`}/><Legend/><Bar dataKey="sales" name="Sales" fill="var(--indigo)"/><Bar dataKey="purchases" name="Purchases" fill="var(--emerald)"/><Bar dataKey="expenses" name="Expenses" fill="var(--rose)"/></BarChart></ResponsiveContainer> : <p className="pt-24 text-center text-sm text-[var(--text-2)]">Add dated transactions to view performance.</p>}</div>
             </div>
-            <div className="sl-dashboard-panel rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6">
-              <h3 className="font-bold">Quick actions</h3>
-              <p className="mt-1 text-xs text-[var(--text-2)]">Common business operations</p>
-              <div className="mt-5 space-y-3">
-                {[
-                  {name:'Create sales invoice',icon:Receipt,page:'Sales'},
-                  {name:'Record purchase',icon:ShoppingBag,page:'Purchases'},
-                  {name:'Add new product',icon:Boxes,page:'Inventory'},
-                  {name:'Add customer',icon:Users,page:'Customers'},
-                  {name:'Record payment / receipt',icon:CreditCard,page:'Payments'},
-                ].map(action => {
-                  const Icon = action.icon
-                  return <button key={action.name} onClick={() => navigate(action.page)} className="flex w-full items-center gap-3 rounded-xl border border-[var(--border)] p-3 text-left text-sm font-medium hover:bg-[var(--bg)]"><Icon size={18} className="text-[var(--indigo)]"/>{action.name}<ArrowUpRight size={15} className="ml-auto text-[var(--text-2)]"/></button>
-                })}
+            <div className="sl-dashboard-panel rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5">
+              <h3 className="font-bold">Top-selling products</h3><p className="mt-1 text-xs text-[var(--text-2)]">Ranked by recorded sales value</p>
+              <div className="mt-4 h-64">{salesByProduct.length ? <ResponsiveContainer width="100%" height="100%"><BarChart data={salesByProduct} layout="vertical" margin={{left:12}}><CartesianGrid strokeDasharray="3 3"/><XAxis type="number"/><YAxis type="category" dataKey="name" width={100}/><Tooltip formatter={(v)=>`₹${Number(v).toLocaleString('en-IN')}`}/><Bar dataKey="amount" name="Sales value" fill="var(--indigo)" radius={[0,6,6,0]}/></BarChart></ResponsiveContainer> : <p className="pt-24 text-center text-sm text-[var(--text-2)]">No product sales recorded.</p>}</div>
+            </div>
+            <div className="sl-dashboard-panel rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5">
+              <h3 className="font-bold">Expense breakdown</h3><p className="mt-1 text-xs text-[var(--text-2)]">Expenses grouped by category</p>
+              <div className="mt-4 h-64">{expensesByCategory.length ? <ResponsiveContainer width="100%" height="100%"><BarChart data={expensesByCategory}><CartesianGrid strokeDasharray="3 3"/><XAxis dataKey="name"/><YAxis/><Tooltip formatter={(v)=>`₹${Number(v).toLocaleString('en-IN')}`}/><Bar dataKey="amount" name="Expense" fill="var(--rose)" radius={[6,6,0,0]}/></BarChart></ResponsiveContainer> : <p className="pt-24 text-center text-sm text-[var(--text-2)]">No expenses recorded.</p>}</div>
+            </div>
+            <div className="sl-dashboard-panel rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5">
+              <h3 className="font-bold">Outstanding balances</h3><p className="mt-1 text-xs text-[var(--text-2)]">Tap To Pay or To Collect above for the full party-wise list.</p>
+              <div className="mt-4 grid h-64 grid-cols-2 gap-3">
+                <button type="button" onClick={()=>setDetailType('Customer')} className="flex flex-col justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-4 text-left hover:border-[var(--indigo)]"><span className="text-xs text-[var(--text-2)]">To Collect</span><strong className="mt-2 text-xl">{metrics.find(x=>x.label==='To Collect')?.value}</strong><span className="mt-2 text-xs text-[var(--indigo)]">View customers →</span></button>
+                <button type="button" onClick={()=>setDetailType('Supplier')} className="flex flex-col justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-4 text-left hover:border-[var(--indigo)]"><span className="text-xs text-[var(--text-2)]">To Pay</span><strong className="mt-2 text-xl">{metrics.find(x=>x.label==='To Pay')?.value}</strong><span className="mt-2 text-xs text-[var(--indigo)]">View suppliers →</span></button>
               </div>
             </div>
           </section>
@@ -440,6 +458,16 @@ function App() {
         <div className="max-h-[60vh] overflow-y-auto p-2">
           {searchQuery.trim().length<2?<p className="p-4 text-sm text-[var(--text-2)]">Enter at least two characters to search your saved business records.</p>:searchResults.length?searchResults.map(result=><button type="button" key={result.page+result.id} onClick={()=>{navigate(result.page);setSearchOpen(false);setSearchQuery('')}} className="flex w-full items-start gap-3 rounded-xl p-3 text-left transition hover:bg-[var(--surface-2)]"><span className="mt-0.5 rounded-lg bg-[var(--indigo-tint)] px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-[var(--indigo-ink)]">{result.page}</span><span className="min-w-0"><strong className="block truncate text-sm">{result.title}</strong><span className="block truncate text-xs text-[var(--text-2)]">{result.detail}</span></span><ArrowUpRight size={15} className="ml-auto shrink-0 text-[var(--text-2)]"/></button>):<p className="p-4 text-sm text-[var(--text-2)]">No matching records found.</p>}
         </div>
+      </div>
+    </div>}
+    {detailType && <div className="fixed inset-0 z-[10001] flex items-start justify-center overflow-y-auto bg-slate-950/60 p-3 pt-[8vh] backdrop-blur-sm" role="dialog" aria-modal="true" aria-label={detailType + ' outstanding details'} onMouseDown={event=>{if(event.target===event.currentTarget)setDetailType(null);}}>
+      <div className="w-full max-w-3xl overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] text-[var(--text)] shadow-2xl">
+        <div className="flex items-center justify-between border-b border-[var(--border)] p-4"><div><h2 className="text-lg font-bold">{detailType === 'Customer' ? 'To Collect — Customer Receivables' : 'To Pay — Supplier Payables'}</h2><p className="text-xs text-[var(--text-2)]">Party-wise outstanding balances</p></div><button type="button" onClick={()=>setDetailType(null)} className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm">Close</button></div>
+        <div className="max-h-[65vh] overflow-auto p-4">
+          <div className="mb-3 flex justify-between text-sm"><span>{partyDetails.length} parties with outstanding balances</span><strong>{`₹${partyDetails.reduce((s,x)=>s+x.balance,0).toLocaleString('en-IN',{maximumFractionDigits:2})}`}</strong></div>
+          {partyDetails.length ? <table className="w-full text-left text-sm"><thead><tr className="border-b border-[var(--border)] text-[var(--text-2)]"><th className="p-2">#</th><th className="p-2">Party</th><th className="p-2">Phone</th><th className="p-2 text-right">Outstanding</th></tr></thead><tbody>{partyDetails.map((x,i)=><tr key={x.name} className="border-b border-[var(--border)]"><td className="p-2">{i+1}</td><td className="p-2 font-medium">{x.name}</td><td className="p-2">{x.phone||'—'}</td><td className="p-2 text-right font-semibold">{`₹${x.balance.toLocaleString('en-IN',{maximumFractionDigits:2})}`}</td></tr>)}</tbody></table> : <p className="py-10 text-center text-sm text-[var(--text-2)]">No outstanding balances found.</p>}
+        </div>
+        <div className="flex justify-end border-t border-[var(--border)] p-4"><button type="button" onClick={()=>{navigate(detailType==='Customer'?'Customers':'Suppliers');setDetailType(null)}} className="rounded-xl bg-[var(--indigo-ink)] px-4 py-2 text-sm font-semibold text-white">Open {detailType} List</button></div>
       </div>
     </div>}
     <BusinessAI />
