@@ -38,7 +38,7 @@ export default function Returns() {
   const [sales] = useState<RecordItem[]>(() => read('smartledger-pro-sales'));
   const [purchases] = useState<RecordItem[]>(() => read('smartledger-pro-purchases'));
   const [products,setProducts] = useState<RecordItem[]>(() => read('smartledger-products'));
-  const [returns,setReturns] = useState<ReturnItem[]>(() => read('smartledger-pro-returns'));
+  const [returns,setReturns] = useState<ReturnItem[]>(() => read('smartledger-pro-returns') as ReturnItem[]);
   const [sourceId,setSourceId] = useState('');
   const [qty,setQty] = useState(1);
   const [reason,setReason] = useState('Damaged goods');
