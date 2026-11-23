@@ -254,9 +254,9 @@ function App() {
             <button aria-label="Toggle colour theme" title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} onClick={() => setDarkMode(v => !v)} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2.5 text-[var(--text)]">
               {darkMode ? <Sun size={18}/> : <Moon size={18}/>}
             </button>
-            <button type="button" aria-label="Search business records" title="Search (Ctrl+K)" onClick={() => setSearchOpen(true)} className="hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2.5 text-[var(--text)] transition hover:bg-[var(--surface-2)] sm:block"><Search size={18}/></button>
+            <button type="button" aria-label="Search business records" title="Search (Ctrl+K)" onClick={() => setSearchOpen(true)} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2.5 text-[var(--text)] transition hover:bg-[var(--surface-2)]"><Search size={18}/></button>
             <button type="button" aria-label="Open business command centre" title="Business alerts and insights" onClick={() => setActive("Command Centre")} className="relative rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2.5 text-[var(--text)] transition hover:bg-[var(--surface-2)]"><Bell size={18}/><span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[var(--amber)]"/></button>
-            <button type="button" onClick={() => setActive("Settings")} title="Business settings" className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2 text-[var(--text)] transition hover:bg-[var(--surface-2)]">
+            <button type="button" onClick={() => setActive("Settings")} title="Business settings" className="hidden items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2 text-[var(--text)] transition hover:bg-[var(--surface-2)] sm:flex">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--surface-2)] text-sm font-bold">S</div>
               <span className="hidden text-xs font-semibold sm:block">My Business</span>
               <ChevronDown size={14}/>
