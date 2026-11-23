@@ -1,16 +1,40 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-<defs>
- <linearGradient id="bg" x1="8" y1="4" x2="120" y2="124" gradientUnits="userSpaceOnUse"><stop stop-color="#123C35"/><stop offset=".55" stop-color="#176B59"/><stop offset="1" stop-color="#102B36"/></linearGradient>
- <linearGradient id="gold" x1="24" y1="22" x2="102" y2="106" gradientUnits="userSpaceOnUse"><stop stop-color="#FFF1C2"/><stop offset="1" stop-color="#D5A94F"/></linearGradient>
- <linearGradient id="mint" x1="28" y1="26" x2="96" y2="100" gradientUnits="userSpaceOnUse"><stop stop-color="#B9F4D7"/><stop offset="1" stop-color="#51C69B"/></linearGradient>
- <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="5" stdDeviation="4" flood-color="#061B19" flood-opacity=".42"/></filter>
-</defs>
-<rect x="3" y="3" width="122" height="122" rx="34" fill="url(#bg)"/>
-<rect x="4.5" y="4.5" width="119" height="119" rx="32.5" fill="none" stroke="#E7D5A4" stroke-opacity=".42" stroke-width="2"/>
-<path d="M25 32c13-6 25-4 39 5v57c-14-9-26-11-39-5z" fill="url(#mint)" filter="url(#shadow)"/>
-<path d="M103 32c-13-6-25-4-39 5v57c14-9 26-11 39-5z" fill="url(#gold)" filter="url(#shadow)"/>
-<path d="M33 47c8-2 15-.7 22 3M33 59c8-2 15-.7 22 3M95 47c-8-2-15-.7-22 3M95 59c-8-2-15-.7-22 3" fill="none" stroke="#16483E" stroke-width="3.5" stroke-linecap="round"/>
-<path d="m44 79 12 11 28-30" fill="none" stroke="#0D5C49" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M90 88h10M90 97h7" stroke="#FFF0C4" stroke-width="3" stroke-linecap="round" opacity=".85"/>
-<circle cx="98" cy="25" r="5" fill="#F4D98B"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="44" y1="22" x2="468" y2="490" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#123E35"/><stop offset=".52" stop-color="#0D5145"/><stop offset="1" stop-color="#081F2B"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="180" y1="124" x2="392" y2="390" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF2C8"/><stop offset=".48" stop-color="#E9C879"/><stop offset="1" stop-color="#B98434"/>
+    </linearGradient>
+    <linearGradient id="mint" x1="100" y1="120" x2="280" y2="400" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#D6FFE8"/><stop offset=".52" stop-color="#7FE0B6"/><stop offset="1" stop-color="#36A982"/>
+    </linearGradient>
+    <linearGradient id="edge" x1="84" y1="72" x2="428" y2="444" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" stop-opacity=".34"/><stop offset="1" stop-color="#FFFFFF" stop-opacity=".03"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-25%" width="160%" height="170%">
+      <feDropShadow dx="0" dy="18" stdDeviation="15" flood-color="#020E12" flood-opacity=".55"/>
+    </filter>
+    <filter id="glow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="12"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="116" fill="url(#bg)"/>
+  <rect x="8" y="8" width="496" height="496" rx="110" fill="none" stroke="url(#edge)" stroke-width="5"/>
+  <path d="M92 132c54-26 112-18 164 17v236c-58-36-112-43-164-18z" fill="#62D7AA" opacity=".14" filter="url(#glow)"/>
+  <g filter="url(#shadow)">
+    <path d="M88 126c60-25 114-17 168 18v252c-54-34-108-43-168-19z" fill="url(#mint)"/>
+    <path d="M424 126c-60-25-114-17-168 18v252c54-34 108-43 168-19z" fill="url(#gold)"/>
+    <path d="M88 126c60-25 114-17 168 18v252c-54-34-108-43-168-19z" fill="none" stroke="#E4FFF0" stroke-opacity=".62" stroke-width="5"/>
+    <path d="M424 126c-60-25-114-17-168 18v252c54-34 108-43 168-19z" fill="none" stroke="#FFF5D8" stroke-opacity=".7" stroke-width="5"/>
+    <path d="M256 144v252" stroke="#0A493D" stroke-width="11" stroke-linecap="round" opacity=".8"/>
+    <path d="M116 190c37-11 70-5 105 12M116 230c37-11 70-5 105 12M116 270c37-11 70-5 105 12" fill="none" stroke="#145D4A" stroke-width="10" stroke-linecap="round" opacity=".68"/>
+    <path d="M396 190c-34-11-67-5-101 12M396 230c-34-11-67-5-101 12" fill="none" stroke="#805B27" stroke-width="10" stroke-linecap="round" opacity=".45"/>
+    <path d="m293 324 39-42 30 20 47-68" fill="none" stroke="#0C5A49" stroke-width="17" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="m377 234 32-9-7 33" fill="none" stroke="#0C5A49" stroke-width="17" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="409" cy="225" r="10" fill="#FFF7D9"/>
+  </g>
+  <path d="M126 422c49-12 88-5 130 19 42-24 81-31 130-19" fill="none" stroke="#F6D98F" stroke-width="8" stroke-linecap="round" opacity=".92"/>
+  <circle cx="392" cy="94" r="13" fill="#F4D58C"/>
+  <circle cx="392" cy="94" r="27" fill="#F4D58C" opacity=".13"/>
 </svg>
