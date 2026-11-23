@@ -12,6 +12,8 @@ export default function Settings() {
     catch { return defaults; }
   });
   const [backupStatus, setBackupStatus] = useState('');
+  const [migrationInfo] = useState(() => { try { return JSON.parse(localStorage.getItem('smartledger-pro-migration-v1') || 'null'); } catch { return null; } });
+  const migratedSections = Object.entries(migrationInfo?.migrated || {}).map(([key, count]) => `${key.replace('smartledger-pro-', '').replace('smartledger-', '')}: ${count}`).join(' · ');
 
   function save() {
     const targetMargin = Number(business.targetMarginPercent);
@@ -98,6 +100,7 @@ export default function Settings() {
       <p className="text-xs text-[var(--text-2)]">Products below this margin are flagged in Business Strategy and SmartLedger AI. This is a monitoring threshold, not an automatic price change.</p>
       <button onClick={save} className="rounded-xl bg-[var(--indigo)] px-5 py-3 font-semibold text-white shadow-sm transition hover:bg-[var(--indigo-ink)]">Save Settings</button>
     </div>
+    {migrationInfo && <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-4 text-sm"><strong>Legacy data migration checked</strong><p className="mt-1 text-[var(--text-2)]">{migratedSections ? `Imported records — ${migratedSections}.` : "No legacy records needed importing."} Original legacy data keys remain preserved on this device.</p></div>}
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm space-y-3">
       <h2 className="text-lg font-semibold">Data Backup & Restore</h2>
       <p className="text-sm text-[var(--text-2)]">Export all SmartLedger local records to a portable JSON backup, or restore a backup created by SmartLedger. Existing matching sections are overwritten; unrelated device data is preserved.</p>
