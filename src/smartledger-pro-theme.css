@@ -1012,3 +1012,103 @@ main :where(.bg-blue-50,.bg-sky-50) {background:#26363A!important;color:#B9D4D9!
 @media(prefers-reduced-motion:reduce) {
   [data-sl-dashboard] * {transition:none!important;animation:none!important}
 }
+
+
+/* Dashboard layout refresh based on the supplied mobile reference.
+   All colours inherit the existing SmartLedger graphite / teal / gold theme. */
+[data-sl-dashboard] .sl-dashboard-content {max-width:1180px;}
+[data-sl-dashboard] .sl-dashboard-heading {
+  min-height:112px;
+  margin-bottom:18px!important;
+  border-radius:18px!important;
+  padding:18px 20px!important;
+}
+[data-sl-dashboard] .sl-dashboard-heading h2 {font-size:clamp(1.25rem,2.8vw,1.7rem)!important;}
+[data-sl-dashboard] .sl-section-heading {
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin:18px 2px 10px;
+}
+[data-sl-dashboard] .sl-section-heading h3 {
+  margin:0;font-size:13px;font-weight:850;letter-spacing:.015em;color:var(--text);
+}
+[data-sl-dashboard] .sl-section-heading p {
+  margin-top:3px;font-size:10px;color:var(--text-2);
+}
+[data-sl-dashboard] .sl-section-heading > span,
+[data-sl-dashboard] .sl-section-heading > button {
+  flex:0 0 auto;font-size:10px;font-weight:750;color:var(--teal-ink);
+}
+[data-sl-dashboard] main > nav[aria-label="Dashboard shortcuts"] {
+  padding:9px 16px 11px!important;
+}
+[data-sl-dashboard] main > nav[aria-label="Dashboard shortcuts"] > div {
+  align-items:flex-start!important;gap:11px!important;
+}
+[data-sl-dashboard] main > nav[aria-label="Dashboard shortcuts"] > div > span {
+  align-self:center;min-width:max-content;
+}
+[data-sl-dashboard] main > nav[aria-label="Dashboard shortcuts"] button {
+  width:72px;min-width:72px;min-height:75px;height:75px;
+  flex-direction:column;justify-content:center;gap:7px;
+  padding:9px 5px!important;border-radius:15px!important;
+  font-size:10px;line-height:1.1;white-space:normal;
+}
+[data-sl-dashboard] main > nav[aria-label="Dashboard shortcuts"] button svg {
+  width:21px;height:21px;flex:0 0 auto;
+}
+[data-sl-dashboard] .sl-overview-chips {
+  display:flex!important;gap:10px!important;overflow-x:auto;
+  padding:2px 2px 12px;scrollbar-width:thin;
+  scroll-snap-type:x proximity;
+}
+[data-sl-dashboard] .sl-overview-chips .sl-metric-card {
+  flex:0 0 174px;min-width:174px;min-height:130px;
+  padding:14px!important;border-radius:15px!important;
+  scroll-snap-align:start;
+}
+[data-sl-dashboard] .sl-overview-chips .sl-metric-card p:first-of-type {
+  margin-top:13px!important;font-size:19px!important;
+}
+[data-sl-dashboard] .sl-overview-chips .sl-metric-card > div:first-child > span:first-child {
+  font-size:11px;font-weight:700;
+}
+[data-sl-dashboard] .sl-overview-chips .sl-metric-icon {padding:9px!important;border-radius:11px!important;}
+[data-sl-dashboard] .sl-charts-shell {
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:12px!important;padding:13px!important;
+}
+[data-sl-dashboard] .sl-chart-card {
+  min-height:164px;padding:13px!important;border-radius:15px!important;
+}
+[data-sl-dashboard] .sl-chart-card > div.mt-3 {
+  height:100px!important;min-height:100px;
+}
+[data-sl-dashboard] .sl-chart-card h3 {font-size:12px;line-height:1.25;}
+[data-sl-dashboard] .sl-chart-card > p {font-size:10px;line-height:1.35;}
+[data-sl-dashboard] .sl-inventory-preview {padding:8px!important;}
+[data-sl-dashboard] .sl-inventory-preview table {min-width:620px;font-size:11px;}
+[data-sl-dashboard] .sl-inventory-preview th,
+[data-sl-dashboard] .sl-inventory-preview td {padding:10px 11px!important;white-space:nowrap;}
+[data-sl-dashboard] .sl-stock-badge {
+  display:inline-flex;align-items:center;border-radius:20px;padding:4px 8px;
+  border:1px solid var(--border);font-size:9px;font-weight:800;text-transform:capitalize;
+}
+[data-sl-dashboard] .sl-stock-badge.is-ok {color:var(--emerald-ink);background:var(--emerald-tint);border-color:color-mix(in srgb,var(--emerald) 35%,var(--border));}
+[data-sl-dashboard] .sl-stock-badge.is-low {color:var(--amber-ink);background:var(--amber-tint);border-color:color-mix(in srgb,var(--amber) 35%,var(--border));}
+[data-sl-dashboard] .sl-stock-badge.is-out {color:var(--rose-ink);background:var(--rose-tint);border-color:color-mix(in srgb,var(--rose) 35%,var(--border));}
+[data-sl-dashboard] .sl-inventory-heading {margin-top:22px;}
+[data-sl-dashboard] .sl-inventory-heading button {cursor:pointer;}
+[data-sl-dashboard] .sl-dashboard-panel:not(.sl-chart-card) {border-radius:16px!important;}
+@media(max-width:640px) {
+  [data-sl-dashboard] .sl-dashboard-content {padding:13px!important;}
+  [data-sl-dashboard] .sl-dashboard-heading {padding:15px!important;min-height:100px;}
+  [data-sl-dashboard] .sl-overview-chips .sl-metric-card {flex-basis:150px;min-width:150px;min-height:122px;}
+  [data-sl-dashboard] .sl-charts-shell {grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important;padding:9px!important;}
+  [data-sl-dashboard] .sl-chart-card {min-height:150px;padding:10px!important;}
+  [data-sl-dashboard] .sl-chart-card > div.mt-3 {height:88px!important;min-height:88px;}
+  [data-sl-dashboard] main > nav[aria-label="Dashboard shortcuts"] button {width:66px;min-width:66px;height:70px;min-height:70px;font-size:9px;}
+  [data-sl-dashboard] .sl-section-heading {margin-top:15px;}
+}
+@media(prefers-reduced-motion:reduce) {
+  [data-sl-dashboard] .sl-overview-chips {scroll-behavior:auto;}
+}
