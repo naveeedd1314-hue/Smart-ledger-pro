@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
+import * as XLSX from 'xlsx'
 import { localDateISO } from '../lib/dateUtils';
 import { Download, Search } from 'lucide-react'
 
@@ -13,6 +14,7 @@ type Product = {
   category?: string
   hsn?: string
   gstRate?: number
+  wholesale?: number
 }
 
 const KEY = 'smartledger-products'
@@ -82,50 +84,120 @@ export default function BulkItems() {
 
   const importCSV = async (file?: File) => {
     if (!file) return
-    const rows = parseCSV(await file.text())
-    if (rows.length < 2) { setMessage('No item rows found in CSV.'); return }
-    const headers = rows[0].map(x => x.toLowerCase().replace(/[^a-z0-9]/g, ''))
-    const get = (r: string[], names: string[], fallback = '') => {
-      const i = headers.findIndex(h => names.includes(h))
-      return i < 0 ? fallback : r[i] || fallback
-    }
-    const errors: string[] = []
-    const parsed = rows.slice(1).map((r, i): Product => {
-      const numeric = (names: string[], label: string) => {
-        const raw = get(r, names)
-        if (!raw) return 0
-        const value = Number(raw)
-        if (!Number.isFinite(value) || value < 0) {
-          errors.push(`Row ${i + 2}: invalid ${label} value.`)
-          return 0
+    try {
+      const extension = file.name.toLowerCase().split('.').pop()
+      let rows: string[][] = []
+      if (extension === 'xls' || extension === 'xlsx') {
+        const buffer = await file.arrayBuffer()
+        const workbook = XLSX.read(buffer, { type: 'array', cellDates: false })
+        const sheet = workbook.Sheets[workbook.SheetNames[0]]
+        if (!sheet) throw new Error('The workbook does not contain a readable worksheet.')
+        rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: false }) as string[][]
+      } else if (extension === 'csv' || extension === 'tsv' || extension === 'txt') {
+        rows = parseCSV(await file.text())
+      } else {
+        throw new Error('Choose an Excel (.xls, .xlsx) or CSV/TSV file.')
+      }
+      rows = rows.map(row => row.map(value => String(value ?? '').trim()))
+      const aliases: Record<string, string[]> = {
+        name: ['name','product','item','itemname','productname','itemdescription','description','stockitem','particulars','itemparticulars'],
+        sku: ['sku','barcode','itemcode','productcode','code','itemid','itemnumber','articlecode'],
+        category: ['category','group','itemgroup','productgroup','brand','stockgroup'],
+        hsn: ['hsn','hsncode','hsnsac','hsnsaccode'],
+        gstRate: ['gstrate','gst','gstpercentage','gstpercent','taxpercentage','taxrate','igstpercent','taxpercent'],
+        purchase: ['purchase','purchaseprice','purchasecost','cost','costprice','landingcost','buyprice','rateofpurchase','lastpurchaseprice','pricerate'],
+        averageCost: ['averagecost','weightedaveragecost','avgcost','averagepurchaseprice'],
+        selling: ['selling','sellingprice','salesprice','saleprice','retailprice','mrp','rate','unitprice','salesrate'],
+        wholesale: ['wholesale','wholesaleprice','tradeprice','dealerprice'],
+        stock: ['stock','qty','quantity','openingstock','currentstock','closingstock','availableqty','balanceqty','openingquantity','physicalstock'],
+      }
+      const normalize = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, '')
+      const headerRowIndex = rows.findIndex(row => {
+        const normalized = row.map(normalize)
+        return aliases.name.some(alias => normalized.includes(alias))
+      })
+      if (headerRowIndex < 0) throw new Error('Could not identify the product-name column. Use the SmartLedger Excel template or include a heading such as Item Name / Product Name.')
+      const headers = rows[headerRowIndex].map(normalize)
+      const get = (row: string[], field: string) => {
+        const index = headers.findIndex(header => aliases[field].includes(header))
+        return index < 0 ? '' : String(row[index] ?? '').trim()
+      }
+      const errors: string[] = []
+      const parsed: Product[] = []
+      rows.slice(headerRowIndex + 1).forEach((row, offset) => {
+        if (!row.some(value => String(value ?? '').trim())) return
+        const rowNumber = headerRowIndex + offset + 2
+        const name = get(row, 'name')
+        if (!name) { errors.push(`Row ${rowNumber}: product name is missing.`); return }
+        const number = (field: string, label: string, optional = false) => {
+          const raw = get(row, field).replace(/[₹,\s]/g, '').replace(/%$/, '')
+          if (!raw && optional) return null
+          if (!raw) return 0
+          const value = Number(raw)
+          if (!Number.isFinite(value) || value < 0) {
+            errors.push(`Row ${rowNumber}: invalid ${label} value ("${get(row, field)}").`)
+            return 0
+          }
+          return value
         }
-        return value
+        const gst = number('gstRate', 'GST rate', true)
+        if (gst !== null && gst > 100) errors.push(`Row ${rowNumber}: GST rate cannot exceed 100%.`)
+        const purchase = number('purchase', 'purchase price')
+        const averageCost = number('averageCost', 'average cost', true)
+        parsed.push({
+          id: crypto.randomUUID(),
+          name,
+          sku: get(row, 'sku'),
+          category: get(row, 'category') || 'General',
+          hsn: get(row, 'hsn'),
+          gstRate: gst ?? 0,
+          purchase,
+          averageCost: averageCost !== null && averageCost > 0 ? averageCost : null,
+          selling: number('selling', 'selling price'),
+          wholesale: number('wholesale', 'wholesale price') ?? 0,
+          stock: number('stock', 'opening stock'),
+        })
+      })
+      if (errors.length) {
+        setPreview([])
+        setMessage(`Import stopped: ${errors.slice(0, 8).join(' ')}${errors.length > 8 ? ` And ${errors.length - 8} more error(s).` : ''}`)
+        return
       }
-      const tax = numeric(['gstrate','gst','gstpercentage','taxpercentage','taxrate','igstpercent'], 'GST rate')
-      if (tax > 100) errors.push(`Row ${i + 2}: GST rate cannot exceed 100%.`)
-      const purchaseValue = numeric(['purchase','purchaseprice','purchasecost','cost','costprice','landingcost','buyprice','rateofpurchase'], 'purchase price')
-      const averageCostValue = get(r,['averagecost','weightedaveragecost','avgcost']) ? numeric(['averagecost','weightedaveragecost','avgcost'], 'average cost') : 0
-      return {
-        id: get(r,['id']) || crypto.randomUUID(),
-        name: get(r,['name','product','item','itemname','productname','itemdescription','description','stockitem']),
-        sku: get(r,['sku','barcode','itemcode','productcode','code','itemid']),
-        category: get(r,['category','group','itemgroup','productgroup','brand'],'General'),
-        hsn: get(r,['hsn','hsncode','hsnsac']),
-        gstRate: tax,
-        purchase: purchaseValue,
-        averageCost: averageCostValue > 0 ? averageCostValue : null,
-        selling: numeric(['selling','sellingprice','salesprice','saleprice','retailprice','mrp','rate','unitprice'], 'selling price'),
-        stock: numeric(['stock','qty','quantity','openingstock','currentstock','closingstock','availableqty','balanceqty'], 'stock')
+      if (!parsed.length) {
+        setPreview([])
+        setMessage('No product rows found below the heading row.')
+        return
       }
-    }).filter(p => p.name)
-    if (errors.length) {
+      const seen = new Set<string>()
+      const duplicates = parsed.filter(product => {
+        const key = product.sku ? `sku:${product.sku.toLowerCase()}` : `name:${product.name.toLowerCase()}`
+        if (seen.has(key)) return true
+        seen.add(key)
+        return false
+      })
+      if (duplicates.length) {
+        setPreview([])
+        setMessage(`Import stopped: ${duplicates.length} duplicate product row(s) were found inside this file. Remove duplicates and retry.`)
+        return
+      }
+      setPreview(parsed)
+      setMessage(`${parsed.length} products read from ${file.name}. Review the preview, then apply import. Existing items match by barcode/SKU or name.`)
+    } catch (error) {
       setPreview([])
-      setMessage(`Import stopped: ${errors.slice(0, 5).join(' ')}`)
-      return
+      setMessage(error instanceof Error ? `Import failed: ${error.message}` : 'Import failed. Check the file format and try again.')
+    } finally {
+      if (fileRef.current) fileRef.current.value = ''
     }
-    if (!parsed.length) { setPreview([]); setMessage('No valid product names found in the CSV.'); return }
-    setPreview(parsed)
-    setMessage(`${parsed.length} rows ready. Existing products will be matched by SKU or name; invalid numeric values are rejected.`)
+  }
+
+  const downloadExcelTemplate = () => {
+    const headers = [['Product Name','Barcode / SKU','Category','HSN Code','GST Rate','Purchase Price','Average Cost','Wholesale Price','Selling Price','Opening Stock']]
+    const sample = [['Example Notebook','890000000001','Stationery','4820','12','20','20','22','25','100']]
+    const worksheet = XLSX.utils.aoa_to_sheet([...headers, ...sample])
+    worksheet['!cols'] = [{wch:24},{wch:18},{wch:18},{wch:14},{wch:12},{wch:16},{wch:16},{wch:16},{wch:16},{wch:16}]
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Products')
+    XLSX.writeFile(workbook, 'SmartLedger-Bulk-Import-Template.xlsx')
   }
 
   const applyImport = () => {
@@ -145,12 +217,12 @@ export default function BulkItems() {
         const current = next[index]
         const savedAt = new Date().toISOString()
         if (Number(current.purchase) !== Number(p.purchase)) priceHistory.unshift({ id: crypto.randomUUID(), productId: current.id, productName: p.name, field: 'purchase', oldPrice: Number(current.purchase) || 0, newPrice: p.purchase, date: savedAt.slice(0,10), savedAt, source: 'Bulk item import' })
-        if (Number(current.selling) !== Number(p.selling)) priceHistory.unshift({ id: crypto.randomUUID(), productId: current.id, productName: p.name, field: 'selling', oldPrice: Number(current.selling) || 0, newPrice: p.selling, date: savedAt.slice(0,10), savedAt, source: 'Bulk CSV import' })
+        if (Number(current.selling) !== Number(p.selling)) priceHistory.unshift({ id: crypto.randomUUID(), productId: current.id, productName: p.name, field: 'selling', oldPrice: Number(current.selling) || 0, newPrice: p.selling, date: savedAt.slice(0,10), savedAt, source: 'Bulk item import' })
         next[index] = { ...current, ...p, averageCost: p.averageCost ?? current.averageCost ?? (Number(current.purchase) > 0 ? Number(current.purchase) : null), id: current.id }; savedProductId = current.id; updated++
       }
       else { const imported = { ...p, averageCost: p.averageCost ?? (Number(p.purchase) > 0 ? Number(p.purchase) : null) }; const uniqueProduct = next.some(x => String(x.id) === String(p.id)) ? { ...imported, id: crypto.randomUUID() } : imported; next.push(uniqueProduct); savedProductId = uniqueProduct.id; added++ }
       const change = Number(p.stock || 0) - previousStock
-      if (change !== 0) logs.unshift({ id: crypto.randomUUID(), date: localDateISO(), productId: savedProductId, product: p.name, change, movement: change > 0 ? 'Stock In' : 'Stock Out', stockAfter: Number(p.stock || 0), reason: 'Bulk CSV import' })
+      if (change !== 0) logs.unshift({ id: crypto.randomUUID(), date: localDateISO(), productId: savedProductId, product: p.name, change, movement: change > 0 ? 'Stock In' : 'Stock Out', stockAfter: Number(p.stock || 0), reason: 'Bulk item import' })
     })
     localStorage.setItem('smartledger-pro-stock-adjustments', JSON.stringify(logs))
     localStorage.setItem('smartledger-pro-price-history', JSON.stringify(priceHistory))
@@ -201,7 +273,7 @@ export default function BulkItems() {
   return <div data-sl-page="true" className="mx-auto max-w-7xl space-y-6 p-4 md:p-8">
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div><h2 className="text-2xl font-bold">Bulk Items</h2><p className="mt-1 text-sm text-[var(--text-2)]">Manage many inventory items together.</p></div>
-      <button onClick={exportCSV} className="flex items-center gap-2 rounded-xl bg-[var(--indigo-ink)] px-4 py-3 text-sm font-semibold text-white"><Download size={17}/> Export CSV</button>
+      <div className="flex flex-wrap gap-2"><button onClick={downloadExcelTemplate} className="flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold"><Download size={17}/> Excel Template</button><button onClick={exportCSV} className="flex items-center gap-2 rounded-xl bg-[var(--indigo-ink)] px-4 py-3 text-sm font-semibold text-white"><Download size={17}/> Export CSV</button></div>
     </div>
 
     <div className="grid gap-4 sm:grid-cols-3">
@@ -212,8 +284,8 @@ export default function BulkItems() {
 
     <section className="rounded-2xl border bg-[var(--surface)] p-5">
       <h3 className="font-bold">Bulk import · Vyapar · Marg Books · myBillBook</h3>
-      <p className="mt-1 text-xs text-[var(--text-2)]">Import a CSV or tab-separated export from Vyapar, Marg Books, myBillBook or another app. Recognised columns include item/product name, SKU/barcode/code, category/group, HSN, GST/tax %, purchase/cost price, selling/sale/MRP and stock/quantity. For Excel exports, save or export as CSV first. Export CSV below to get a SmartLedger template.</p>
-      <input ref={fileRef} type="file" accept=".csv,.tsv,.txt,text/csv,text/tab-separated-values,text/plain" onChange={e=>importCSV(e.target.files?.[0])} className="mt-4 block max-w-full text-sm"/>
+      <p className="mt-1 text-xs text-[var(--text-2)]">Import Excel (.xls/.xlsx), CSV or tab-separated exports from Vyapar, Marg Books, myBillBook or other apps. Columns are detected automatically even when reordered or preceded by report headings. Supports product name, SKU/barcode, category, HSN, GST, purchase/average/wholesale/selling prices and opening stock. Download the Excel template for the recommended format.</p>
+      <input ref={fileRef} type="file" accept=".xls,.xlsx,.csv,.tsv,.txt,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,text/tab-separated-values,text/plain" onChange={e=>importCSV(e.target.files?.[0])} className="mt-4 block max-w-full text-sm"/>
       {preview.length > 0 && <div className="mt-4">
         <p className="mb-2 text-sm font-semibold">{preview.length} rows to import</p>
         <div className="max-h-56 overflow-auto rounded-xl border">
