@@ -58,7 +58,7 @@ const supplierRefunds = payments.filter(x=>x.type==='Supplier Refund').reduce((s
   const invoiceProfitRows = sales.map((x, index) => {
     const qty = num(x.qty);
     const rate = num(x.rate);
-    const revenue = num(x.taxableValue) || qty * rate;
+    const revenue = x.taxableValue !== undefined && x.taxableValue !== null ? num(x.taxableValue) : qty * rate;
     const costPrice = num(x.purchasePrice);
     const hasCost = x.purchasePrice !== undefined && x.purchasePrice !== null && x.purchasePrice !== '' && Number.isFinite(Number(x.purchasePrice)) && Number(x.purchasePrice) > 0;
     const cost = hasCost ? qty * costPrice : 0;
