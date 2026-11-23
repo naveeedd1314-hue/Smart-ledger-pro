@@ -27,12 +27,14 @@ const cell = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`
 
 function parseCSV(text: string): string[][] {
   const rows: string[][] = []
+  const firstLine = text.split(/\r?\n/, 1)[0] || ''
+  const delimiter = [',', '\\t', ';'].sort((a,b) => firstLine.split(b).length - firstLine.split(a).length)[0]
   let row: string[] = [], value = '', quoted = false
   for (let i = 0; i < text.length; i++) {
     const c = text[i]
     if (c === '"' && quoted && text[i + 1] === '"') { value += '"'; i++ }
     else if (c === '"') quoted = !quoted
-    else if (c === ',' && !quoted) { row.push(value.trim()); value = '' }
+    else if (c === delimiter && !quoted) { row.push(value.trim()); value = '' }
     else if ((c === '\n' || c === '\r') && !quoted) {
       if (c === '\r' && text[i + 1] === '\n') i++
       row.push(value.trim())
@@ -99,21 +101,21 @@ export default function BulkItems() {
         }
         return value
       }
-      const tax = numeric(['gstrate','gst'], 'GST rate')
+      const tax = numeric(['gstrate','gst','gstpercentage','taxpercentage','taxrate','igstpercent'], 'GST rate')
       if (tax > 100) errors.push(`Row ${i + 2}: GST rate cannot exceed 100%.`)
-      const purchaseValue = numeric(['purchase','purchaseprice','cost'], 'purchase price')
-      const averageCostValue = get(r,['averagecost','weightedaveragecost']) ? numeric(['averagecost','weightedaveragecost'], 'average cost') : 0
+      const purchaseValue = numeric(['purchase','purchaseprice','purchasecost','cost','costprice','landingcost','buyprice','rateofpurchase'], 'purchase price')
+      const averageCostValue = get(r,['averagecost','weightedaveragecost','avgcost']) ? numeric(['averagecost','weightedaveragecost','avgcost'], 'average cost') : 0
       return {
         id: get(r,['id']) || crypto.randomUUID(),
-        name: get(r,['name','product','item']),
-        sku: get(r,['sku','barcode']),
-        category: get(r,['category','group'],'General'),
-        hsn: get(r,['hsn']),
+        name: get(r,['name','product','item','itemname','productname','itemdescription','description','stockitem']),
+        sku: get(r,['sku','barcode','itemcode','productcode','code','itemid']),
+        category: get(r,['category','group','itemgroup','productgroup','brand'],'General'),
+        hsn: get(r,['hsn','hsncode','hsnsac']),
         gstRate: tax,
         purchase: purchaseValue,
         averageCost: averageCostValue > 0 ? averageCostValue : null,
-        selling: numeric(['selling','sellingprice','rate'], 'selling price'),
-        stock: numeric(['stock','qty','quantity'], 'stock')
+        selling: numeric(['selling','sellingprice','salesprice','saleprice','retailprice','mrp','rate','unitprice'], 'selling price'),
+        stock: numeric(['stock','qty','quantity','openingstock','currentstock','closingstock','availableqty','balanceqty'], 'stock')
       }
     }).filter(p => p.name)
     if (errors.length) {
@@ -142,7 +144,7 @@ export default function BulkItems() {
       if (index >= 0) {
         const current = next[index]
         const savedAt = new Date().toISOString()
-        if (Number(current.purchase) !== Number(p.purchase)) priceHistory.unshift({ id: crypto.randomUUID(), productId: current.id, productName: p.name, field: 'purchase', oldPrice: Number(current.purchase) || 0, newPrice: p.purchase, date: savedAt.slice(0,10), savedAt, source: 'Bulk CSV import' })
+        if (Number(current.purchase) !== Number(p.purchase)) priceHistory.unshift({ id: crypto.randomUUID(), productId: current.id, productName: p.name, field: 'purchase', oldPrice: Number(current.purchase) || 0, newPrice: p.purchase, date: savedAt.slice(0,10), savedAt, source: 'Bulk item import' })
         if (Number(current.selling) !== Number(p.selling)) priceHistory.unshift({ id: crypto.randomUUID(), productId: current.id, productName: p.name, field: 'selling', oldPrice: Number(current.selling) || 0, newPrice: p.selling, date: savedAt.slice(0,10), savedAt, source: 'Bulk CSV import' })
         next[index] = { ...current, ...p, averageCost: p.averageCost ?? current.averageCost ?? (Number(current.purchase) > 0 ? Number(current.purchase) : null), id: current.id }; savedProductId = current.id; updated++
       }
@@ -209,9 +211,9 @@ export default function BulkItems() {
     </div>
 
     <section className="rounded-2xl border bg-[var(--surface)] p-5">
-      <h3 className="font-bold">CSV import</h3>
-      <p className="mt-1 text-xs text-[var(--text-2)]">Columns: name, sku, category, hsn, gstRate, purchase, selling, stock. Export CSV to get a template.</p>
-      <input ref={fileRef} type="file" accept=".csv,text/csv" onChange={e=>importCSV(e.target.files?.[0])} className="mt-4 block max-w-full text-sm"/>
+      <h3 className="font-bold">Bulk import · Vyapar · Marg Books · myBillBook</h3>
+      <p className="mt-1 text-xs text-[var(--text-2)]">Import a CSV or tab-separated export from Vyapar, Marg Books, myBillBook or another app. Recognised columns include item/product name, SKU/barcode/code, category/group, HSN, GST/tax %, purchase/cost price, selling/sale/MRP and stock/quantity. For Excel exports, save or export as CSV first. Export CSV below to get a SmartLedger template.</p>
+      <input ref={fileRef} type="file" accept=".csv,.tsv,.txt,text/csv,text/tab-separated-values,text/plain" onChange={e=>importCSV(e.target.files?.[0])} className="mt-4 block max-w-full text-sm"/>
       {preview.length > 0 && <div className="mt-4">
         <p className="mb-2 text-sm font-semibold">{preview.length} rows to import</p>
         <div className="max-h-56 overflow-auto rounded-xl border">
