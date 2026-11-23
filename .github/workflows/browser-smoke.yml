@@ -1,0 +1,89 @@
+name: SmartLedger Pro browser smoke tests
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - '.github/workflows/browser-smoke.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  browser-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Test deployed app at mobile, tablet and desktop sizes
+        env:
+          APP_URL: https://naveeedd1314-hue.github.io/Smart-ledger-pro/
+        run: |
+          node --input-type=module <<'EOF'
+          import { chromium } from 'playwright';
+          const browser = await chromium.launch({headless:true});
+          const sizes = [
+            {name:'small Android',width:360,height:800},
+            {name:'Android phone',width:412,height:915},
+            {name:'tablet',width:768,height:1024},
+            {name:'desktop',width:1365,height:900},
+          ];
+          const failures = [];
+          for (const size of sizes) {
+            const context = await browser.newContext({viewport:{width:size.width,height:size.height},isMobile:size.width<600,hasTouch:size.width<600});
+            const page = await context.newPage();
+            const pageErrors = [];
+            page.on('pageerror', error => pageErrors.push(error.message));
+            try {
+              await page.goto(process.env.APP_URL,{waitUntil:'networkidle',timeout:60000});
+              await page.getByRole('button',{name:'Continue in offline mode'}).click({timeout:20000});
+              await page.locator('[data-sl-dashboard="true"]').waitFor({state:'visible',timeout:20000});
+              await page.waitForTimeout(700);
+              const state = await page.evaluate(() => {
+                const root=document.documentElement, body=document.body;
+                const dashboard=document.querySelector('[data-sl-dashboard]');
+                const main=dashboard?.querySelector(':scope > main');
+                const sidebar=dashboard?.querySelector(':scope > aside');
+                const charts=[...document.querySelectorAll('.sl-chart-card')];
+                const style=getComputedStyle(dashboard);
+                return {
+                  title:document.title,
+                  viewport:innerWidth,
+                  documentWidth:root.scrollWidth,
+                  bodyHeight:body.scrollHeight,
+                  viewportHeight:innerHeight,
+                  dashboard:!!dashboard,
+                  main:!!main,
+                  sidebar:!!sidebar,
+                  chartCount:charts.length,
+                  bg:style.getPropertyValue('--bg').trim(),
+                  surface:style.getPropertyValue('--surface').trim(),
+                };
+              });
+              if(!state.dashboard||!state.main||!state.sidebar) throw new Error('Dashboard shell or navigation missing');
+              if(state.documentWidth>size.width+2) throw new Error('Unexpected horizontal page overflow: '+state.documentWidth+'px');
+              if(!state.bg||!state.surface) throw new Error('Theme tokens missing');
+              if(state.chartCount!==4) throw new Error('Expected four dashboard charts, found '+state.chartCount);
+              if(pageErrors.length) throw new Error('Browser runtime errors: '+pageErrors.join(' | '));
+              console.log('PASS '+size.name+' '+JSON.stringify(state));
+            } catch(error) {
+              failures.push(size.name+': '+error.message);
+              console.error('FAIL '+size.name+' '+error.message);
+            }
+            await context.close();
+          }
+          await browser.close();
+          if(failures.length){console.error(failures.join('\n'));process.exit(1)}
+          console.log('All responsive browser smoke tests passed.');
+          EOF
