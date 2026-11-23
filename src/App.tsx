@@ -248,6 +248,7 @@ function App() {
     localStorage.setItem('smartledger-theme', darkMode ? 'dark' : 'light')
   }, [darkMode])
   const metrics = getDashboardMetrics()
+  const outstandingChartData = metrics.filter(x => x.label === 'To Collect' || x.label === 'To Pay').map(x => ({ name: x.label, amount: Number(String(x.value).replace(/[^0-9.-]/g, '')) || 0 }))
   const recentTransactions = getRecentTransactions()
   const monthlyPerformance = getMonthlyPerformance()
   const [detailType, setDetailType] = useState<'Customer' | 'Supplier' | null>(null)
@@ -408,7 +409,7 @@ function App() {
             })}
           </section>
 
-          <section className="mt-6 grid grid-cols-1 gap-5 xl:grid-cols-2">
+          <section className="mt-6 grid grid-cols-2 gap-3 sm:gap-5">
             <div className="sl-dashboard-panel rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5">
               <h3 className="font-bold">Monthly business performance</h3><p className="mt-1 text-xs text-[var(--text-2)]">Sales, purchases and expenses</p>
               <div className="mt-4 h-64">{monthlyPerformance.length ? <ResponsiveContainer width="100%" height="100%"><BarChart data={monthlyPerformance}><CartesianGrid strokeDasharray="3 3"/><XAxis dataKey="month"/><YAxis/><Tooltip formatter={(v)=>`₹${Number(v).toLocaleString('en-IN')}`}/><Legend/><Bar dataKey="sales" name="Sales" fill="var(--indigo)"/><Bar dataKey="purchases" name="Purchases" fill="var(--emerald)"/><Bar dataKey="expenses" name="Expenses" fill="var(--rose)"/></BarChart></ResponsiveContainer> : <p className="pt-24 text-center text-sm text-[var(--text-2)]">Add dated transactions to view performance.</p>}</div>
@@ -422,11 +423,9 @@ function App() {
               <div className="mt-4 h-64">{expensesByCategory.length ? <ResponsiveContainer width="100%" height="100%"><BarChart data={expensesByCategory}><CartesianGrid strokeDasharray="3 3"/><XAxis dataKey="name"/><YAxis/><Tooltip formatter={(v)=>`₹${Number(v).toLocaleString('en-IN')}`}/><Bar dataKey="amount" name="Expense" fill="var(--rose)" radius={[6,6,0,0]}/></BarChart></ResponsiveContainer> : <p className="pt-24 text-center text-sm text-[var(--text-2)]">No expenses recorded.</p>}</div>
             </div>
             <div className="sl-dashboard-panel rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5">
-              <h3 className="font-bold">Outstanding balances</h3><p className="mt-1 text-xs text-[var(--text-2)]">Tap To Pay or To Collect above for the full party-wise list.</p>
-              <div className="mt-4 grid h-64 grid-cols-2 gap-3">
-                <button type="button" onClick={()=>setDetailType('Customer')} className="flex flex-col justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-4 text-left hover:border-[var(--indigo)]"><span className="text-xs text-[var(--text-2)]">To Collect</span><strong className="mt-2 text-xl">{metrics.find(x=>x.label==='To Collect')?.value}</strong><span className="mt-2 text-xs text-[var(--indigo)]">View customers →</span></button>
-                <button type="button" onClick={()=>setDetailType('Supplier')} className="flex flex-col justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-4 text-left hover:border-[var(--indigo)]"><span className="text-xs text-[var(--text-2)]">To Pay</span><strong className="mt-2 text-xl">{metrics.find(x=>x.label==='To Pay')?.value}</strong><span className="mt-2 text-xs text-[var(--indigo)]">View suppliers →</span></button>
-              </div>
+              <h3 className="font-bold">Outstanding balances</h3><p className="mt-1 text-xs text-[var(--text-2)]">Select a bar to open the complete party-wise details.</p>
+              <div className="mt-4 h-64">{outstandingChartData.some(x=>x.amount>0) ? <ResponsiveContainer width="100%" height="100%"><BarChart data={outstandingChartData} layout="vertical" margin={{left:8,right:12}}><CartesianGrid strokeDasharray="3 3"/><XAxis type="number"/><YAxis type="category" dataKey="name" width={88}/><Tooltip formatter={(v)=>`₹${Number(v).toLocaleString('en-IN',{maximumFractionDigits:2})}`}/><Bar dataKey="amount" name="Outstanding" fill="var(--indigo)" radius={[0,7,7,0]} onClick={(entry:any)=>setDetailType(entry.name==='To Collect'?'Customer':'Supplier')} cursor="pointer"/></BarChart></ResponsiveContainer> : <p className="pt-24 text-center text-sm text-[var(--text-2)]">No outstanding balances.</p>}</div>
+              <div className="mt-2 flex flex-wrap gap-2"><button type="button" onClick={()=>setDetailType('Customer')} className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs font-semibold">View customers</button><button type="button" onClick={()=>setDetailType('Supplier')} className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs font-semibold">View suppliers</button></div>
             </div>
           </section>
 
