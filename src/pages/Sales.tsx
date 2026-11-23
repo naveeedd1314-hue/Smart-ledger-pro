@@ -30,6 +30,7 @@ export default function Sales() {
   const [productId, setProductId] = useState('');
   const [qty, setQty] = useState(1);
   const [rate, setRate] = useState(0);
+  const [discountPercent, setDiscountPercent] = useState(0);
   const [paid, setPaid] = useState(0);
   const [invoiceTheme, setInvoiceTheme] = useState<'classic' | 'modern' | 'minimal' | 'bold'>('modern');
   const [applyGST, setApplyGST] = useState(false);
@@ -52,7 +53,9 @@ export default function Sales() {
     if (match) { setProductId(String(match.id)); setRate(Number(match.selling) || 0); }
     else if (!raw.trim()) { setProductId(''); setRate(0); }
   };
-  const taxableValue = roundCurrency(qty * rate);
+  const grossValue = roundCurrency(qty * rate);
+  const discountAmount = roundCurrency(grossValue * discountPercent / 100);
+  const taxableValue = roundCurrency(Math.max(0, grossValue - discountAmount));
   const gstRate = applyGST ? Number(selected?.gstRate) || 0 : 0;
   const taxAmount = roundCurrency(taxableValue * gstRate / 100);
   const normalizeState = (value: string) => { const compact = value.trim().toLowerCase().replace(/[^a-z0-9]/g, ''); return compact === 'jk' || compact === '01' || compact === 'jammukashmir' ? 'jammuandkashmir' : compact; };
@@ -66,7 +69,7 @@ export default function Sales() {
   const igst = applyGST && !sameState ? taxAmount : 0;
   const total = roundCurrency(taxableValue + taxAmount);
   const saleCost = selected ? Number(selected.averageCost ?? selected.purchase) : 0;
-  const estimatedGrossProfit = selected && Number.isFinite(saleCost) && saleCost > 0 && Number.isFinite(rate) ? (rate - saleCost) * qty : null;
+  const estimatedGrossProfit = selected && Number.isFinite(saleCost) && saleCost > 0 && Number.isFinite(rate) ? (taxableValue - saleCost * qty) : null;
 
   function findProductByBarcode(rawCode: string) {
     const code = rawCode.trim().toLowerCase();
@@ -139,7 +142,7 @@ export default function Sales() {
     if (savingRef.current) return;
     savingRef.current = true;
     const reject = (message: string) => { savingRef.current = false; alert(message); };
-    if (!selected || !Number.isFinite(qty) || qty <= 0 || !Number.isFinite(rate) || rate < 0 || !Number.isFinite(paid) || paid < 0 || !Number.isFinite(total) || paid > total || qty > selected.stock) return reject('Check product, quantity, stock and payment amount.');
+    if (!selected || !Number.isFinite(qty) || qty <= 0 || !Number.isFinite(rate) || rate < 0 || !Number.isFinite(discountPercent) || discountPercent < 0 || discountPercent > 100 || !Number.isFinite(paid) || paid < 0 || !Number.isFinite(total) || paid > total || qty > selected.stock) return reject('Check product, quantity, stock and payment amount.');
     if (applyGST && (!normalizedBusinessState || !normalizedPlaceState)) return reject('Enter the business state and place of supply before applying GST.');
     const customerName = customer.trim() || 'Walk-in Customer';
     let customerDetails: { gstin?: string; address?: string } = {};
@@ -161,7 +164,7 @@ export default function Sales() {
       date: localDateISO(),
       customer: customerName,
       product: selected.name,
-      qty, rate, total, paid: roundCurrency(paid), balance: roundCurrency(total - roundCurrency(paid)), purchasePrice: Number.isFinite(Number(selected.averageCost ?? selected.purchase)) && Number(selected.averageCost ?? selected.purchase) > 0 ? Number(selected.averageCost ?? selected.purchase) : null,
+      qty, rate, discountPercent, discountAmount, total, paid: roundCurrency(paid), balance: roundCurrency(total - roundCurrency(paid)), purchasePrice: Number.isFinite(Number(selected.averageCost ?? selected.purchase)) && Number(selected.averageCost ?? selected.purchase) > 0 ? Number(selected.averageCost ?? selected.purchase) : null,
       taxableValue, gstRate, taxAmount, cgst, sgst, utgst, igst,
       placeOfSupply: applyGST ? placeOfSupply : '',
       hsn: selected.hsn || '',
@@ -182,6 +185,7 @@ export default function Sales() {
     setProductSearch('');
     setQty(1);
     setRate(0);
+    setDiscountPercent(0);
     setPaid(0);
     savingRef.current = false;
   }
@@ -225,6 +229,7 @@ export default function Sales() {
       <label className="text-sm sm:col-span-2">Search and select item<input list="sl-product-options" autoComplete="off" className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3" value={productSearch} onChange={e=>chooseProduct(e.target.value)} placeholder="Type item name, SKU or category…" /><datalist id="sl-product-options">{matchingProducts.map(p=><option key={p.id} value={`${p.name}${p.sku ? ` (${p.sku})` : ''}`}>{`Stock ${p.stock} · ₹${Number(p.selling)||0}`}</option>)}</datalist>{selected && <span className="mt-2 block text-xs text-[var(--text-2)]">Selected: {selected.name} · Available stock: {selected.stock} · Retail price: {money(Number(selected.selling)||0)}</span>}</label>
         <label className="text-sm">Quantity<input type="number" min="0.01" step="any" className="mt-1 w-full rounded-lg border p-3" value={qty} onChange={e => setQty(Number(e.target.value))} /></label>
         <label className="text-sm">Selling rate<input type="number" min="0" step="any" className="mt-1 w-full rounded-lg border p-3" value={rate} onChange={e => setRate(Number(e.target.value))} /></label>
+        <label className="text-sm">Discount (%)<input type="number" min="0" max="100" step="0.01" className="mt-1 w-full rounded-lg border p-3" value={discountPercent} onChange={e => setDiscountPercent(Number(e.target.value))}/></label>
         <div className="flex flex-wrap items-end gap-2"><button type="button" disabled={!selected} onClick={() => setRate(Number(selected?.selling) || 0)} className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm disabled:opacity-40">Retail ₹{money(Number(selected?.selling) || 0)}</button><button type="button" disabled={!selected || !(Number(selected.wholesale) > 0)} onClick={() => setRate(Number(selected?.wholesale) || 0)} className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm disabled:opacity-40">Wholesale ₹{money(Number(selected?.wholesale) || 0)}</button></div>
         <label className="text-sm">Amount received (initial payment)<input type="number" min="0" className="mt-1 w-full rounded-lg border p-3" value={paid} onChange={e => setPaid(Number(e.target.value))} /></label>
         <label className="flex items-center gap-2 text-sm">
@@ -245,6 +250,9 @@ export default function Sales() {
           {!sameState && <p>IGST: <strong>{money(igst)}</strong></p>}
           <p>Total GST: <strong>{money(taxAmount)}</strong></p>
         </>}
+        <p>Gross amount: <strong>{money(grossValue)}</strong></p>
+        <p>Discount: <strong>{money(discountAmount)} ({discountPercent}%)</strong></p>
+        <p>Taxable after discount: <strong>{money(taxableValue)}</strong></p>
         <p>Invoice total: <strong>{money(total)}</strong></p>
         <p>Balance due: <strong>{money(total - paid)}</strong></p>
         <p>Available stock: <strong>{selected?.stock ?? '—'}</strong></p>
