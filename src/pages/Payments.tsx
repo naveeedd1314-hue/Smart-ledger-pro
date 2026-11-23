@@ -10,6 +10,8 @@ export default function Payments() {
   const [invoiceTypeFilter, setInvoiceTypeFilter] = useState('All');
   const [invoiceStatusFilter, setInvoiceStatusFilter] = useState('All');
   const [invoiceSearch, setInvoiceSearch] = useState('');
+  const [historySearch, setHistorySearch] = useState('');
+  const [historyType, setHistoryType] = useState('All');
 
   const [type, setType] = useState('Customer Receipt');
   const [party, setParty] = useState('');
@@ -40,6 +42,7 @@ export default function Payments() {
   }, []);
 
   const invoiceList = type === 'Customer Receipt' ? salesInvoices : type === 'Supplier Payment' ? purchaseInvoices : [];
+  const filteredPayments = items.filter(x => (historyType === 'All' || x.type === historyType) && `${x.date} ${x.type} ${x.party} ${x.method} ${x.reference} ${x.note}`.toLowerCase().includes(historySearch.trim().toLowerCase()));
   const invoiceAllocations = items.flatMap((payment: any) => Array.isArray(payment.allocations) ? payment.allocations.map((a: any) => ({...a, type: payment.type, party: payment.party})) : []);
   const invoiceOptions = invoiceList.map((invoice: any) => {
     const id = String(invoice.id);
@@ -390,9 +393,10 @@ return <section className="space-y-5">
       <button onClick={save} className="rounded-xl bg-[var(--indigo-ink)] px-5 py-3 font-semibold text-white shadow-sm transition hover:bg-[var(--indigo)]">Save Transaction</button>
     </div>
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm space-y-4">
-      <h2 className="font-semibold">Transaction History</h2>
-      <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="border-b text-[var(--text-2)]"><th className="p-2">Date</th><th className="p-2">Type</th><th className="p-2">Party</th><th className="p-2">Method</th><th className="p-2">Reference</th><th className="p-2">Amount</th></tr></thead><tbody>{items.map(x=><tr key={x.id} className="border-b border-[var(--border)] hover:bg-[var(--surface-2)]"><td className="p-2">{x.date}</td><td className="p-2">{x.type}</td><td className="p-2">{x.party}</td><td className="p-2">{x.method}</td><td className="p-2">{x.reference}</td><td className="p-2">{money(x.amount)}</td></tr>)}</tbody></table></div>
-      {items.length===0 && <p className="py-5 text-center text-[var(--text-2)]">No transactions yet.</p>}
+      <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="font-semibold">Transaction History ({filteredPayments.length} of {items.length})</h2><select aria-label="Filter payment type" className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-2 text-sm" value={historyType} onChange={e=>setHistoryType(e.target.value)}><option>All</option>{['Customer Receipt','Supplier Payment','Customer Refund','Supplier Refund'].map(x=><option key={x}>{x}</option>)}</select></div>
+      <input aria-label="Search payment history" className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3 text-sm" value={historySearch} onChange={e=>setHistorySearch(e.target.value)} placeholder="Search date, party, method, reference or note"/>
+      <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="border-b text-[var(--text-2)]"><th className="p-2">Date</th><th className="p-2">Type</th><th className="p-2">Party</th><th className="p-2">Method</th><th className="p-2">Reference</th><th className="p-2">Amount</th></tr></thead><tbody>{filteredPayments.map(x=><tr key={x.id} className="border-b border-[var(--border)] hover:bg-[var(--surface-2)]"><td className="p-2">{x.date}</td><td className="p-2">{x.type}</td><td className="p-2">{x.party}</td><td className="p-2">{x.method}</td><td className="p-2">{x.reference}</td><td className="p-2">{money(x.amount)}</td></tr>)}</tbody></table></div>
+      {filteredPayments.length===0 && <p className="py-5 text-center text-[var(--text-2)]">{items.length ? 'No transactions match these filters.' : 'No transactions yet.'}</p>}
     </div>
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm space-y-4">
       <h2 className="font-semibold">Invoice-wise Payment History</h2>
