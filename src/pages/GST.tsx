@@ -16,6 +16,8 @@ export default function GST() {
   const [purchases, setPurchases] = useState<Row[]>([])
   const [returns, setReturns] = useState<Row[]>([])
   const [settings, setSettings] = useState<Row>({})
+  const [fromDate, setFromDate] = useState('')
+  const [toDate, setToDate] = useState('')
 
   useEffect(() => {
     setSales(read('smartledger-pro-sales'))
@@ -26,11 +28,18 @@ export default function GST() {
     } catch {}
   }, [])
 
-  const salesReturnTax = returns.filter(x => x.type === 'Sales Return').reduce((s, x) => s + (Number(x.taxAmount) || 0), 0)
-  const purchaseReturnTax = returns.filter(x => x.type === 'Purchase Return').reduce((s, x) => s + (Number(x.taxAmount) || 0), 0)
-  const outputTax = Math.max(0, sales.reduce((s, x) => s + (Number(x.taxAmount) || 0), 0) - salesReturnTax)
-  const inputTax = Math.max(0, purchases.reduce((s, x) => s + (Number(x.taxAmount) || 0), 0) - purchaseReturnTax)
-  const salesReturnCgst = returns.filter(x => x.type === 'Sales Return').reduce((s, x) => s + (Number(x.cgst) || 0), 0)
+  const inRange = (row: Row) => {
+    const date = String(row.date || '')
+    return (!fromDate || date >= fromDate) && (!toDate || date <= toDate)
+  }
+  const periodSales = sales.filter(inRange)
+  const periodPurchases = purchases.filter(inRange)
+  const periodReturns = returns.filter(inRange)
+  const salesReturnTax = periodReturns.filter(x => x.type === 'Sales Return').reduce((s, x) => s + (Number(x.taxAmount) || 0), 0)
+  const purchaseReturnTax = periodReturns.filter(x => x.type === 'Purchase Return').reduce((s, x) => s + (Number(x.taxAmount) || 0), 0)
+  const outputTax = Math.max(0, periodSales.reduce((s, x) => s + (Number(x.taxAmount) || 0), 0) - salesReturnTax)
+  const inputTax = Math.max(0, periodPurchases.reduce((s, x) => s + (Number(x.taxAmount) || 0), 0) - purchaseReturnTax)
+  const salesReturnCgst = periodReturns.filter(x => x.type === 'Sales Return').reduce((s, x) => s + (Number(x.cgst) || 0), 0)
   const salesReturnSgst = returns.filter(x => x.type === 'Sales Return').reduce((s, x) => s + (Number(x.sgst) || 0), 0)
   const salesReturnUtgst = returns.filter(x => x.type === 'Sales Return').reduce((s, x) => s + (Number(x.utgst) || 0), 0)
   const salesReturnIgst = returns.filter(x => x.type === 'Sales Return').reduce((s, x) => s + (Number(x.igst) || 0), 0)
@@ -52,8 +61,8 @@ export default function GST() {
   const purchaseReturnTaxable = returns.filter(x => x.type === 'Purchase Return').reduce((s, x) => s + (Number(x.amount) || 0), 0)
   const taxableSales = Math.max(0, grossTaxableSales - salesReturnTaxable)
   const taxablePurchases = Math.max(0, grossTaxablePurchases - purchaseReturnTaxable)
-  const missingSales = sales.filter(x => x.taxAmount === undefined).length
-  const missingPurchases = purchases.filter(x => x.taxAmount === undefined).length
+  const missingSales = periodSales.filter(x => x.taxAmount === undefined).length
+  const missingPurchases = periodPurchases.filter(x => x.taxAmount === undefined).length
 
   const cards = [
     ['Output GST (Sales)', outputTax],
@@ -68,7 +77,13 @@ export default function GST() {
   return <section className="space-y-5">
     <div>
       <h1 className="text-2xl font-bold">GST & Tax Management</h1>
-      <p className="text-sm text-[var(--text-2)]">GST overview after recorded sales and purchase returns, based on tax details saved in invoices.</p>
+      <p className="text-sm text-[var(--text-2)]">GST overview after recorded returns, using invoice tax details for the selected period.</p>
+      <div className="mt-3 grid gap-3 sm:grid-cols-3 print:hidden">
+        <label className="text-xs font-medium text-[var(--text-2)]">From date<input type="date" value={fromDate} onChange={e=>setFromDate(e.target.value)} className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] p-2 text-sm text-[var(--text)]"/></label>
+        <label className="text-xs font-medium text-[var(--text-2)]">To date<input type="date" value={toDate} onChange={e=>setToDate(e.target.value)} className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] p-2 text-sm text-[var(--text)]"/></label>
+        <button type="button" onClick={()=>{setFromDate('');setToDate('')}} className="self-end rounded-lg border border-[var(--border)] px-3 py-2 text-sm">Clear dates</button>
+      </div>
+      {fromDate&&toDate&&fromDate>toDate&&<p className="mt-2 text-sm text-[var(--rose)]">From date must be on or before the To date.</p>}
     </div>
 
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
