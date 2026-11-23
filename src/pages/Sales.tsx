@@ -148,7 +148,7 @@ export default function Sales() {
       date: localDateISO(),
       customer: customerName,
       product: selected.name,
-      qty, rate, total, paid, balance: total - paid, purchasePrice: Number.isFinite(Number(selected.averageCost ?? selected.purchase)) && Number(selected.averageCost ?? selected.purchase) > 0 ? Number(selected.averageCost ?? selected.purchase) : null,
+      qty, rate, total, paid: roundCurrency(paid), balance: roundCurrency(total - roundCurrency(paid)), purchasePrice: Number.isFinite(Number(selected.averageCost ?? selected.purchase)) && Number(selected.averageCost ?? selected.purchase) > 0 ? Number(selected.averageCost ?? selected.purchase) : null,
       taxableValue, gstRate, taxAmount, cgst, sgst, utgst, igst,
       placeOfSupply: applyGST ? placeOfSupply : '',
       hsn: selected.hsn || '',
