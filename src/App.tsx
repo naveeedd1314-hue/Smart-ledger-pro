@@ -251,6 +251,12 @@ function App() {
   const outstandingChartData = metrics.filter(x => x.label === 'To Collect' || x.label === 'To Pay').map(x => ({ name: x.label, amount: Number(String(x.value).replace(/[^0-9.-]/g, '')) || 0 }))
   const recentTransactions = getRecentTransactions()
   const monthlyPerformance = getMonthlyPerformance()
+  const dashboardInventory = readData('smartledger-products').slice(0, 6).map((item: any, index: number) => {
+    const qty = Number(item.qty ?? item.stock ?? item.quantity) || 0
+    const price = Number(item.salePrice ?? item.sellingPrice ?? item.sale ?? item.price) || 0
+    const status = qty <= 0 ? 'Out of stock' : qty <= 5 ? 'Low stock' : 'In stock'
+    return { id: String(item.id ?? item.sku ?? index), name: String(item.name || item.productName || 'Unnamed item'), sku: String(item.sku || item.code || '—'), qty, price, status }
+  })
   const [detailType, setDetailType] = useState<'Customer' | 'Supplier' | null>(null)
   const [expandedChart, setExpandedChart] = useState<string | null>(null)
   const salesByProduct = Object.values(readData('smartledger-pro-sales').reduce((map: Record<string, { name: string; amount: number }>, item: any) => {
@@ -379,7 +385,7 @@ function App() {
         })()}
 
         {active === 'Command Centre' ? <BusinessCommandCentre /> : active === 'Analytics' ? <Analytics /> : active === 'Sales' ? <Sales /> : active === 'Purchases' ? <Purchases /> : active === 'Inventory' ? <Inventory /> : active === 'Bulk Items' ? <BulkItems /> : active === 'Customers' ? <Customers /> : active === 'Suppliers' ? <Suppliers /> : active === 'Expenses' ? <Expenses /> : active === 'Payments' ? <Payments /> : active === 'Reports' ? <Reports /> : active === 'Ledger' ? <Ledger /> : active === 'Returns' ? <Returns /> : active === 'GST & Tax' ? <GST /> : active === 'Settings' ? <SettingsPage /> : (
-        <div className="mx-auto max-w-7xl p-4 md:p-8">
+        <div className="sl-dashboard-content mx-auto max-w-7xl p-4 md:p-8">
           <div className="sl-dashboard-heading mb-8 flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-[var(--border)] p-5 md:p-6">
             <div>
               <p className="text-sm text-[var(--text-2)]">{new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</p>
@@ -391,7 +397,7 @@ function App() {
             </button>
           </div>
 
-          <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-2">
+          <div className="sl-section-heading"><div><h3>Overview</h3><p>Key business figures at a glance</p></div><span>{new Date().toLocaleDateString("en-IN", { month: "short", year: "numeric" })}</span></div>\n          <section className="sl-overview-chips grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-2">
             {metrics.map((metric) => {
               const Icon = metric.icon
               const detail = metric.label === 'To Collect' ? 'Customer' : metric.label === 'To Pay' ? 'Supplier' : null
@@ -410,10 +416,10 @@ function App() {
             })}
           </section>
 
-          <section className="sl-charts-shell mt-6 grid grid-cols-2 gap-3 sm:gap-5" aria-label="Business charts">
+          <div className="sl-section-heading sl-analytics-heading"><div><h3>Analytics</h3><p>Tap any chart to view full details</p></div><span>View details ↗</span></div>\n          <section className="sl-charts-shell mt-3 grid grid-cols-2 gap-3 sm:gap-5" aria-label="Business charts">
             <div className="sl-dashboard-panel sl-chart-card rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5" role="button" tabIndex={0} aria-label="Expand Monthly business performance details" onClick={()=>setExpandedChart('Monthly business performance')} onKeyDown={event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();setExpandedChart('Monthly business performance')}}}>
               <h3 className="font-bold">Monthly business performance</h3><p className="mt-1 text-xs text-[var(--text-2)]">Sales, purchases and expenses</p>
-              <div className="mt-4 h-64">{monthlyPerformance.length ? <ResponsiveContainer width="100%" height="100%"><BarChart data={monthlyPerformance}><CartesianGrid strokeDasharray="3 3"/><XAxis dataKey="month"/><YAxis/><Tooltip formatter={(v)=>`₹${Number(v).toLocaleString('en-IN')}`}/><Legend/><Bar dataKey="sales" name="Sales" fill="var(--indigo)"/><Bar dataKey="purchases" name="Purchases" fill="var(--emerald)"/><Bar dataKey="expenses" name="Expenses" fill="var(--rose)"/></BarChart></ResponsiveContainer> : <p className="pt-24 text-center text-sm text-[var(--text-2)]">Add dated transactions to view performance.</p>}</div>
+              <div className="mt-3 h-28 sm:h-36">{monthlyPerformance.length ? <ResponsiveContainer width="100%" height="100%"><BarChart data={monthlyPerformance}><CartesianGrid strokeDasharray="3 3"/><XAxis dataKey="month"/><YAxis/><Tooltip formatter={(v)=>`₹${Number(v).toLocaleString('en-IN')}`}/><Legend/><Bar dataKey="sales" name="Sales" fill="var(--indigo)"/><Bar dataKey="purchases" name="Purchases" fill="var(--emerald)"/><Bar dataKey="expenses" name="Expenses" fill="var(--rose)"/></BarChart></ResponsiveContainer> : <p className="pt-24 text-center text-sm text-[var(--text-2)]">Add dated transactions to view performance.</p>}</div>
             </div>
             <div className="sl-dashboard-panel sl-chart-card rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5" role="button" tabIndex={0} aria-label="Expand Top-selling products details" onClick={()=>setExpandedChart('Top-selling products')} onKeyDown={event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();setExpandedChart('Top-selling products')}}}>
               <h3 className="font-bold">Top-selling products</h3><p className="mt-1 text-xs text-[var(--text-2)]">Ranked by recorded sales value</p>
@@ -427,6 +433,20 @@ function App() {
               <h3 className="font-bold">Outstanding balances</h3><p className="mt-1 text-xs text-[var(--text-2)]">Select a bar to open the complete party-wise details.</p>
               <div className="mt-4 h-64">{outstandingChartData.some(x=>x.amount>0) ? <ResponsiveContainer width="100%" height="100%"><BarChart data={outstandingChartData} layout="vertical" margin={{left:8,right:12}}><CartesianGrid strokeDasharray="3 3"/><XAxis type="number"/><YAxis type="category" dataKey="name" width={88}/><Tooltip formatter={(v)=>`₹${Number(v).toLocaleString('en-IN',{maximumFractionDigits:2})}`}/><Bar dataKey="amount" name="Outstanding" fill="var(--indigo)" radius={[0,7,7,0]} onClick={(entry:any)=>{const label=entry?.name || entry?.payload?.name; if(label==='To Collect'||label==='To Pay') setDetailType(label==='To Collect'?'Customer':'Supplier')}} cursor="pointer"/></BarChart></ResponsiveContainer> : <p className="pt-24 text-center text-sm text-[var(--text-2)]">No outstanding balances.</p>}</div>
               <div className="mt-2 flex flex-wrap gap-2"><button type="button" onClick={()=>setDetailType('Customer')} className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs font-semibold">View customers</button><button type="button" onClick={()=>setDetailType('Supplier')} className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs font-semibold">View suppliers</button></div>
+            </div>
+          </section>
+
+          <div className="sl-section-heading sl-inventory-heading"><div><h3>Inventory</h3><p>Quick view of your saved stock items</p></div><button type="button" onClick={()=>navigate('Inventory')}>Manage stock ↗</button></div>
+          <section className="sl-dashboard-panel sl-inventory-preview mt-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-5">
+            <div className="overflow-x-auto">
+              {dashboardInventory.length ? <table className="w-full text-left text-sm">
+                <thead><tr><th className="p-3">#</th><th className="p-3">Item name</th><th className="p-3">SKU</th><th className="p-3 text-right">Qty</th><th className="p-3 text-right">Price</th><th className="p-3">Status</th></tr></thead>
+                <tbody>{dashboardInventory.map((item,i)=><tr key={item.id}>
+                  <td className="p-3">{i+1}</td><td className="p-3 font-semibold">{item.name}</td><td className="p-3">{item.sku}</td>
+                  <td className="p-3 text-right font-bold">{item.qty}</td><td className="p-3 text-right">{item.price ? '₹'+item.price.toLocaleString('en-IN',{maximumFractionDigits:2}) : '—'}</td>
+                  <td className="p-3"><span className={item.qty<=0?'sl-stock-badge is-out':item.qty<=5?'sl-stock-badge is-low':'sl-stock-badge is-ok'}>{item.status}</span></td>
+                </tr>)}</tbody>
+              </table> : <div className="flex h-28 items-center justify-center text-sm text-[var(--text-2)]">No inventory items saved yet. <button type="button" className="ml-2 font-bold text-[var(--teal)]" onClick={()=>navigate('Inventory')}>Open inventory</button></div>}
             </div>
           </section>
 
