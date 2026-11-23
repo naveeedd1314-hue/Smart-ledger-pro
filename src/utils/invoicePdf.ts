@@ -46,7 +46,8 @@ export function downloadInvoicePdf(
   record: InvoiceRecord,
   business: Business,
   type: 'sales' | 'purchase',
-  theme: 'classic' | 'modern' | 'minimal' | 'bold' = 'modern'
+  theme: 'classic' | 'modern' | 'minimal' | 'bold' = 'modern',
+  returnBlob = false
 ) {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -185,5 +186,6 @@ export function downloadInvoicePdf(
   doc.text('Computer-generated document', right, y, { align: 'right' });
 
   const safeName = String(record.invoice || 'invoice').replace(/[^a-z0-9-_]/gi, '_');
+  if (returnBlob) return doc.output('blob');
   doc.save(`${type === 'sales' ? 'Sales' : 'Purchase'}-${safeName}.pdf`);
 }
