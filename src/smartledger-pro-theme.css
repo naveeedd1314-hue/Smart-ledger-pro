@@ -1284,3 +1284,5 @@ main :where(.overflow-y-auto,.overflow-auto) {scrollbar-width:thin;scrollbar-col
 [data-theme="dark"] main table tbody tr {background:var(--surface)!important}
 [data-theme="dark"] [data-sl-dashboard] table tbody tr:nth-child(even),
 [data-theme="dark"] main table tbody tr:nth-child(even) {background:color-mix(in srgb,var(--surface-2) 55%,var(--surface))!important}
+
+/* Browser smoke-test baseline: responsive overflow and theme-token checks. */
