@@ -156,7 +156,6 @@ function normalizeProducts(rows: Row[]): Row[] {
 }
 
 function migrateArray(targetKey: string, legacyKeys: string[], normalize: (rows: Row[]) => Row[], migrated: Record<string, number>) {
-  const existingRaw = localStorage.getItem(targetKey);
   const existing = readArray(targetKey);
   if (existing.length > 0) return;
   const sourceKey = legacyKeys.find(key => readArray(key).length > 0);
@@ -167,7 +166,6 @@ function migrateArray(targetKey: string, legacyKeys: string[], normalize: (rows:
   localStorage.setItem(targetKey, JSON.stringify(normalized));
   migrated[targetKey] = normalized.length;
   // Keep every legacy key intact; migration is a copy, never a destructive move.
-  if (existingRaw !== null && existingRaw !== '[]') return;
 }
 
 export function migrateLegacyData(): void {
