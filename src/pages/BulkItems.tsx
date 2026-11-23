@@ -151,11 +151,11 @@ export default function BulkItems() {
           category: get(row, 'category') || 'General',
           hsn: get(row, 'hsn'),
           gstRate: gst ?? 0,
-          purchase,
+          purchase: purchase ?? 0,
           averageCost: averageCost !== null && averageCost > 0 ? averageCost : null,
-          selling: number('selling', 'selling price'),
+          selling: number('selling', 'selling price') ?? 0,
           wholesale: number('wholesale', 'wholesale price') ?? 0,
-          stock: number('stock', 'opening stock'),
+          stock: number('stock', 'opening stock') ?? 0,
         })
       })
       if (errors.length) {
