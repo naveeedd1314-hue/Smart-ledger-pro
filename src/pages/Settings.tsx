@@ -5,8 +5,10 @@ import { migrateLegacyData } from '../lib/dataMigration';
 
 const BACKUP_PREFIX = 'smartledger-';
 
+type BusinessSettings = { name:string; phone:string; email:string; address:string; gstin:string; state:string; invoicePrefix:string; financialYear:string; targetMarginPercent:string; logo:string; signature:string };
+
 export default function Settings() {
-  const [business, setBusiness] = useState(() => {
+  const [business, setBusiness] = useState<BusinessSettings>(() => {
     const defaults = { name: 'SmartLedger Business', phone: '', email: '', address: '', gstin: '', state: 'Jammu and Kashmir', invoicePrefix: 'SL', financialYear: '2026-27', targetMarginPercent: '3.5', logo: '', signature: '' };
     try { return { ...defaults, ...JSON.parse(localStorage.getItem('smartledger-pro-settings') || '{}') }; }
     catch { return defaults; }
