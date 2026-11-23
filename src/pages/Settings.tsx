@@ -118,6 +118,11 @@ export default function Settings() {
       <p className="text-xs text-[var(--text-2)]">Products below this margin are flagged in Business Strategy and SmartLedger AI. This is a monitoring threshold, not an automatic price change.</p>
       <button onClick={save} className="rounded-xl bg-[var(--indigo)] px-5 py-3 font-semibold text-white shadow-sm transition hover:bg-[var(--indigo-ink)]">Save Settings</button>
     </div>
+    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm space-y-3">
+      <h2 className="text-lg font-semibold">Account & Security</h2>
+      <p className="text-sm text-[var(--text-2)]">Sign out of this account on this device. Your business records are kept in the account-specific local workspace and restored when you sign back in.</p>
+      <button type="button" onClick={() => { if (window.confirm('Sign out of SmartLedger on this device?')) window.dispatchEvent(new Event('smartledger:sign-out')); }} className="rounded-xl border border-rose-300 px-5 py-3 font-semibold text-rose-700 transition hover:bg-rose-50 dark:border-rose-900 dark:text-rose-300 dark:hover:bg-rose-950/40">Sign out</button>
+    </div>
     {migrationInfo && <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-4 text-sm"><strong>Legacy data migration checked</strong><p className="mt-1 text-[var(--text-2)]">{migratedSections ? `Imported records — ${migratedSections}.` : "No legacy records needed importing."} Original legacy data keys remain preserved on this device.</p></div>}
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm space-y-3">
       <h2 className="text-lg font-semibold">Data Backup & Restore</h2>
