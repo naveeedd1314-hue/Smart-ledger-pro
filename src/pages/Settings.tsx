@@ -7,7 +7,7 @@ const BACKUP_PREFIX = 'smartledger-';
 
 export default function Settings() {
   const [business, setBusiness] = useState(() => {
-    const defaults = { name: 'SmartLedger Business', phone: '', email: '', address: '', gstin: '', state: 'Jammu and Kashmir', invoicePrefix: 'SL', financialYear: '2026-27', targetMarginPercent: '3.5' };
+    const defaults = { name: 'SmartLedger Business', phone: '', email: '', address: '', gstin: '', state: 'Jammu and Kashmir', invoicePrefix: 'SL', financialYear: '2026-27', targetMarginPercent: '3.5', logo: '', signature: '' };
     try { return { ...defaults, ...JSON.parse(localStorage.getItem('smartledger-pro-settings') || '{}') }; }
     catch { return defaults; }
   });
@@ -96,6 +96,22 @@ export default function Settings() {
           ['financialYear','Financial year'],
           ['targetMarginPercent','Minimum gross margin (%)']
         ] as const).map(([key,label])=><label key={key} className="text-sm">{label}<input type={key === 'targetMarginPercent' ? 'number' : 'text'} min={key === 'targetMarginPercent' ? 0 : undefined} max={key === 'targetMarginPercent' ? 100 : undefined} step={key === 'targetMarginPercent' ? 0.1 : undefined} className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] p-3 text-[var(--text)]" value={business[key]} onChange={e=>setBusiness({...business,[key]:e.target.value})}/></label>)}
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-4">
+          <label className="block text-sm font-semibold">Business logo</label>
+          <p className="mt-1 text-xs text-[var(--text-2)]">PNG or JPG, up to 700 KB. Used on invoices.</p>
+          {business.logo && <img src={business.logo} alt="Business logo preview" className="mt-3 h-20 max-w-40 rounded-lg border border-[var(--border)] bg-white object-contain p-2"/>}
+          <input type="file" accept="image/png,image/jpeg" className="mt-3 block w-full text-sm" onChange={e=>{const file=e.target.files?.[0];if(!file)return;if(file.size>700*1024){alert('Choose a logo smaller than 700 KB.');e.currentTarget.value='';return;}const reader=new FileReader();reader.onload=()=>setBusiness(prev=>({...prev,logo:String(reader.result||'')}));reader.readAsDataURL(file);e.currentTarget.value='';}}/>
+          {business.logo && <button type="button" onClick={()=>setBusiness(prev=>({...prev,logo:''}))} className="mt-2 text-xs font-semibold text-[var(--rose)]">Remove logo</button>}
+        </div>
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-4">
+          <label className="block text-sm font-semibold">Authorised signature</label>
+          <p className="mt-1 text-xs text-[var(--text-2)]">PNG or JPG, up to 700 KB. Printed on sales invoices.</p>
+          {business.signature && <img src={business.signature} alt="Signature preview" className="mt-3 h-20 max-w-48 rounded-lg border border-[var(--border)] bg-white object-contain p-2"/>}
+          <input type="file" accept="image/png,image/jpeg" className="mt-3 block w-full text-sm" onChange={e=>{const file=e.target.files?.[0];if(!file)return;if(file.size>700*1024){alert('Choose a signature image smaller than 700 KB.');e.currentTarget.value='';return;}const reader=new FileReader();reader.onload=()=>setBusiness(prev=>({...prev,signature:String(reader.result||'')}));reader.readAsDataURL(file);e.currentTarget.value='';}}/>
+          {business.signature && <button type="button" onClick={()=>setBusiness(prev=>({...prev,signature:''}))} className="mt-2 text-xs font-semibold text-[var(--rose)]">Remove signature</button>}
+        </div>
       </div>
       <p className="text-xs text-[var(--text-2)]">Products below this margin are flagged in Business Strategy and SmartLedger AI. This is a monitoring threshold, not an automatic price change.</p>
       <button onClick={save} className="rounded-xl bg-[var(--indigo)] px-5 py-3 font-semibold text-white shadow-sm transition hover:bg-[var(--indigo-ink)]">Save Settings</button>
