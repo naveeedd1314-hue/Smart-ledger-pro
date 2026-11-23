@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { localDateISO } from '../lib/dateUtils';
 import { jsPDF } from 'jspdf';
 
+const roundCurrency = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
 type Payment = { id: string; date: string; type: string; party: string; amount: number; method: string; reference: string; note: string; allocations?: { invoiceId: string; invoice: string; amount: number }[] };
 
 export default function Payments() {
@@ -73,19 +74,20 @@ export default function Payments() {
     if (savingRef.current) return;
     savingRef.current = true;
     const reject = (message: string) => { savingRef.current = false; alert(message); };
-    if (!Number.isFinite(amount) || amount <= 0 || !date) return reject('Enter a valid date and amount.');
+    const transactionAmount = roundCurrency(amount);
+    if (!Number.isFinite(amount) || !Number.isFinite(transactionAmount) || transactionAmount <= 0 || !date) return reject('Enter a valid date and amount.');
     const selectedInvoice = invoiceOptions.find((x: any) => x.id === invoiceId);
     if (invoiceId && !selectedInvoice) return reject('Selected invoice is no longer available or is already settled.');
     const selectedParty = selectedInvoice
       ? (type === 'Customer Receipt' ? selectedInvoice.customer : selectedInvoice.supplier)
       : party.trim();
     if (!selectedParty) return reject('Enter a party name or select an invoice.');
-    if (type === 'Customer Refund' && amount > customerCredit(selectedParty) + 0.01) return reject(`Refund exceeds the available customer credit of ₹${customerCredit(selectedParty).toLocaleString('en-IN',{maximumFractionDigits:2})}.`);
-    if (type === 'Supplier Refund' && amount > supplierCredit(selectedParty) + 0.01) return reject(`Refund exceeds the available supplier credit of ₹${supplierCredit(selectedParty).toLocaleString('en-IN',{maximumFractionDigits:2})}.`);
-    if (selectedInvoice && amount > selectedInvoice.dueNow) return reject('Payment cannot exceed the selected invoice balance.');
+    if (type === 'Customer Refund' && transactionAmount > customerCredit(selectedParty) + 0.01) return reject(`Refund exceeds the available customer credit of ₹${customerCredit(selectedParty).toLocaleString('en-IN',{maximumFractionDigits:2})}.`);
+    if (type === 'Supplier Refund' && transactionAmount > supplierCredit(selectedParty) + 0.01) return reject(`Refund exceeds the available supplier credit of ₹${supplierCredit(selectedParty).toLocaleString('en-IN',{maximumFractionDigits:2})}.`);
+    if (selectedInvoice && transactionAmount > selectedInvoice.dueNow + 0.001) return reject('Payment cannot exceed the selected invoice balance.');
     const id = crypto.randomUUID();
-    const payment: any = { id, date, type, party: selectedParty, amount, method, reference, note };
-    if (selectedInvoice) payment.allocations = [{ invoiceId: selectedInvoice.id, invoice: selectedInvoice.invoice || selectedInvoice.id, amount }];
+    const payment: any = { id, date, type, party: selectedParty, amount: transactionAmount, method, reference, note };
+    if (selectedInvoice) payment.allocations = [{ invoiceId: selectedInvoice.id, invoice: selectedInvoice.invoice || selectedInvoice.id, amount: transactionAmount }];
     const next = [payment, ...items];
     setItems(next);
     localStorage.setItem('smartledger-pro-payments', JSON.stringify(next));
