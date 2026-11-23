@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { localDateISO } from '../lib/dateUtils';
 
 type RecordItem = Record<string, any>;
@@ -28,10 +28,10 @@ type ReturnItem = {
 
 export default function Returns() {
   const [type,setType] = useState<'Sales Return'|'Purchase Return'>('Sales Return');
-  const [sales,setSales] = useState<RecordItem[]>([]);
-  const [purchases,setPurchases] = useState<RecordItem[]>([]);
-  const [products,setProducts] = useState<RecordItem[]>([]);
-  const [returns,setReturns] = useState<ReturnItem[]>([]);
+  const [sales,setSales] = useState<RecordItem[]>(() => read('smartledger-pro-sales'));
+  const [purchases,setPurchases] = useState<RecordItem[]>(() => read('smartledger-pro-purchases'));
+  const [products,setProducts] = useState<RecordItem[]>(() => read('smartledger-products'));
+  const [returns,setReturns] = useState<ReturnItem[]>(() => read('smartledger-pro-returns'));
   const [sourceId,setSourceId] = useState('');
   const [qty,setQty] = useState(1);
   const [reason,setReason] = useState('Damaged goods');
@@ -44,13 +44,6 @@ export default function Returns() {
       return Array.isArray(value)?value:[];
     } catch { return []; }
   };
-
-  useEffect(()=>{
-    setSales(read('smartledger-pro-sales'));
-    setPurchases(read('smartledger-pro-purchases'));
-    setProducts(read('smartledger-products'));
-    setReturns(read('smartledger-pro-returns'));
-  },[]);
 
   const sources=type==='Sales Return'?sales:purchases;
   const source=sources.find(x=>x.id===sourceId);
