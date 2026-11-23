@@ -16,6 +16,9 @@ export default function Purchases() {
   const [suppliersList,setSuppliersList] = useState<any[]>([]);
   const savingRef = useRef(false);
   const [supplier,setSupplier] = useState('');
+  const [productSearch,setProductSearch] = useState('');
+  const [supplierSearch,setSupplierSearch] = useState('');
+  const [historySearch,setHistorySearch] = useState('');
   const [invoice,setInvoice] = useState('');
   const [date,setDate] = useState(localDateISO());
   const [productId,setProductId] = useState('');
@@ -47,6 +50,8 @@ try {
   },[]);
 
   const selected=products.find(p=>p.id===productId);
+  const filteredHistory=items.filter(x=>`${x.date} ${x.invoice} ${x.supplier} ${x.product}`.toLowerCase().includes(historySearch.trim().toLowerCase()));
+  const choosePurchaseProduct=(value:string)=>{setProductSearch(value);const match=products.find(p=>p.name.trim().toLowerCase()===value.trim().toLowerCase()||(p.sku||'').trim().toLowerCase()===value.trim().toLowerCase());if(match){setProductId(match.id);setRate(Number(match.purchase)||0);}else setProductId('');};
   const taxableValue = roundCurrency(qty * rate);
 const gstRate = applyGST ? Number(selected?.gstRate) || 0 : 0;
 const taxAmount = roundCurrency(taxableValue * gstRate / 100);
@@ -108,6 +113,9 @@ const total = roundCurrency(taxableValue + taxAmount);
     setRate(0);
     setPaid(0);
     setProductId('');
+    setProductSearch('');
+    setSupplierSearch('');
+    setSupplier('');
     savingRef.current = false;
     alert('Purchase saved and stock updated.');
   }
@@ -122,10 +130,10 @@ const total = roundCurrency(taxableValue + taxAmount);
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm space-y-5">
       <h2 className="font-semibold">Record Purchase Invoice</h2>
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="text-sm">Supplier<select className="mt-1 w-full rounded-lg border p-3" value={supplier} onChange={e=>setSupplier(e.target.value)}><option value="">Select supplier</option>{suppliers.map(x=><option key={x.id} value={x.name}>{x.name}</option>)}</select></label>
+        <label className="text-sm">Supplier<input className="mt-1 w-full rounded-lg border p-3" list="sl-purchase-suppliers" value={supplierSearch} onChange={e=>{setSupplierSearch(e.target.value);setSupplier(e.target.value);}} placeholder="Search supplier name"/><datalist id="sl-purchase-suppliers">{suppliers.map(x=><option key={x.id} value={x.name}/>)}</datalist></label>
         <label className="text-sm">Invoice number<input className="mt-1 w-full rounded-lg border p-3" value={invoice} onChange={e=>setInvoice(e.target.value)} placeholder="Supplier invoice number"/></label>
         <label className="text-sm">Date<input type="date" className="mt-1 w-full rounded-lg border p-3" value={date} onChange={e=>setDate(e.target.value)}/></label>
-        <label className="text-sm">Product<select className="mt-1 w-full rounded-lg border p-3" value={productId} onChange={e=>{setProductId(e.target.value);setRate(Number(products.find(p=>p.id===e.target.value)?.purchase)||0);}}><option value="">Select product</option>{products.map(p=><option key={p.id} value={p.id}>{p.name} (Stock: {p.stock})</option>)}</select></label>
+        <label className="text-sm">Product<input className="mt-1 w-full rounded-lg border p-3" list="sl-purchase-products" value={productSearch} onChange={e=>choosePurchaseProduct(e.target.value)} placeholder="Search product or SKU"/><datalist id="sl-purchase-products">{products.map(p=><option key={p.id} value={p.name}>{`SKU: ${p.sku||"-"} · Stock: ${p.stock} · Cost: ${money(Number(p.purchase)||0)}`}</option>)}</datalist></label>
         <label className="text-sm">Quantity<input type="number" min="0.01" step="any" className="mt-1 w-full rounded-lg border p-3" value={qty} onChange={e=>setQty(Number(e.target.value))}/></label>
         <label className="text-sm">Purchase rate<input type="number" min="0" step="any" className="mt-1 w-full rounded-lg border p-3" value={rate} onChange={e=>setRate(Number(e.target.value))}/></label>
         <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={applyGST} onChange={e=>setApplyGST(e.target.checked)}/> Apply GST to this purchase</label>
@@ -143,8 +151,8 @@ const total = roundCurrency(taxableValue + taxAmount);
       <button onClick={save} className="rounded-xl bg-[var(--indigo)] px-5 py-3 font-semibold text-white shadow-sm transition hover:bg-[var(--indigo-ink)]">Save Purchase</button>
     </div>
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
-      <h2 className="mb-4 font-semibold">Purchase History ({items.length})</h2>
-      <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="border-b text-[var(--text-2)]"><th className="p-2">Date</th><th className="p-2">Invoice</th><th className="p-2">Supplier</th><th className="p-2">Product</th><th className="p-2">Qty</th><th className="p-2">Total</th><th className="p-2">Paid</th><th className="p-2">Return Credit</th><th className="p-2">Due</th><th className="p-2">PDF</th></tr></thead><tbody>{items.map(x=><tr className="border-b border-[var(--border)] hover:bg-[var(--surface-2)]" key={x.id}><td className="p-2">{x.date}</td><td className="p-2">{x.invoice}</td><td className="p-2">{x.supplier}</td><td className="p-2">{x.product}</td><td className="p-2">{x.qty}</td><td className="p-2">{money(x.total)}</td><td className="p-2">{money(invoicePaid(x))}</td><td className="p-2">{money(invoiceReturnCredit(x))}</td><td className="p-2">{money(invoiceDue(x))}</td><td className="p-2"><button onClick={() => { let b = {}; try { b = JSON.parse(localStorage.getItem('smartledger-pro-settings') || '{}'); } catch {} downloadInvoicePdf({ ...x, paid: invoicePaid(x), returnCredit: invoiceReturnCredit(x), balance: invoiceDue(x) }, b, 'purchase'); }} className="rounded-lg bg-[var(--indigo)] px-3 py-2 text-white transition hover:bg-[var(--indigo-ink)]">Download PDF</button></td></tr>)}</tbody></table></div>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><h2 className="font-semibold">Purchase History ({filteredHistory.length} of {items.length})</h2><input aria-label="Search purchase history" className="w-full max-w-sm rounded-lg border border-[var(--border)] bg-[var(--surface-2)] p-3 text-sm" value={historySearch} onChange={e=>setHistorySearch(e.target.value)} placeholder="Search invoice, supplier, product or date"/></div>
+      <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="border-b text-[var(--text-2)]"><th className="p-2">Date</th><th className="p-2">Invoice</th><th className="p-2">Supplier</th><th className="p-2">Product</th><th className="p-2">Qty</th><th className="p-2">Total</th><th className="p-2">Paid</th><th className="p-2">Return Credit</th><th className="p-2">Due</th><th className="p-2">PDF</th></tr></thead><tbody>{filteredHistory.map(x=><tr className="border-b border-[var(--border)] hover:bg-[var(--surface-2)]" key={x.id}><td className="p-2">{x.date}</td><td className="p-2">{x.invoice}</td><td className="p-2">{x.supplier}</td><td className="p-2">{x.product}</td><td className="p-2">{x.qty}</td><td className="p-2">{money(x.total)}</td><td className="p-2">{money(invoicePaid(x))}</td><td className="p-2">{money(invoiceReturnCredit(x))}</td><td className="p-2">{money(invoiceDue(x))}</td><td className="p-2"><button onClick={() => { let b = {}; try { b = JSON.parse(localStorage.getItem('smartledger-pro-settings') || '{}'); } catch {} downloadInvoicePdf({ ...x, paid: invoicePaid(x), returnCredit: invoiceReturnCredit(x), balance: invoiceDue(x) }, b, 'purchase'); }} className="rounded-lg bg-[var(--indigo)] px-3 py-2 text-white transition hover:bg-[var(--indigo-ink)]">Download PDF</button></td></tr>)}</tbody></table></div>
       {items.length===0&&<p className="py-5 text-center text-[var(--text-2)]">No purchases recorded yet.</p>}
     </div>
   </section>;
