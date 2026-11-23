@@ -11,6 +11,8 @@ export default function Reports() {
   const [products, setProducts] = useState<Row[]>([]);
   const [customers, setCustomers] = useState<Row[]>([]);
   const [suppliers, setSuppliers] = useState<Row[]>([]);
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
 
   useEffect(() => {
     const read = (key: string): Row[] => {
@@ -30,32 +32,47 @@ export default function Reports() {
   }, []);
 
   const num = (v: unknown) => Number(v) || 0;
-  const salesTotal = sales.reduce((s,x)=>s+(x.taxableValue !== undefined && x.taxableValue !== null ? num(x.taxableValue) : (num(x.qty)*num(x.rate) || num(x.total))),0);
-  const purchaseTotal = purchases.reduce((s,x)=>s+(x.taxableValue !== undefined && x.taxableValue !== null ? num(x.taxableValue) : (num(x.qty)*num(x.rate) || num(x.total || x.amount))),0);
-  const salesReturns = returns.filter(x=>x.type==='Sales Return');
-  const purchaseReturns = returns.filter(x=>x.type==='Purchase Return');
+  const inRange = (row: Row) => {
+    const date = String(row.date || '');
+    return (!fromDate || date >= fromDate) && (!toDate || date <= toDate);
+  };
+  const periodSales = sales.filter(inRange);
+  const periodPurchases = purchases.filter(inRange);
+  const periodExpenses = expenses.filter(inRange);
+  const periodPayments = payments.filter(inRange);
+  const periodReturns = returns.filter(inRange);
+  const salesTotal = periodSales.reduce((s,x)=>s+(x.taxableValue !== undefined && x.taxableValue !== null ? num(x.taxableValue) : (num(x.qty)*num(x.rate) || num(x.total))),0);
+  const purchaseTotal = periodPurchases.reduce((s,x)=>s+(x.taxableValue !== undefined && x.taxableValue !== null ? num(x.taxableValue) : (num(x.qty)*num(x.rate) || num(x.total || x.amount))),0);
+  const salesReturns = periodReturns.filter(x=>x.type==='Sales Return');
+  const purchaseReturns = periodReturns.filter(x=>x.type==='Purchase Return');
   const salesReturnTotal = salesReturns.reduce((s,x)=>s+num(x.totalAmount ?? x.amount),0);
   const salesReturnRevenue = salesReturns.reduce((s,x)=>s+num(x.amount),0);
   const purchaseReturnTotal = purchaseReturns.reduce((s,x)=>s+num(x.totalAmount ?? x.amount),0);
   const purchaseReturnValue = purchaseReturns.reduce((s,x)=>s+num(x.amount),0);
   const netSales = Math.max(0,salesTotal-salesReturnRevenue);
   const netPurchases = Math.max(0,purchaseTotal-purchaseReturnValue);
-  const expenseTotal = expenses.reduce((s,x)=>s+num(x.amount),0);
-  const received = payments.filter(x=>x.type==='Customer Receipt').reduce((s,x)=>s+num(x.amount),0);
-  const supplierPaid = payments.filter(x=>x.type==='Supplier Payment').reduce((s,x)=>s+num(x.amount),0);
-const customerRefunds = payments.filter(x=>x.type==='Customer Refund').reduce((s,x)=>s+num(x.amount),0);
-const supplierRefunds = payments.filter(x=>x.type==='Supplier Refund').reduce((s,x)=>s+num(x.amount),0);
-  const salesPaid = sales.reduce((s,x)=>s+num(x.paid),0);
-  const purchasePaid = purchases.reduce((s,x)=>s+num(x.paid),0);
+  const expenseTotal = periodExpenses.reduce((s,x)=>s+num(x.amount),0);
+  const periodReceived = periodPayments.filter(x=>x.type==='Customer Receipt').reduce((s,x)=>s+num(x.amount),0);
+  const periodSupplierPaid = periodPayments.filter(x=>x.type==='Supplier Payment').reduce((s,x)=>s+num(x.amount),0);
+  const periodCustomerRefunds = periodPayments.filter(x=>x.type==='Customer Refund').reduce((s,x)=>s+num(x.amount),0);
+  const periodSupplierRefunds = periodPayments.filter(x=>x.type==='Supplier Refund').reduce((s,x)=>s+num(x.amount),0);
+  const salesPaid = periodSales.reduce((s,x)=>s+num(x.paid),0);
+  const purchasePaid = periodPurchases.reduce((s,x)=>s+num(x.paid),0);
+  const allSalesReturns = returns.filter(x=>x.type==='Sales Return').reduce((s,x)=>s+num(x.totalAmount ?? x.amount),0);
+  const allPurchaseReturns = returns.filter(x=>x.type==='Purchase Return').reduce((s,x)=>s+num(x.totalAmount ?? x.amount),0);
+  const allReceived = payments.filter(x=>x.type==='Customer Receipt').reduce((s,x)=>s+num(x.amount),0);
+  const allSupplierPaid = payments.filter(x=>x.type==='Supplier Payment').reduce((s,x)=>s+num(x.amount),0);
+  const allCustomerRefunds = payments.filter(x=>x.type==='Customer Refund').reduce((s,x)=>s+num(x.amount),0);
+  const allSupplierRefunds = payments.filter(x=>x.type==='Supplier Refund').reduce((s,x)=>s+num(x.amount),0);
   const customerOpening = customers.reduce((sum,x)=>sum+num(x.opening),0);
   const supplierOpening = suppliers.reduce((sum,x)=>sum+num(x.opening),0);
-  const customerDue = Math.max(0, customerOpening + sales.reduce((s,x)=>s+(x.total !== undefined && x.total !== null ? Math.max(0,num(x.total)-num(x.paid)) : num(x.balance)),0) + customerRefunds - received - salesReturnTotal);
-  const supplierDue = Math.max(0, supplierOpening + purchases.reduce((s,x)=>s+(x.total !== undefined && x.total !== null ? Math.max(0,num(x.total)-num(x.paid)) : (x.amount !== undefined ? Math.max(0,num(x.amount)-num(x.paid)) : Math.max(0,num(x.qty)*num(x.rate)-num(x.paid)))),0) + supplierRefunds - supplierPaid - purchaseReturnTotal);
-  const netMovement = salesPaid + received + supplierRefunds - purchasePaid - supplierPaid - customerRefunds - expenseTotal;
+  const customerDue = Math.max(0, customerOpening + sales.reduce((s,x)=>s+(x.total !== undefined && x.total !== null ? Math.max(0,num(x.total)-num(x.paid)) : num(x.balance)),0) + allCustomerRefunds - allReceived - allSalesReturns);
+  const supplierDue = Math.max(0, supplierOpening + purchases.reduce((s,x)=>s+(x.total !== undefined && x.total !== null ? Math.max(0,num(x.total)-num(x.paid)) : (x.amount !== undefined ? Math.max(0,num(x.amount)-num(x.paid)) : Math.max(0,num(x.qty)*num(x.rate)-num(x.paid)))),0) + allSupplierRefunds - allSupplierPaid - allPurchaseReturns);
+  const netMovement = salesPaid + periodReceived + periodSupplierRefunds - purchasePaid - periodSupplierPaid - periodCustomerRefunds - expenseTotal;
   const money = (n:number)=>`₹${n.toLocaleString('en-IN',{maximumFractionDigits:2})}`;
 
 
-  const invoiceProfitRows = sales.map((x, index) => {
+  const invoiceProfitRows = periodSales.map((x, index) => {
     const qty = num(x.qty);
     const rate = num(x.rate);
     const revenue = x.taxableValue !== undefined && x.taxableValue !== null ? num(x.taxableValue) : qty * rate;
@@ -106,9 +123,9 @@ const supplierRefunds = payments.filter(x=>x.type==='Supplier Refund').reduce((s
     ['Net Sales Revenue',netSales],
     ['Net Purchase Value',netPurchases],
     ['Business Expenses',expenseTotal],
-    ['Customer Outstanding',customerDue],
-    ['Supplier Outstanding',supplierDue],
-    ['Estimated Cash Movement',netMovement]
+    ['Customer Outstanding (all time)',customerDue],
+    ['Supplier Outstanding (all time)',supplierDue],
+    ['Estimated Cash Movement (period)',netMovement]
   ];
 
   return <section className="space-y-5">
@@ -125,7 +142,8 @@ const supplierRefunds = payments.filter(x=>x.type==='Supplier Refund').reduce((s
         }
       `}</style>
     
-    <div><h1 className="text-2xl font-bold">Financial Reports</h1>
+    <div><h1 className="text-2xl font-bold">Financial Reports</h1><p className="mt-1 text-sm text-[var(--text-2)]">Financial performance and cash movement for the selected period; outstanding balances remain all-time.</p>
+      <div className="mt-3 grid gap-3 sm:grid-cols-3 print:hidden"><label className="text-xs font-medium text-[var(--text-2)]">From date<input type="date" value={fromDate} onChange={e=>setFromDate(e.target.value)} className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] p-2 text-sm text-[var(--text)]"/></label><label className="text-xs font-medium text-[var(--text-2)]">To date<input type="date" value={toDate} onChange={e=>setToDate(e.target.value)} className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] p-2 text-sm text-[var(--text)]"/></label><button type="button" onClick={()=>{setFromDate("");setToDate("")}} className="self-end rounded-lg border border-[var(--border)] px-3 py-2 text-sm">Clear dates</button></div>{fromDate&&toDate&&fromDate>toDate&&<p className="mt-2 text-sm text-[var(--rose)]">From date must be on or before the To date.</p>}
       <button type="button" onClick={() => window.print()} className="mt-3 rounded-lg sl-primary px-5 py-3 font-semibold text-white print:hidden">
         Print Financial Report
       </button><p className="text-sm text-[var(--text-2)]">Summary based on records currently stored in this device.</p></div>
