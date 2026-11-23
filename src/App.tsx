@@ -206,7 +206,7 @@ function App() {
           ))}
         </nav>
         <div className="sl-sidebar-footer m-3 rounded-2xl border border-[var(--border)] p-4">
-          <p className="text-xs font-semibold">SmartLedger Pro</p>
+          <p className="text-xs font-semibold">SmartLedger Pro</p><p className="mt-1 text-[10px] font-bold tracking-[.16em] text-[var(--text-2)]">VERSION 5.0</p>
           <p className="mt-1 text-[11px] text-[var(--text-2)]">Your business. Under control.</p>
         </div>
       </aside>
@@ -330,7 +330,7 @@ function App() {
             </div>
           </section>
 
-          <footer className="py-8 text-center text-xs text-[var(--text-2)]">SmartLedger Pro · Business management platform</footer>
+          <footer className="py-8 text-center text-xs text-[var(--text-2)]">SmartLedger Pro 5.0 · Business management platform</footer>
         </div>
         )}
       </main>
