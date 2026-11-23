@@ -210,6 +210,7 @@ function App() {
           <p className="mt-1 text-[11px] text-[var(--text-2)]">Your business. Under control.</p>
         </div>
       </aside>
+      {menuOpen && <button type="button" aria-label="Close navigation menu" onClick={() => setMenuOpen(false)} className="fixed inset-0 z-30 bg-slate-950/45 backdrop-blur-[2px] md:hidden" />}
 
       <main className="min-h-screen md:ml-64">
         <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-[var(--border)] bg-[var(--bg)]/95 px-4 backdrop-blur md:px-8">
