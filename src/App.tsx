@@ -1,5 +1,3 @@
-import { App as CapacitorApp } from '@capacitor/app';
-import { Capacitor } from '@capacitor/core';
 import BusinessAdvisor from "./components/BusinessAdvisor";
 import PriceAnalysis from "./components/PriceAnalysis";
 import BusinessIntelligence from "./components/BusinessIntelligence";
@@ -198,15 +196,21 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'auto' });
   };
   useEffect(() => {
-    if (!Capacitor.isNativePlatform()) return;
-    let handle: { remove: () => Promise<void> } | undefined;
-    let mounted = true;
-    void CapacitorApp.addListener('backButton', () => {
-      if (activeRef.current !== 'Dashboard' || pageStack.current.length > 1 || menuOpen) goBack();
-      else window.history.replaceState({ smartLedgerPage: 'Dashboard' }, '', '#page=Dashboard');
-    }).then(value => { if (mounted) handle = value; else void value.remove(); });
-    return () => { mounted = false; if (handle) void handle.remove(); };
-  }, [menuOpen]);
+    const onNativeBack = () => {
+      if (menuOpen) { setMenuOpen(false); return; }
+      if (searchOpen) { setSearchOpen(false); setSearchQuery(''); return; }
+      if (pageStack.current.length > 1) {
+        pageStack.current = pageStack.current.slice(0, -1);
+        const previous = pageStack.current[pageStack.current.length - 1] || 'Dashboard';
+        setCurrentPage(previous);
+        window.history.replaceState({ smartLedgerPage: previous }, '', '#page=' + encodeURIComponent(previous));
+        window.scrollTo({ top: 0, behavior: 'auto' });
+      }
+      // Consume Back at Dashboard instead of allowing Android to close the app.
+    };
+    window.addEventListener('smartledger:native-back', onNativeBack);
+    return () => window.removeEventListener('smartledger:native-back', onNativeBack);
+  }, [menuOpen, searchOpen]);
   useEffect(() => {
     window.history.replaceState({ smartLedgerPage: 'Dashboard' }, '', window.location.pathname + window.location.search + '#page=Dashboard');
     const onBack = (event: PopStateEvent) => {
@@ -247,12 +251,7 @@ function App() {
       <aside className={`${menuOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-[var(--border)] bg-[var(--surface)] text-[var(--text)] transition-transform md:translate-x-0`}>
         <div className="flex h-20 shrink-0 items-center gap-3 border-b border-[var(--border)] px-5">
           <div className="sl-brand-mark" aria-label="SmartLedger logo">
-            <svg viewBox="0 0 48 48" role="img" aria-hidden="true">
-              <path d="M8 10.5c5.8-2.4 11.1-1.8 16 1.8v27c-4.9-3.6-10.2-4.2-16-1.8z" />
-              <path d="M40 10.5c-5.8-2.4-11.1-1.8-16 1.8v27c4.9-3.6 10.2-4.2 16-1.8z" />
-              <path d="M13 17.5c3.1-.7 6-.1 8.5 1.5M13 24c3.1-.7 6-.1 8.5 1.5M35 17.5c-3.1-.7-6-.1-8.5 1.5M35 24c-3.1-.7-6-.1-8.5 1.5" />
-              <path d="m18.5 32 3.2 3.2 7.8-8.1" />
-            </svg>
+            <img src={`${import.meta.env.BASE_URL}smartledger-mark.svg`} alt="SmartLedger Pro" width="48" height="48" />
           </div>
           <div className="sl-brand-copy">
             <h1 className="text-lg font-extrabold tracking-tight">SmartLedger<span> Pro</span></h1>
