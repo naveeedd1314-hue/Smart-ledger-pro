@@ -87,7 +87,7 @@ export default function GST() {
     </div>
 
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
-      <h2 className="font-semibold text-[#244632]">Registered Business</h2>
+      <h2 className="font-semibold text-[var(--text)]">Registered Business</h2>
       <p className="mt-2 text-sm">GSTIN: <strong>{settings.gstin || 'Not entered in Settings'}</strong></p>
       <p className="text-sm">Business state: <strong>{settings.state || 'Not configured'}</strong></p>
     </div>
@@ -95,12 +95,12 @@ export default function GST() {
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
       {cards.map(([label, value]) => <div key={String(label)} className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
         <p className="text-sm text-[var(--text-2)]">{label}</p>
-        <strong className="mt-2 block text-xl font-bold tracking-tight text-[#244632]">{money(Number(value))}</strong>
+        <strong className="mt-2 block text-xl font-bold tracking-tight text-[var(--text)]">{money(Number(value))}</strong>
       </div>)}
     </div>
 
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
-      <h2 className="mb-4 text-lg font-semibold text-[#244632]">GST Component Summary</h2>
+      <h2 className="mb-4 text-lg font-semibold text-[var(--text)]">GST Component Summary</h2>
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead><tr className="border-b text-[var(--text-2)]"><th className="p-3">Tax component</th><th className="p-3">Output tax</th><th className="p-3">Input tax</th><th className="p-3">Net</th></tr></thead>
@@ -122,11 +122,11 @@ export default function GST() {
       </div>
     </div>
 
-    {(missingSales || missingPurchases) > 0 && <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+    {(missingSales || missingPurchases) > 0 && <div className="rounded-2xl border border-[var(--amber)]/30 bg-[var(--amber)]/10 p-4 text-sm text-[var(--text)]">
       {missingSales} existing sales and {missingPurchases} existing purchase records do not contain GST details. They are excluded from GST totals. Do not use this summary for filing until invoices and tax classifications have been checked.
     </div>}
 
-    <div className="rounded-2xl border border-[var(--border)] bg-[var(--border)] p-4 text-sm text-[#536256]">
+    <div className="rounded-2xl border border-[var(--border)] bg-[var(--border)] p-4 text-sm text-[var(--text-2)]">
       Net GST is an estimate of output tax minus recorded input tax. Actual GST liability and input tax credit depend on eligibility, place of supply, returns, credit notes, reversals and applicable tax rules. This page is not a GST return or filing utility.
     </div>
   </section>
