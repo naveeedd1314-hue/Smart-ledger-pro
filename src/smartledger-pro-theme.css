@@ -1260,3 +1260,27 @@ main table {display:block;width:max-content;min-width:100%;max-width:100%;overfl
 main table thead,main table tbody {width:100%}
 main :where(.overflow-x-auto,.overflow-auto) {scrollbar-width:thin;scrollbar-color:var(--text-2) var(--surface-2)}
 main :where(.overflow-y-auto,.overflow-auto) {scrollbar-width:thin;scrollbar-color:var(--text-2) var(--surface-2)}
+
+/* Dark forest palette overrides for legacy high-specificity dashboard rules */
+[data-theme="dark"] [data-sl-dashboard] aside,
+[data-theme="dark"] [data-sl-dashboard] main > header,
+[data-theme="dark"] [data-sl-dashboard] main > nav {background:var(--surface)!important;border-color:var(--border)!important}
+[data-theme="dark"] [data-sl-dashboard] .sl-nav-group,
+[data-theme="dark"] [data-sl-dashboard] .sl-dashboard-heading,
+[data-theme="dark"] [data-sl-dashboard] .sl-metric-card,
+[data-theme="dark"] [data-sl-dashboard] .sl-chart-card,
+[data-theme="dark"] [data-sl-dashboard] .sl-dashboard-panel,
+[data-theme="dark"] [data-sl-dashboard] .sl-chart-detail {background:linear-gradient(145deg,var(--surface),var(--surface-2))!important;border-color:var(--border)!important;color:var(--text)!important}
+[data-theme="dark"] [data-sl-dashboard] .sl-nav-item {color:var(--text-2)!important}
+[data-theme="dark"] [data-sl-dashboard] .sl-nav-item.is-active {background:var(--indigo-tint)!important;color:var(--indigo-ink)!important;border-color:var(--indigo)!important}
+[data-theme="dark"] [data-sl-dashboard] .sl-nav-icon,
+[data-theme="dark"] [data-sl-dashboard] .sl-metric-icon {background:var(--indigo-tint)!important;color:var(--indigo-ink)!important;border-color:var(--border)!important}
+[data-theme="dark"] [data-sl-dashboard] .sl-sidebar-footer,
+[data-theme="dark"] [data-sl-dashboard] .sl-new-transaction {background:linear-gradient(145deg,#477D60,#28513D)!important;color:#fff!important}
+[data-theme="dark"] [data-sl-dashboard] .sl-charts-shell {background:var(--surface-2)!important;border-color:var(--border)!important}
+[data-theme="dark"] [data-sl-dashboard] .sl-chart-card p,
+[data-theme="dark"] [data-sl-dashboard] .sl-section-heading p {color:var(--text-2)!important}
+[data-theme="dark"] [data-sl-dashboard] table tbody tr,
+[data-theme="dark"] main table tbody tr {background:var(--surface)!important}
+[data-theme="dark"] [data-sl-dashboard] table tbody tr:nth-child(even),
+[data-theme="dark"] main table tbody tr:nth-child(even) {background:color-mix(in srgb,var(--surface-2) 55%,var(--surface))!important}
