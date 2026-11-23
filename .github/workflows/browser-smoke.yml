@@ -75,8 +75,45 @@ jobs:
               if(state.documentWidth>size.width+2) throw new Error('Unexpected horizontal page overflow: '+state.documentWidth+'px');
               if(!state.bg||!state.surface) throw new Error('Theme tokens missing');
               if(state.chartCount!==4) throw new Error('Expected four dashboard charts, found '+state.chartCount);
+              // Exercise vertical page scrolling in both directions.
+              await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+              await page.waitForTimeout(100);
+              const pageReachedBottom = await page.evaluate(() => window.scrollY > 0);
+              await page.evaluate(() => window.scrollTo(0, 0));
+              if (state.bodyHeight > state.viewportHeight && !pageReachedBottom) throw new Error('Main page did not scroll vertically');
+
+              // Exercise the sidebar's own scroll container.
+              const sidebarNav = page.locator('[data-sl-dashboard] aside nav');
+              const sidebarScroll = await sidebarNav.evaluate(el => {
+                const before = el.scrollTop;
+                el.scrollTop = el.scrollHeight;
+                const reached = el.scrollTop > before;
+                el.scrollTop = 0;
+                return {scrollHeight:el.scrollHeight,clientHeight:el.clientHeight,reached};
+              });
+              if (sidebarScroll.scrollHeight > sidebarScroll.clientHeight && !sidebarScroll.reached) throw new Error('Sidebar navigation did not scroll');
+
+              // Verify app navigation and the in-app back control.
+              if (size.width < 768) {
+                await page.getByRole('button',{name:'Open navigation menu'}).click();
+              }
+              await page.locator('[data-sl-dashboard] aside nav').getByRole('button',{name:'Inventory'}).click();
+              await page.getByRole('heading',{name:'Inventory'}).waitFor({state:'visible',timeout:10000});
+              await page.getByRole('button',{name:'Back to previous screen'}).click();
+              await page.getByRole('heading',{name:'Dashboard'}).waitFor({state:'visible',timeout:10000});
+
+              // Verify both theme modes update tokens and restore the original setting.
+              const themeButton = page.getByRole('button',{name:'Toggle colour theme'});
+              const beforeTheme = await page.locator('html').getAttribute('data-theme');
+              await themeButton.click();
+              const afterTheme = await page.locator('html').getAttribute('data-theme');
+              if (beforeTheme === afterTheme || !['light','dark'].includes(afterTheme)) throw new Error('Theme toggle did not change theme');
+              await themeButton.click();
+              const restoredTheme = await page.locator('html').getAttribute('data-theme');
+              if (restoredTheme !== beforeTheme) throw new Error('Theme toggle did not restore original theme');
+
               if(pageErrors.length) throw new Error('Browser runtime errors: '+pageErrors.join(' | '));
-              console.log('PASS '+size.name+' '+JSON.stringify(state));
+              console.log('PASS '+size.name+' '+JSON.stringify({...state,pageReachedBottom,sidebarScroll,navigation:'PASS',themeToggle:'PASS'}));
             } catch(error) {
               failures.push(size.name+': '+error.message);
               console.error('FAIL '+size.name+' '+error.message);
