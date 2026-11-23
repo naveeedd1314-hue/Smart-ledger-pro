@@ -74,6 +74,10 @@ export default function Reports() {
       invoice: String(x.invoice || x.invoiceNo || x.billNo || `Invoice ${index + 1}`),
       date: String(x.date || '—'),
       customer: String(x.customer || 'Walk-in Customer'),
+      product: String(x.product || ''),
+      qty,
+      rate,
+      costPrice,
       revenue,
       cost,
       profit: revenue - cost,
@@ -130,7 +134,7 @@ export default function Reports() {
     ];
     const salesRows = [
       ['Invoice','Date','Customer','Product','Quantity','Rate','Revenue','Purchase Cost / Unit','Cost','Profit','Cost Recorded'],
-      ...invoiceProfitRows.map(x => [x.invoice,x.date,x.customer,String(periodSales.find(s => String(s.invoice || s.invoiceNo || s.billNo || '') === x.invoice)?.product || ''),Number(periodSales.find(s => String(s.invoice || s.invoiceNo || s.billNo || '') === x.invoice)?.qty) || 0,Number(periodSales.find(s => String(s.invoice || s.invoiceNo || s.billNo || '') === x.invoice)?.rate) || 0,x.revenue, x.cost ? x.cost / Math.max(1,Number(periodSales.find(s => String(s.invoice || s.invoiceNo || s.billNo || '') === x.invoice)?.qty) || 1) : '',x.hasCost ? x.cost : '',x.hasCost ? x.profit : '',x.hasCost ? 'Yes' : 'No'])
+      ...invoiceProfitRows.map(x => [x.invoice,x.date,x.customer,x.product,x.qty,x.rate,x.revenue,x.hasCost ? x.costPrice : '',x.hasCost ? x.cost : '',x.hasCost ? x.profit : '',x.hasCost ? 'Yes' : 'No'])
     ];
     const stockRows = [
       ['Product','Average Cost','Wholesale','Retail','Profit / Unit','Margin %','Stock','Potential Stock Profit'],
