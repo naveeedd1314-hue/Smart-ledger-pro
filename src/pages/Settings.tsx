@@ -83,8 +83,9 @@ export default function Settings() {
           throw error;
         }
         migrateLegacyData(true);
-        setBackupStatus(`Restored ${entries.length} data sections. Legacy records were checked for migration. Reload the app to refresh all screens.`);
-        window.alert('Backup restored. Reload the app to refresh all screens.');
+        setBackupStatus(`Restored ${entries.length} data sections. Refreshing SmartLedger…`);
+        window.alert('Backup restored successfully. SmartLedger will now refresh.');
+        window.location.reload();
       } catch (error) {
         setBackupStatus(error instanceof Error ? error.message : 'Invalid backup file.');
       }
