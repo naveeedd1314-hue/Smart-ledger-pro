@@ -1,3 +1,4 @@
+import * as XLSX from 'xlsx';
 import { useEffect, useState } from 'react'
 
 type Row = Record<string, any>
@@ -64,6 +65,43 @@ export default function GST() {
   const missingSales = periodSales.filter(x => x.taxAmount === undefined || x.taxAmount === null).length
   const missingPurchases = periodPurchases.filter(x => x.taxAmount === undefined || x.taxAmount === null).length
 
+  const exportGstWorkbook = () => {
+    const summary = [
+      ['SmartLedger GST Summary'],
+      ['Business', settings.name || ''],
+      ['GSTIN', settings.gstin || ''],
+      ['State', settings.state || ''],
+      ['From date', fromDate || 'All'],
+      ['To date', toDate || 'All'],
+      [],
+      ['Metric', 'Amount'],
+      ...cards.map(([label, value]) => [String(label), Number(value) || 0]),
+      [],
+      ['Tax component', 'Output tax', 'Input tax', 'Net'],
+      ...[
+        ['CGST', cgstOut, cgstIn],
+        ['SGST', sgstOut, sgstIn],
+        ['UTGST', utgstOut, utgstIn],
+        ['IGST', igstOut, igstIn],
+        ['Total', outputTax, inputTax]
+      ].map(([label, output, input]) => [String(label), Number(output) || 0, Number(input) || 0, (Number(output) || 0) - (Number(input) || 0)])
+    ];
+    const invoices = [
+      ['Type', 'Date', 'Invoice', 'Party', 'Taxable value', 'GST rate', 'Tax amount', 'CGST', 'SGST', 'UTGST', 'IGST', 'Total'],
+      ...periodSales.map(x => ['Sales', x.date || '', x.invoice || x.invoiceNo || '', x.customer || '', Number(x.taxableValue) || 0, Number(x.gstRate) || 0, Number(x.taxAmount) || 0, Number(x.cgst) || 0, Number(x.sgst) || 0, Number(x.utgst) || 0, Number(x.igst) || 0, Number(x.total) || 0]),
+      ...periodPurchases.map(x => ['Purchase', x.date || '', x.invoice || x.invoiceNo || '', x.supplier || '', Number(x.taxableValue) || 0, Number(x.gstRate) || 0, Number(x.taxAmount) || 0, Number(x.cgst) || 0, Number(x.sgst) || 0, Number(x.utgst) || 0, Number(x.igst) || 0, Number(x.total ?? x.amount) || 0]),
+      ...periodReturns.map(x => [x.type || 'Return', x.date || '', x.invoice || '', x.party || '', Number(x.amount) || 0, Number(x.gstRate) || 0, Number(x.taxAmount) || 0, Number(x.cgst) || 0, Number(x.sgst) || 0, Number(x.utgst) || 0, Number(x.igst) || 0, Number(x.totalAmount ?? x.amount) || 0])
+    ];
+    const workbook = XLSX.utils.book_new();
+    const summarySheet = XLSX.utils.aoa_to_sheet(summary);
+    summarySheet['!cols'] = [{ wch: 30 }, { wch: 20 }, { wch: 20 }, { wch: 20 }];
+    XLSX.utils.book_append_sheet(workbook, summarySheet, 'GST Summary');
+    const invoiceSheet = XLSX.utils.aoa_to_sheet(invoices);
+    invoiceSheet['!cols'] = [{ wch: 18 }, { wch: 14 }, { wch: 20 }, { wch: 26 }, ...Array.from({ length: 8 }, () => ({ wch: 16 }))];
+    XLSX.utils.book_append_sheet(workbook, invoiceSheet, 'Invoice Details');
+    XLSX.writeFile(workbook, `SmartLedger-GST-${fromDate || 'All'}-to-${toDate || 'All'}.xlsx`);
+  };
+
   const cards = [
     ['Output GST (Sales)', outputTax],
     ['Input GST (Purchases)', inputTax],
@@ -78,7 +116,7 @@ export default function GST() {
     <div>
       <h1 className="text-2xl font-bold">GST & Tax Management</h1>
       <p className="text-sm text-[var(--text-2)]">GST overview after recorded returns, using invoice tax details for the selected period.</p>
-      <div className="mt-3 grid gap-3 sm:grid-cols-3 print:hidden">
+      <div className="mt-3 flex flex-wrap items-end gap-3 print:hidden"><label className="text-xs font-medium text-[var(--text-2)]">From date<input type="date" value={fromDate} onChange={e=>setFromDate(e.target.value)} className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] p-2 text-sm text-[var(--text)]"/></label><label className="text-xs font-medium text-[var(--text-2)]">To date<input type="date" value={toDate} onChange={e=>setToDate(e.target.value)} className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] p-2 text-sm text-[var(--text)]"/></label><button type="button" onClick={()=>{setFromDate('');setToDate('')}} className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm">Clear dates</button><button type="button" onClick={exportGstWorkbook} className="rounded-lg bg-[var(--indigo-ink)] px-4 py-2 text-sm font-semibold text-white">Export GST Excel</button><button type="button" onClick={()=>window.print()} className="rounded-lg border border-[var(--border)] px-4 py-2 text-sm font-semibold">Print report</button></div>
         <label className="text-xs font-medium text-[var(--text-2)]">From date<input type="date" value={fromDate} onChange={e=>setFromDate(e.target.value)} className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] p-2 text-sm text-[var(--text)]"/></label>
         <label className="text-xs font-medium text-[var(--text-2)]">To date<input type="date" value={toDate} onChange={e=>setToDate(e.target.value)} className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] p-2 text-sm text-[var(--text)]"/></label>
         <button type="button" onClick={()=>{setFromDate('');setToDate('')}} className="self-end rounded-lg border border-[var(--border)] px-3 py-2 text-sm">Clear dates</button>
