@@ -121,7 +121,8 @@ export default function Inventory() {
   const totalUnits = items.reduce((s, x) => s + Math.max(0, Number(x.stock) || 0), 0)
   const stockValue = items.reduce((s, x) => s + Math.max(0, Number(x.stock) || 0) * (Number(x.averageCost ?? x.purchase) || 0), 0)
   const retailValue = items.reduce((s, x) => s + Math.max(0, Number(x.stock) || 0) * (Number(x.selling) || 0), 0)
-  const lowStock = items.filter(x => Number(x.stock) <= Math.max(0, Number(lowLimit) || 0))
+  const lowStock = items.filter(x => Number(x.stock) > 0 && Number(x.stock) <= Math.max(0, Number(lowLimit) || 0))
+  const outOfStock = items.filter(x => Number(x.stock) <= 0)
   function exportInventoryCsv() {
     const headers = ['Product', 'SKU', 'Category', 'HSN', 'GST %', 'Last Purchase Price', 'Average Cost', 'Selling Price', 'Profit Per Unit', 'Stock', 'Stock Cost Value', 'Retail Value']
     const rows = items.map(x => [
@@ -363,12 +364,13 @@ export default function Inventory() {
         <p className="text-sm text-[var(--text-2)]">Products, stock valuation, alerts and stock corrections.</p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         {[
           { label: 'Products', value: items.length, icon: Package },
           { label: 'Total Units', value: totalUnits.toLocaleString('en-IN'), icon: ClipboardList },
           { label: 'Stock Cost Value', value: money(stockValue), icon: IndianRupee },
-          { label: 'Low Stock Items', value: lowStock.length, icon: AlertTriangle }
+          { label: 'Low Stock Items', value: lowStock.length, icon: AlertTriangle },
+          { label: 'Out of Stock', value: outOfStock.length, icon: Package }
         ].map(card => {
           const Icon = card.icon
           return <div data-sl-page="true" data-sl-inventory="true" key={card.label} className="rounded-xl bg-[var(--surface)] p-4 shadow-sm">
