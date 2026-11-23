@@ -39,7 +39,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Install Capacitor
-        run: npm install --no-save @capacitor/core @capacitor/android @capacitor/cli @capacitor/app firebase
+        run: npm install --no-save @capacitor/core @capacitor/android @capacitor/cli @capacitor/app @capacitor/assets firebase
       - name: Build web app
         run: npm run build
         env:
@@ -49,6 +49,8 @@ jobs:
           VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
       - name: Generate Android project
         run: npx cap add android
+      - name: Generate premium Android app icon and splash
+        run: npx @capacitor/assets generate --android --assetPath assets --iconBackgroundColor '#0D332D' --splashBackgroundColor '#0D332D'
       - name: Install native hardware Back handler
         run: |
           mkdir -p android/app/src/main/java/com/srenterprises/smartledger
