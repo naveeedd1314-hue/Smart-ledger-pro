@@ -61,8 +61,8 @@ export default function GST() {
   const purchaseReturnTaxable = periodReturns.filter(x => x.type === 'Purchase Return').reduce((s, x) => s + (Number(x.amount) || 0), 0)
   const taxableSales = Math.max(0, grossTaxableSales - salesReturnTaxable)
   const taxablePurchases = Math.max(0, grossTaxablePurchases - purchaseReturnTaxable)
-  const missingSales = periodSales.filter(x => x.taxAmount === undefined).length
-  const missingPurchases = periodPurchases.filter(x => x.taxAmount === undefined).length
+  const missingSales = periodSales.filter(x => x.taxAmount === undefined || x.taxAmount === null).length
+  const missingPurchases = periodPurchases.filter(x => x.taxAmount === undefined || x.taxAmount === null).length
 
   const cards = [
     ['Output GST (Sales)', outputTax],
