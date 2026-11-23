@@ -3,6 +3,9 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import './smartledger-pro-theme.css'
 import App from './App.tsx'
+import { migrateLegacyData } from './lib/dataMigration'
+
+migrateLegacyData()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
