@@ -87,11 +87,10 @@ export default function AuthGate({ children }: AuthGateProps) {
   useEffect(() => {
     let mounted = true;
     const signOutHandler = () => {
+      setOffline(false);
+      localStorage.removeItem('smartledger-offline-session');
       if (firebaseAuth) {
         void signOut(firebaseAuth).catch(error => setAuthError(error instanceof Error ? error.message : 'Sign out failed.'));
-      } else {
-        localStorage.removeItem('smartledger-offline-session');
-        setOffline(false);
       }
     };
     window.addEventListener('smartledger:sign-out', signOutHandler);
