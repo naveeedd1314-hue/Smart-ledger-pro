@@ -19,7 +19,7 @@ import Purchases from './pages/Purchases'
 import Inventory from './pages/Inventory'
 import BulkItems from './pages/BulkItems'
 import BusinessCommandCentre from './pages/BusinessCommandCentre'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from 'recharts'
 import {
   LayoutDashboard, ShoppingCart, ShoppingBag, Package, ArrowLeft,
@@ -176,32 +176,46 @@ function getMonthlyPerformance() {
 
 function App() {
   const [active, setActive] = useState('Dashboard')
+  const activeRef = useRef('Dashboard')
+  const pageStack = useRef<string[]>(['Dashboard'])
   const [menuOpen, setMenuOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
+  const setCurrentPage = (page: string) => { activeRef.current = page; setActive(page); };
   const navigate = (page: string) => {
-    if (page === active) return;
+    if (page === activeRef.current) return;
+    pageStack.current = [...pageStack.current, page];
     window.history.pushState({ smartLedgerPage: page }, '', '#page=' + encodeURIComponent(page));
-    setActive(page);
+    setCurrentPage(page);
     setMenuOpen(false);
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  };
+  const goBack = () => {
+    if (menuOpen) { setMenuOpen(false); return; }
+    if (pageStack.current.length > 1) pageStack.current = pageStack.current.slice(0, -1);
+    const previous = pageStack.current[pageStack.current.length - 1] || 'Dashboard';
+    setCurrentPage(previous);
+    window.history.replaceState({ smartLedgerPage: previous }, '', '#page=' + encodeURIComponent(previous));
     window.scrollTo({ top: 0, behavior: 'auto' });
   };
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
-    const listener = CapacitorApp.addListener('backButton', () => {
-      if (active !== 'Dashboard') window.history.back();
-      else window.history.pushState({ smartLedgerPage: 'Dashboard' }, '', window.location.pathname + window.location.search + '#page=Dashboard');
-    });
-    return () => { void listener.then(handle => handle.remove()); };
-  }, [active]);
+    let handle: { remove: () => Promise<void> } | undefined;
+    let mounted = true;
+    void CapacitorApp.addListener('backButton', () => {
+      if (activeRef.current !== 'Dashboard' || pageStack.current.length > 1 || menuOpen) goBack();
+      else window.history.replaceState({ smartLedgerPage: 'Dashboard' }, '', '#page=Dashboard');
+    }).then(value => { if (mounted) handle = value; else void value.remove(); });
+    return () => { mounted = false; if (handle) void handle.remove(); };
+  }, [menuOpen]);
   useEffect(() => {
     window.history.replaceState({ smartLedgerPage: 'Dashboard' }, '', window.location.pathname + window.location.search + '#page=Dashboard');
     const onBack = (event: PopStateEvent) => {
       const page = typeof event.state?.smartLedgerPage === 'string' ? event.state.smartLedgerPage : 'Dashboard';
-      setActive(page);
+      const index = pageStack.current.lastIndexOf(page);
+      pageStack.current = index >= 0 ? pageStack.current.slice(0, index + 1) : [page];
+      setCurrentPage(page);
       setMenuOpen(false);
-      if (!event.state?.smartLedgerPage) {
-        window.history.pushState({ smartLedgerPage: 'Dashboard' }, '', window.location.pathname + window.location.search + '#page=Dashboard');
-      }
+      if (!event.state?.smartLedgerPage) window.history.pushState({ smartLedgerPage: 'Dashboard' }, '', '#page=Dashboard');
     };
     window.addEventListener('popstate', onBack);
     return () => window.removeEventListener('popstate', onBack);
@@ -282,7 +296,7 @@ function App() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button type="button" aria-label="Back to previous screen" title="Back" onClick={() => window.history.back()} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2.5 text-[var(--text)]"><ArrowLeft size={18}/></button>
+            <button type="button" aria-label="Back to previous screen" title="Back" onClick={goBack} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2.5 text-[var(--text)]"><ArrowLeft size={18}/></button>
             <button aria-label="Toggle colour theme" title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} onClick={() => setDarkMode(v => !v)} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2.5 text-[var(--text)]">
               {darkMode ? <Sun size={18}/> : <Moon size={18}/>}
             </button>
@@ -297,29 +311,29 @@ function App() {
         </header>
 
         {(() => {
-          const shortcuts: Record<string, {label:string;page:string;icon:any}[]> = {
+          const shortcuts: Record<string, {label:string;page:string;icon:any;event?:string}[]> = {
             Dashboard:[{label:'New Sale',page:'Sales',icon:ShoppingCart},{label:'New Purchase',page:'Purchases',icon:ShoppingBag},{label:'Add Item',page:'Inventory',icon:PackagePlus},{label:'Reports',page:'Reports',icon:FileText}],
-            Inventory:[{label:'Add Item',page:'Inventory',icon:PackagePlus},{label:'Bulk Import',page:'Bulk Items',icon:Boxes},{label:'Stock & Valuation',page:'Reports',icon:ChartNoAxesCombined},{label:'Purchases',page:'Purchases',icon:ShoppingBag}],
-            'Bulk Items':[{label:'Inventory',page:'Inventory',icon:Package},{label:'Add Customer',page:'Customers',icon:Users}],
-            Sales:[{label:'New Purchase',page:'Purchases',icon:ShoppingBag},{label:'Customers',page:'Customers',icon:Users},{label:'Payments',page:'Payments',icon:CreditCard},{label:'Sales Returns',page:'Returns',icon:RotateCcw}],
-            Purchases:[{label:'Inventory',page:'Inventory',icon:Package},{label:'Suppliers',page:'Suppliers',icon:Truck},{label:'Payments',page:'Payments',icon:CreditCard},{label:'Purchase Returns',page:'Returns',icon:RotateCcw}],
-            Customers:[{label:'New Sale',page:'Sales',icon:ShoppingCart},{label:'Customer Ledger',page:'Ledger',icon:BookOpen},{label:'Payments',page:'Payments',icon:CreditCard}],
-            Suppliers:[{label:'New Purchase',page:'Purchases',icon:ShoppingBag},{label:'Supplier Ledger',page:'Ledger',icon:BookOpen},{label:'Payments',page:'Payments',icon:CreditCard}],
-            Expenses:[{label:'Add Payment',page:'Payments',icon:CreditCard},{label:'Reports',page:'Reports',icon:FileText}],
-            Payments:[{label:'Customers',page:'Customers',icon:Users},{label:'Suppliers',page:'Suppliers',icon:Truck},{label:'Ledger',page:'Ledger',icon:BookOpen}],
-            Reports:[{label:'Analytics',page:'Analytics',icon:ChartNoAxesCombined},{label:'Ledger',page:'Ledger',icon:BookOpen},{label:'Expenses',page:'Expenses',icon:Wallet}],
-            Ledger:[{label:'Customers',page:'Customers',icon:Users},{label:'Suppliers',page:'Suppliers',icon:Truck},{label:'Payments',page:'Payments',icon:CreditCard}],
-            Returns:[{label:'Sales',page:'Sales',icon:ShoppingCart},{label:'Purchases',page:'Purchases',icon:ShoppingBag},{label:'Inventory',page:'Inventory',icon:Package}],
-            'GST & Tax':[{label:'Sales',page:'Sales',icon:ShoppingCart},{label:'Purchases',page:'Purchases',icon:ShoppingBag},{label:'Reports',page:'Reports',icon:FileText}],
-            Analytics:[{label:'Reports',page:'Reports',icon:FileText},{label:'Ledger',page:'Ledger',icon:BookOpen}],
-            'Command Centre':[{label:'Inventory',page:'Inventory',icon:Package},{label:'Reports',page:'Reports',icon:FileText},{label:'Analytics',page:'Analytics',icon:ChartNoAxesCombined}],
-            Settings:[{label:'Dashboard',page:'Dashboard',icon:LayoutDashboard},{label:'Backup & Restore',page:'Settings',icon:FileText}]
-          };
+            Inventory:[{label:'Add Item',page:'Inventory',icon:PackagePlus,event:'smartledger:inventory-add'},{label:'Bulk Import',page:'Bulk Items',icon:Boxes},{label:'Stock Adjustment',page:'Inventory',icon:ClipboardList,event:'smartledger:inventory-adjust'},{label:'Export CSV',page:'Inventory',icon:FileText,event:'smartledger:inventory-export-csv'},{label:'Stock Report',page:'Inventory',icon:FileDown,event:'smartledger:inventory-export-pdf'}],
+            'Bulk Items':[{label:'Inventory',page:'Inventory',icon:Package},{label:'Import Items',page:'Bulk Items',icon:Boxes}],
+            Sales:[{label:'New Sale',page:'Sales',icon:ShoppingCart,event:'smartledger:sales-new'},{label:'Customers',page:'Customers',icon:Users},{label:'Sales Returns',page:'Returns',icon:RotateCcw}],
+            Purchases:[{label:'New Purchase',page:'Purchases',icon:ShoppingBag,event:'smartledger:purchases-new'},{label:'Suppliers',page:'Suppliers',icon:Truck},{label:'Purchase Returns',page:'Returns',icon:RotateCcw}],
+            Customers:[{label:'Add Customer',page:'Customers',icon:Users,event:'smartledger:customers-add'},{label:'Customer Ledger',page:'Ledger',icon:BookOpen}],
+            Suppliers:[{label:'Add Supplier',page:'Suppliers',icon:Truck,event:'smartledger:suppliers-add'},{label:'Supplier Ledger',page:'Ledger',icon:BookOpen}],
+            Expenses:[{label:'Add Expense',page:'Expenses',icon:Wallet,event:'smartledger:expenses-add'},{label:'Expense Reports',page:'Reports',icon:FileText}],
+            Payments:[{label:'New Payment',page:'Payments',icon:CreditCard,event:'smartledger:payments-add'},{label:'Customer List',page:'Customers',icon:Users},{label:'Supplier List',page:'Suppliers',icon:Truck}],
+            Reports:[{label:'Analytics',page:'Analytics',icon:ChartNoAxesCombined},{label:'Ledger',page:'Ledger',icon:BookOpen}],
+            Ledger:[{label:'Customers',page:'Customers',icon:Users},{label:'Suppliers',page:'Suppliers',icon:Truck}],
+            Returns:[{label:'Sales',page:'Sales',icon:ShoppingCart},{label:'Purchases',page:'Purchases',icon:ShoppingBag}],
+            'GST & Tax':[{label:'GST Reports',page:'Reports',icon:FileText}],
+            Analytics:[{label:'Reports',page:'Reports',icon:FileText}],
+            'Command Centre':[{label:'Inventory Alerts',page:'Inventory',icon:Package},{label:'Reports',page:'Reports',icon:FileText}],
+            Settings:[{label:'Dashboard',page:'Dashboard',icon:LayoutDashboard}]
+          };;
           const actions=shortcuts[active]||shortcuts.Dashboard;
           return <nav aria-label={active + ' shortcuts'} className="sticky top-20 z-20 border-b border-[var(--border)] bg-[var(--bg)]/95 px-3 py-2 backdrop-blur md:px-8">
             <div className="mx-auto flex max-w-full items-center gap-2 overflow-x-auto pb-1">
               <span className="sticky left-0 z-10 flex shrink-0 items-center gap-1 bg-[var(--bg)] pr-2 text-[10px] font-extrabold uppercase tracking-wider text-[var(--text-2)]"><Zap size={14}/>{active}</span>
-              {actions.map(action=>{const Icon=action.icon;return <button key={action.label} type="button" onClick={()=>{ if(action.page===active && active==='Inventory' && action.label==='Add Item') window.dispatchEvent(new Event('smartledger:inventory-add')); else navigate(action.page); }} aria-label={action.label} title={action.label} className="flex shrink-0 items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-xs font-semibold text-[var(--text)] transition hover:border-[var(--indigo)] hover:bg-[var(--indigo-tint)] hover:text-[var(--indigo-ink)]"><Icon size={15}/>{action.label}</button>})}
+              {actions.map(action=>{const Icon=action.icon;return <button key={action.label} type="button" onClick={()=>{ if(action.event) window.dispatchEvent(new Event(action.event)); if(action.page!==active) navigate(action.page); }} aria-label={action.label} title={action.label} className="flex shrink-0 items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-xs font-semibold text-[var(--text)] transition hover:border-[var(--indigo)] hover:bg-[var(--indigo-tint)] hover:text-[var(--indigo-ink)]"><Icon size={15}/>{action.label}</button>})}
             </div>
           </nav>;
         })()}
