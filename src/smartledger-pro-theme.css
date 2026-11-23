@@ -1114,3 +1114,143 @@ main :where(.bg-blue-50,.bg-sky-50) {background:#26363A!important;color:#B9D4D9!
 @media(prefers-reduced-motion:reduce) {
   [data-sl-dashboard] .sl-overview-chips {scroll-behavior:auto;}
 }
+
+
+/* 5.1 — Forest & parchment palette refresh */
+:root {
+  color-scheme: light;
+  --bg:#F1F0E7;
+  --surface:#FAF9F3;
+  --surface-2:#E7E9DE;
+  --border:#CDD5C8;
+  --text:#20352C;
+  --text-2:#627469;
+  --edge:rgba(255,255,255,.78);
+  --shadow-1:0 3px 10px rgba(29,55,43,.08),inset 0 1px 0 rgba(255,255,255,.72);
+  --shadow-2:0 12px 28px rgba(29,55,43,.13),inset 0 1px 0 rgba(255,255,255,.72);
+  --indigo:#356B56; --indigo-ink:#244D3D; --indigo-tint:#DCE9DF;
+  --emerald:#347A59; --emerald-ink:#245A40; --emerald-tint:#DCEDE1;
+  --teal:#477E70; --teal-ink:#315F53; --teal-tint:#DFECE6;
+  --amber:#A77A35; --amber-ink:#79551F; --amber-tint:#F2E8D1;
+  --rose:#A85F58; --rose-ink:#82443E; --rose-tint:#F3E1DC;
+  --sky:#527C8B; --sky-ink:#365C69; --sky-tint:#E1EBED;
+  --violet:#756B8B; --violet-ink:#554C69; --violet-tint:#EAE6EF;
+  --orange:#A86E45; --orange-ink:#80502F; --orange-tint:#F2E5D9;
+  --on-accent:#F8F7F0; --btn-top:#56866E;
+  --sl-field:#F8F7F0; --sl-table-head:#E5E9DE; --sl-table-hover:#E8EEE6;
+}
+[data-theme="dark"] {
+  color-scheme:dark;
+  --bg:#131D19;
+  --surface:#1D2B24;
+  --surface-2:#26372E;
+  --border:#40564A;
+  --text:#F0F2E9;
+  --text-2:#B4C2B6;
+  --edge:rgba(255,255,255,.06);
+  --shadow-1:0 3px 10px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.04);
+  --shadow-2:0 14px 32px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.05);
+  --indigo:#78A98C; --indigo-ink:#C3E0CB; --indigo-tint:rgba(120,169,140,.17);
+  --emerald:#83C49A; --emerald-ink:#BCE4C8; --emerald-tint:rgba(131,196,154,.15);
+  --teal:#82B9AA; --teal-ink:#C1E1D7; --teal-tint:rgba(130,185,170,.15);
+  --amber:#D4B477; --amber-ink:#E9D2A5; --amber-tint:rgba(212,180,119,.15);
+  --rose:#D58F86; --rose-ink:#E9B7B0; --rose-tint:rgba(213,143,134,.15);
+  --sky:#91B8C4; --sky-ink:#C2DCE2; --sky-tint:rgba(145,184,196,.15);
+  --violet:#B2A6C7; --violet-ink:#D5CDE2; --violet-tint:rgba(178,166,199,.15);
+  --orange:#D4A17A; --orange-ink:#E8C2A5; --orange-tint:rgba(212,161,122,.15);
+  --on-accent:#102018; --btn-top:#8AB89A;
+  --sl-field:#1D2B24; --sl-table-head:#2B3D32; --sl-table-hover:#31463A;
+}
+
+/* Apply the new palette consistently, including older hard-coded modules */
+body,#root,[data-sl-dashboard] {background:var(--bg)!important;color:var(--text)!important}
+[data-sl-dashboard] aside,
+[data-sl-dashboard] main > header,
+[data-sl-dashboard] main > nav {background:var(--surface)!important;border-color:var(--border)!important;color:var(--text)!important}
+[data-sl-dashboard] .sl-nav-group,
+[data-sl-dashboard] .sl-dashboard-heading,
+[data-sl-dashboard] .sl-metric-card,
+[data-sl-dashboard] .sl-chart-card,
+[data-sl-dashboard] .sl-dashboard-panel,
+[data-sl-dashboard] .sl-chart-detail {
+  background:linear-gradient(145deg,var(--surface),var(--surface-2))!important;
+  border-color:var(--border)!important;color:var(--text)!important;
+}
+[data-sl-dashboard] .sl-nav-item,
+[data-sl-dashboard] .sl-chart-card h3,
+[data-sl-dashboard] .sl-metric-card p,
+[data-sl-dashboard] .sl-dashboard-heading h2 {color:var(--text)!important}
+[data-sl-dashboard] .sl-nav-item.is-active {
+  color:var(--indigo-ink)!important;background:var(--indigo-tint)!important;border-color:var(--indigo)!important;
+}
+[data-sl-dashboard] .sl-nav-icon,
+[data-sl-dashboard] .sl-metric-icon {color:var(--indigo-ink)!important;background:var(--indigo-tint)!important;border-color:var(--border)!important}
+[data-sl-dashboard] .sl-new-transaction,
+[data-sl-dashboard] .sl-sidebar-footer {
+  background:linear-gradient(145deg,#477D60,#28513D)!important;color:#fff!important;border-color:#6F9B7C!important;
+}
+[data-sl-dashboard] main > nav[aria-label$="shortcuts"] button {
+  background:linear-gradient(145deg,var(--surface),var(--surface-2))!important;
+  color:var(--text)!important;border-color:var(--border)!important;
+}
+[data-sl-dashboard] .sl-charts-shell {background:var(--surface-2)!important;border-color:var(--border)!important}
+[data-sl-dashboard] table,main table {background:var(--surface)!important;color:var(--text)!important;border-color:var(--border)!important}
+[data-sl-dashboard] table thead th,main table thead th {background:var(--surface-2)!important;color:var(--text-2)!important;border-color:var(--border)!important}
+[data-sl-dashboard] table tbody td,main table tbody td {color:var(--text)!important;border-color:var(--border)!important}
+[data-sl-dashboard] table tbody tr,main table tbody tr {background:var(--surface)!important}
+[data-sl-dashboard] table tbody tr:nth-child(even),main table tbody tr:nth-child(even) {background:color-mix(in srgb,var(--surface-2) 55%,var(--surface))!important}
+[data-sl-dashboard] table tbody tr:hover,main table tbody tr:hover {background:var(--surface-2)!important}
+main :where(.bg-white,.bg-gray-50,.bg-slate-50,.bg-stone-50) {background:var(--surface)!important;color:var(--text)!important}
+main :where(input,select,textarea) {background:var(--surface)!important;color:var(--text)!important;border-color:var(--border)!important}
+main :where(input,select,textarea)::placeholder {color:var(--text-2)!important}
+main :where(.text-gray-500,.text-slate-500,.text-stone-500) {color:var(--text-2)!important}
+main :where(.text-gray-700,.text-slate-700,.text-stone-700) {color:var(--text)!important}
+[data-theme="dark"] [data-sl-dashboard] .sl-chart-card p,
+[data-theme="dark"] [data-sl-dashboard] .sl-section-heading p {color:var(--text-2)!important}
+[data-theme="dark"] [data-sl-dashboard] table,
+[data-theme="dark"] main table {background:var(--surface)!important;color:var(--text)!important}
+[data-theme="dark"] [data-sl-dashboard] table thead th,
+[data-theme="dark"] main table thead th {background:var(--surface-2)!important;color:var(--text-2)!important}
+[data-theme="dark"] [data-sl-dashboard] table tbody td,
+[data-theme="dark"] main table tbody td {color:var(--text)!important}
+
+/* Reliable page and nested-panel scrolling on Android, desktop and tablets */
+html {height:100%;min-height:100%;overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;scrollbar-gutter:stable}
+body {min-height:100dvh;height:auto;overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch}
+#root,[data-sl-dashboard] {min-height:100dvh;height:auto;overflow:visible}
+[data-sl-dashboard] {display:flex;align-items:stretch}
+[data-sl-dashboard] > aside {height:100dvh;max-height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+[data-sl-dashboard] > aside nav {min-height:0;flex:1 1 auto;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+[data-sl-dashboard] > main {min-width:0;min-height:100dvh;height:auto;overflow:visible}
+[data-sl-dashboard] main > header {position:sticky;top:0}
+[data-sl-dashboard] main > nav[aria-label$="shortcuts"] > div {min-width:0;max-width:100%;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;touch-action:pan-x}
+[data-sl-dashboard] main > :not(header):not(nav) {min-width:0;max-width:100%}
+[data-sl-dashboard] main :where(section,article,.card,.sl-dashboard-panel) {min-width:0}
+[data-sl-dashboard] main :where(.overflow-x-auto,.overflow-auto) {max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+[data-sl-dashboard] main :where(.overflow-y-auto,.overflow-auto) {overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+[data-sl-dashboard] .sl-chart-detail-backdrop,
+[data-sl-dashboard] [role="dialog"] {max-height:100dvh;overscroll-behavior:contain}
+[data-sl-dashboard] [role="dialog"] > :first-child {max-height:88dvh;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+[data-sl-dashboard] .sl-chart-detail {max-height:88dvh;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+[data-sl-dashboard] .sl-chart-card {min-width:0;overflow:hidden}
+[data-sl-dashboard] .sl-chart-card .recharts-responsive-container {min-width:0}
+main {min-width:0;overflow:visible}
+main table {min-width:560px}
+main :where(.overflow-x-auto,.overflow-auto) {max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+@media(max-width:767px) {
+  html,body,#root {width:100%;min-width:320px}
+  [data-sl-dashboard] {display:block}
+  [data-sl-dashboard] > main {margin-left:0!important;width:100%;min-width:0}
+  [data-sl-dashboard] main > header {z-index:30}
+  [data-sl-dashboard] main > nav[aria-label$="shortcuts"] {max-width:100%;overflow:hidden}
+  [data-sl-dashboard] main > nav[aria-label$="shortcuts"] > div {width:100%;padding-bottom:5px}
+  [data-sl-dashboard] main > :not(header):not(nav) {width:100%;min-width:0}
+  [data-sl-dashboard] .sl-charts-shell {grid-template-columns:repeat(2,minmax(0,1fr));padding:9px!important;gap:9px!important}
+  [data-sl-dashboard] .sl-chart-card {padding:11px!important}
+  [data-sl-dashboard] .sl-chart-card h3 {font-size:12px;line-height:1.35}
+  [data-sl-dashboard] .sl-chart-card p {font-size:10px;line-height:1.35}
+  main :where(.overflow-x-auto,.overflow-auto) {max-width:100%;overflow-x:auto}
+}
+@media(max-width:380px) {
+  [data-sl-dashboard] .sl-charts-shell {grid-template-columns:minmax(0,1fr)}
+}
