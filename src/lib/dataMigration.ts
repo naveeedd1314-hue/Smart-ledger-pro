@@ -168,9 +168,9 @@ function migrateArray(targetKey: string, legacyKeys: string[], normalize: (rows:
   // Keep every legacy key intact; migration is a copy, never a destructive move.
 }
 
-export function migrateLegacyData(): void {
+export function migrateLegacyData(force = false): void {
   try {
-    if (localStorage.getItem(MIGRATION_KEY)) return;
+    if (!force && localStorage.getItem(MIGRATION_KEY)) return;
     const migrated: Record<string, number> = {};
     migrateArray('smartledger-pro-sales', ['smartledger-bills'], normalizeSales, migrated);
     migrateArray('smartledger-pro-purchases', ['smartledger-purchases'], normalizePurchases, migrated);
