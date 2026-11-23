@@ -178,6 +178,10 @@ function App() {
   const pageStack = useRef<string[]>(['Dashboard'])
   const [menuOpen, setMenuOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
+  const menuOpenRef = useRef(menuOpen)
+  const searchOpenRef = useRef(searchOpen)
+  menuOpenRef.current = menuOpen
+  searchOpenRef.current = searchOpen
   const setCurrentPage = (page: string) => { activeRef.current = page; setActive(page); };
   const navigate = (page: string) => {
     if (page === activeRef.current) return;
@@ -195,10 +199,13 @@ function App() {
     window.history.replaceState({ smartLedgerPage: previous }, '', '#page=' + encodeURIComponent(previous));
     window.scrollTo({ top: 0, behavior: 'auto' });
   };
+  // Keep one permanent hardware-back listener. Re-registering this listener
+  // whenever a menu/search state changes creates a brief window where Android
+  // can fall through to its default app-exit behaviour.
   useEffect(() => {
     const onNativeBack = () => {
-      if (menuOpen) { setMenuOpen(false); return; }
-      if (searchOpen) { setSearchOpen(false); setSearchQuery(''); return; }
+      if (menuOpenRef.current) { setMenuOpen(false); return; }
+      if (searchOpenRef.current) { setSearchOpen(false); setSearchQuery(''); return; }
       if (pageStack.current.length > 1) {
         pageStack.current = pageStack.current.slice(0, -1);
         const previous = pageStack.current[pageStack.current.length - 1] || 'Dashboard';
@@ -206,11 +213,11 @@ function App() {
         window.history.replaceState({ smartLedgerPage: previous }, '', '#page=' + encodeURIComponent(previous));
         window.scrollTo({ top: 0, behavior: 'auto' });
       }
-      // Consume Back at Dashboard instead of allowing Android to close the app.
+      // The registered native listener consumes Back at Dashboard as well.
     };
     window.addEventListener('smartledger:native-back', onNativeBack);
     return () => window.removeEventListener('smartledger:native-back', onNativeBack);
-  }, [menuOpen, searchOpen]);
+  }, []);
   useEffect(() => {
     window.history.replaceState({ smartLedgerPage: 'Dashboard' }, '', window.location.pathname + window.location.search + '#page=Dashboard');
     const onBack = (event: PopStateEvent) => {
