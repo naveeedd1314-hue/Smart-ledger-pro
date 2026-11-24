@@ -2101,3 +2101,10 @@ html,body,#root { max-width:100%; }
     overflow:visible!important;
   }
 }
+
+/* Keep direct scrollTop changes immediate; native touch scrolling remains momentum-enabled. */
+@media (min-width:768px) {
+  [data-sl-dashboard="true"] > main {
+    scroll-behavior:auto!important;
+  }
+}
