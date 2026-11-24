@@ -119,7 +119,7 @@ jobs:
               if (size.width === 412) {
                 const XLSX = (await import('xlsx')).default;
                 const nav = page.locator('[data-sl-dashboard] aside nav');
-                await nav.getByRole('button',{name:'Bulk Items'}).click();
+                await nav.getByRole('button',{name:'Bulk Items'}).evaluate(el=>el.click());
                 await page.waitForFunction(() => location.hash === '#page=Bulk%20Items');
                 const makeWorkbook = (rows) => {
                   const wb=XLSX.utils.book_new();
@@ -137,13 +137,13 @@ jobs:
                   await page.getByText(/1 products read from inventory-test\./).waitFor({timeout:15000});
                   await page.getByRole('button',{name:'Apply import'}).click();
                 };
-                const headers=['Item Name','Barcode','Opening Stock','Purchase Price','Selling Price','GST %','Category','HSN Code'];
-                await upload('xls',[['Stock Summary Report'],headers,['Test Notebook XLS','SLTEST-001','12','20','25','12','Stationery','4820']]);
+                const headers=['Product Name','Barcode / SKU','Category','HSN Code','GST Rate','Purchase Price','Average Cost','Wholesale Price','Selling Price','Opening Stock'];
+                await upload('xls',[['Stock Summary Report'],headers,['Test Notebook XLS','SLTEST-001','Stationery','4820','12','20','20','22','25','12']]);
                 let imported=await page.evaluate(()=>JSON.parse(localStorage.getItem('smartledger-products')||'[]'));
                 let item=imported.find(p=>p.sku==='SLTEST-001');
                 if(!item||item.name!=='Test Notebook XLS'||Number(item.stock)!==12||Number(item.purchase)!==20||Number(item.selling)!==25) throw new Error('Legacy .xls import did not persist expected product fields: '+JSON.stringify(item));
                 const originalId=item.id;
-                await upload('xlsx',[['Inventory Export'],headers,['Test Notebook XLS Updated','SLTEST-001','18','22','29','5','Stationery','4820']]);
+                await upload('xlsx',[['Inventory Export'],headers,['Test Notebook XLS Updated','SLTEST-001','Stationery','4820','5','22','22','25','29','18']]);
                 imported=await page.evaluate(()=>({products:JSON.parse(localStorage.getItem('smartledger-products')||'[]'),history:JSON.parse(localStorage.getItem('smartledger-pro-price-history')||'[]'),stock:JSON.parse(localStorage.getItem('smartledger-pro-stock-adjustments')||'[]')}));
                 item=imported.products.find(p=>p.sku==='SLTEST-001');
                 if(!item||String(item.id)!==String(originalId)||item.name!=='Test Notebook XLS Updated'||Number(item.stock)!==18||Number(item.purchase)!==22||Number(item.selling)!==29) throw new Error('.xlsx SKU update did not preserve identity or update fields: '+JSON.stringify(item));
