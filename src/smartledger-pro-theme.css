@@ -1866,3 +1866,205 @@ body { position: fixed !important; inset: 0 !important; }
     -webkit-overflow-scrolling: touch !important;
   }
 }
+
+
+/* Burgundy + white/grey theme — requested visual-only update */
+:root {
+  color-scheme: light;
+  --bg:#F3F3F1;
+  --surface:#FFFFFF;
+  --surface-2:#E9E9E7;
+  --border:#D3D1D0;
+  --text:#282326;
+  --text-2:#625B5E;
+  --on-accent:#FFF9F0;
+  --btn-top:#8C304A;
+  --indigo:#7A1E37;
+  --indigo-ink:#65172D;
+  --indigo-tint:#F2E4E8;
+  --teal:#7A1E37;
+  --teal-ink:#65172D;
+  --teal-tint:#F2E4E8;
+  --sl-primary:#7A1E37;
+  --sl-primary-hover:#65172D;
+  --sl-primary-soft:#F2E4E8;
+}
+[data-theme="dark"] {
+  color-scheme:dark;
+  --bg:#151315;
+  --surface:#201D20;
+  --surface-2:#2B272A;
+  --border:#494147;
+  --text:#F4ECEE;
+  --text-2:#C9BBC0;
+  --on-accent:#FFF9F0;
+  --btn-top:#A94762;
+  --indigo:#C16A82;
+  --indigo-ink:#F0C8D2;
+  --indigo-tint:rgba(145,42,69,.24);
+  --teal:#C16A82;
+  --teal-ink:#F0C8D2;
+  --teal-tint:rgba(145,42,69,.24);
+  --sl-primary:#C16A82;
+  --sl-primary-hover:#E0A5B4;
+  --sl-primary-soft:rgba(145,42,69,.24);
+}
+html { scroll-behavior:smooth; }
+body,#root { background:var(--bg)!important; color:var(--text)!important; }
+[data-sl-dashboard] { background:var(--bg)!important; color:var(--text)!important; }
+[data-sl-dashboard] > aside,
+[data-sl-dashboard] main > header,
+[data-sl-dashboard] main > nav,
+[data-sl-dashboard] .sl-nav-group,
+[data-sl-dashboard] .sl-dashboard-heading,
+[data-sl-dashboard] .sl-metric-card,
+[data-sl-dashboard] .sl-dashboard-panel:not(.sl-chart-card) {
+  background:var(--surface)!important;
+  color:var(--text)!important;
+  border-color:var(--border)!important;
+}
+[data-sl-dashboard] .sl-nav-item.is-active,
+[data-sl-dashboard] .sl-nav-item:hover,
+[data-sl-dashboard] main > nav[aria-label$="shortcuts"] button:hover {
+  color:var(--indigo-ink)!important;
+  background:var(--indigo-tint)!important;
+  border-color:var(--indigo)!important;
+}
+[data-sl-dashboard] .sl-nav-icon,
+[data-sl-dashboard] .sl-metric-icon {
+  color:var(--indigo-ink)!important;
+  background:var(--indigo-tint)!important;
+  border-color:var(--border)!important;
+}
+[data-sl-dashboard] .sl-brand-mark,
+[data-sl-dashboard] .sl-new-transaction,
+[data-sl-dashboard] .sl-sidebar-footer {
+  background:linear-gradient(145deg,#8B304B,#64172E)!important;
+  color:#FFF9F0!important;
+  border-color:#A95A70!important;
+}
+[data-sl-dashboard] .sl-charts-shell {
+  background:var(--surface-2)!important;
+  border-color:var(--border)!important;
+}
+[data-sl-dashboard] .sl-chart-card {
+  background:linear-gradient(145deg,#81243F,#64172E)!important;
+  border:1px solid #A85A70!important;
+  color:#F7EBDD!important;
+}
+[data-sl-dashboard] .sl-chart-card h3,
+[data-sl-dashboard] .sl-chart-card p,
+[data-sl-dashboard] .sl-chart-card .recharts-text,
+[data-sl-dashboard] .sl-chart-card .recharts-legend-item-text,
+[data-sl-dashboard] .sl-chart-card .recharts-cartesian-axis-tick-value {
+  color:#F7EBDD!important;
+  fill:#F7EBDD!important;
+}
+[data-sl-dashboard] .sl-chart-card .recharts-cartesian-grid line {
+  stroke:rgba(247,235,221,.28)!important;
+}
+[data-sl-dashboard] .sl-chart-card .recharts-cartesian-axis-line,
+[data-sl-dashboard] .sl-chart-card .recharts-cartesian-axis-tick line {
+  stroke:rgba(247,235,221,.55)!important;
+}
+[data-sl-dashboard] .sl-chart-card .recharts-bar-rectangle path {
+  fill:#E9C7CF!important;
+  stroke:#F7EBDD!important;
+}
+[data-sl-dashboard] .sl-chart-card .recharts-tooltip-wrapper .recharts-default-tooltip,
+[data-sl-dashboard] .sl-chart-card .recharts-default-tooltip {
+  background:#4D1427!important;
+  border:1px solid #C58A9A!important;
+  color:#FFF5E9!important;
+}
+[data-sl-dashboard] .sl-chart-card .recharts-tooltip-label,
+[data-sl-dashboard] .sl-chart-card .recharts-tooltip-item,
+[data-sl-dashboard] .sl-chart-card .recharts-tooltip-item-name,
+[data-sl-dashboard] .sl-chart-card .recharts-tooltip-item-value {
+  color:#FFF5E9!important;
+}
+[data-sl-dashboard] .sl-chart-card .recharts-legend-wrapper { color:#F7EBDD!important; }
+[data-sl-dashboard] .sl-chart-card .recharts-legend-item-text { color:#F7EBDD!important; }
+[data-sl-dashboard] .sl-section-heading h3,
+[data-sl-dashboard] .sl-section-heading span { color:var(--text)!important; }
+[data-sl-dashboard] .sl-section-heading p { color:var(--text-2)!important; }
+[data-sl-dashboard] .sl-chart-card { min-width:0; }
+[data-sl-dashboard] .sl-charts-shell {
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+}
+@media (max-width:767px) {
+  [data-sl-dashboard] .sl-charts-shell {
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+}
+@media (max-width:380px) {
+  [data-sl-dashboard] .sl-charts-shell {
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+}
+[data-theme="dark"] [data-sl-dashboard] > aside,
+[data-theme="dark"] [data-sl-dashboard] main > header,
+[data-theme="dark"] [data-sl-dashboard] main > nav,
+[data-theme="dark"] [data-sl-dashboard] .sl-nav-group,
+[data-theme="dark"] [data-sl-dashboard] .sl-dashboard-heading,
+[data-theme="dark"] [data-sl-dashboard] .sl-metric-card,
+[data-theme="dark"] [data-sl-dashboard] .sl-dashboard-panel:not(.sl-chart-card) {
+  background:var(--surface)!important;
+  color:var(--text)!important;
+  border-color:var(--border)!important;
+}
+[data-theme="dark"] [data-sl-dashboard] .sl-chart-card {
+  background:linear-gradient(145deg,#5B172D,#3D1020)!important;
+  border-color:#8B4057!important;
+}
+[data-theme="dark"] [data-sl-dashboard] .sl-chart-card :is(h3,p,.recharts-text,.recharts-legend-item-text,.recharts-cartesian-axis-tick-value) {
+  color:#F7EBDD!important;
+  fill:#F7EBDD!important;
+}
+
+/* Reliable touch scrolling: keep horizontal regions independently scrollable. */
+html,body,#root { max-width:100%; }
+[data-sl-dashboard] main { min-width:0!important; }
+[data-sl-dashboard] main :where(.overflow-x-auto,.overflow-auto) {
+  max-width:100%!important;
+  overflow-x:auto!important;
+  -webkit-overflow-scrolling:touch!important;
+  overscroll-behavior-x:contain!important;
+  scroll-behavior:smooth;
+  touch-action:pan-x pan-y!important;
+  scrollbar-width:thin;
+}
+[data-sl-dashboard] main nav[aria-label$="shortcuts"] > div {
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  -webkit-overflow-scrolling:touch!important;
+  scroll-behavior:smooth;
+  touch-action:pan-x!important;
+}
+[data-sl-dashboard] main table { max-width:none; }
+[data-sl-dashboard] main :where(.overflow-y-auto,.overflow-auto) {
+  -webkit-overflow-scrolling:touch!important;
+  overscroll-behavior-y:contain!important;
+}
+@media (max-width:767px) {
+  html { overflow-x:hidden!important; overflow-y:auto!important; scroll-behavior:smooth; }
+  body { overflow-x:hidden!important; overflow-y:visible!important; touch-action:pan-y pinch-zoom!important; }
+  #root,[data-sl-dashboard="true"],[data-sl-dashboard="true"] > main {
+    height:auto!important;
+    min-height:100dvh!important;
+    overflow:visible!important;
+  }
+  [data-sl-dashboard="true"] > main {
+    width:100%!important;
+    max-width:100%!important;
+    margin-left:0!important;
+  }
+  [data-sl-dashboard="true"] main :where(.overflow-x-auto,.overflow-auto) {
+    overflow-x:auto!important;
+    -webkit-overflow-scrolling:touch!important;
+    touch-action:pan-x pan-y!important;
+  }
+}
+@media (prefers-reduced-motion:reduce) {
+  html,[data-sl-dashboard] main :where(.overflow-x-auto,.overflow-auto) { scroll-behavior:auto!important; }
+}
