@@ -15,6 +15,7 @@ type Product = {
   hsn?: string
   gstRate?: number
   wholesale?: number
+  _importHasStock?: boolean
 }
 
 const KEY = 'smartledger-products'
@@ -177,6 +178,7 @@ export default function BulkItems() {
           selling: selling ?? 0,
           wholesale: wholesale ?? 0,
           stock: stock ?? 0,
+          _importHasStock: headers.some(header => aliases.stock.includes(header)),
         })
       })
       if (errors.length) {
@@ -254,11 +256,12 @@ export default function BulkItems() {
         const savedAt = new Date().toISOString()
         if (Number(current.purchase) !== Number(p.purchase)) priceHistory.unshift({ id: crypto.randomUUID(), productId: current.id, productName: p.name, field: 'purchase', oldPrice: Number(current.purchase) || 0, newPrice: p.purchase, date: savedAt.slice(0,10), savedAt, source: 'Bulk item import' })
         if (Number(current.selling) !== Number(p.selling)) priceHistory.unshift({ id: crypto.randomUUID(), productId: current.id, productName: p.name, field: 'selling', oldPrice: Number(current.selling) || 0, newPrice: p.selling, date: savedAt.slice(0,10), savedAt, source: 'Bulk item import' })
-        next[index] = { ...current, ...p, averageCost: p.averageCost ?? current.averageCost ?? (Number(current.purchase) > 0 ? Number(current.purchase) : null), id: current.id }; savedProductId = current.id; updated++
+        next[index] = { ...current, ...p, stock: p._importHasStock ? p.stock : current.stock, averageCost: p.averageCost ?? current.averageCost ?? (Number(current.purchase) > 0 ? Number(current.purchase) : null), id: current.id }; delete (next[index] as any)._importHasStock; savedProductId = current.id; updated++
       }
-      else { const imported = { ...p, averageCost: p.averageCost ?? (Number(p.purchase) > 0 ? Number(p.purchase) : null) }; const uniqueProduct = next.some(x => String(x.id) === String(p.id)) ? { ...imported, id: crypto.randomUUID() } : imported; next.push(uniqueProduct); savedProductId = uniqueProduct.id; added++ }
-      const change = Number(p.stock || 0) - previousStock
-      if (change !== 0) logs.unshift({ id: crypto.randomUUID(), date: localDateISO(), productId: savedProductId, product: p.name, change, movement: change > 0 ? 'Stock In' : 'Stock Out', stockAfter: Number(p.stock || 0), reason: 'Bulk item import' })
+      else { const imported = { ...p, stock: p._importHasStock ? p.stock : 0, averageCost: p.averageCost ?? (Number(p.purchase) > 0 ? Number(p.purchase) : null) }; delete (imported as any)._importHasStock; const uniqueProduct = next.some(x => String(x.id) === String(p.id)) ? { ...imported, id: crypto.randomUUID() } : imported; next.push(uniqueProduct); savedProductId = uniqueProduct.id; added++ }
+      const savedStock = Number(next.find(x => String(x.id) === String(savedProductId))?.stock || 0)
+      const change = savedStock - previousStock
+      if (change !== 0) logs.unshift({ id: crypto.randomUUID(), date: localDateISO(), productId: savedProductId, product: p.name, change, movement: change > 0 ? 'Stock In' : 'Stock Out', stockAfter: savedStock, reason: 'Bulk item import' })
     })
     localStorage.setItem('smartledger-pro-stock-adjustments', JSON.stringify(logs))
     localStorage.setItem('smartledger-pro-price-history', JSON.stringify(priceHistory))
