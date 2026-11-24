@@ -4,7 +4,7 @@ const read = (...keys: string[]): any[] => {
   for (const key of keys) {
     try {
       const value = JSON.parse(localStorage.getItem(key) || "[]");
-      if (Array.isArray(value) && value.length) return value;
+      if (Array.isArray(value)) return value;
     } catch {
       continue;
     }
