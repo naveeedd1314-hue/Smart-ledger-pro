@@ -1,7 +1,7 @@
 {
   "name": "smart-ledger-pro",
   "private": true,
-  "version": "5.1.0",
+  "version": "5.1.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -18,7 +18,7 @@
     "react-dom": "^19.3.1",
     "recharts": "^3.11.0",
     "tailwindcss": "^4.3.5",
-    "xlsx": "^0.18.5",
+    "xlsx": "npm:@e965/xlsx@^0.20.3",
     "@capacitor/app": "^8.1.2",
     "@capacitor/core": "^8.6.2",
     "firebase": "^13.4.0"
@@ -39,5 +39,8 @@
     "@capacitor/android": "^8.6.2",
     "@capacitor/assets": "^4.0.0",
     "@capacitor/cli": "^8.6.2"
+  },
+  "overrides": {
+    "@grpc/grpc-js": "^1.14.7"
   }
 }
