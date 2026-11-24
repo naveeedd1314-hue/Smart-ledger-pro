@@ -1,5 +1,5 @@
 name: SmartLedger Pro browser smoke tests
-# Post-deploy verification for current main build.
+# Source-level browser verification against the exact commit being tested.
 
 on:
   workflow_dispatch:
@@ -23,13 +23,28 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Install Playwright
+      - name: Install application and browser-test dependencies
         run: |
-          npm install --no-save playwright xlsx
+          npm install
+          npm install --no-save @capacitor/core @capacitor/app firebase playwright xlsx
           npx playwright install --with-deps chromium
-      - name: Test deployed app at mobile, tablet and desktop sizes
+      - name: Build the exact source revision
+        run: npm run build
+      - name: Start local production preview
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 4173 --strictPort > /tmp/smartledger-preview.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4173/ >/dev/null; then
+              echo "Production preview is ready."
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/smartledger-preview.log
+          exit 1
+      - name: Test exact production build at mobile, tablet and desktop sizes
         env:
-          APP_URL: https://naveeedd1314-hue.github.io/Smart-ledger-pro/
+          APP_URL: http://127.0.0.1:4173/
         run: |
           node --input-type=module <<'EOF'
           import { chromium } from 'playwright';
