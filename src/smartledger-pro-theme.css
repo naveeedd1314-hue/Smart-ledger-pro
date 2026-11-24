@@ -1790,3 +1790,79 @@ body { position: fixed !important; inset: 0 !important; }
     padding-bottom: calc(48px + env(safe-area-inset-bottom)) !important;
   }
 }
+
+
+/* 5.2.1 — Android touch scrolling: keep the document as the single page scroller.
+   Avoid fixed-height nested scroll containers on phone-sized WebViews. */
+@media (max-width: 767px) {
+  html {
+    height: auto !important;
+    min-height: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: scroll !important;
+    overscroll-behavior-y: auto !important;
+    touch-action: pan-y pinch-zoom !important;
+  }
+  body {
+    position: relative !important;
+    height: auto !important;
+    min-height: 100dvh !important;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+    overscroll-behavior-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y pinch-zoom !important;
+  }
+  #root {
+    position: relative !important;
+    height: auto !important;
+    min-height: 100dvh !important;
+    overflow: visible !important;
+  }
+  [data-sl-dashboard="true"] {
+    display: block !important;
+    position: relative !important;
+    height: auto !important;
+    min-height: 100dvh !important;
+    overflow: visible !important;
+    touch-action: pan-y pinch-zoom !important;
+  }
+  [data-sl-dashboard="true"] > main {
+    display: block !important;
+    position: relative !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 100dvh !important;
+    max-height: none !important;
+    margin-left: 0 !important;
+    overflow: visible !important;
+    touch-action: pan-y pinch-zoom !important;
+  }
+  [data-sl-dashboard="true"] > aside {
+    position: fixed !important;
+    inset: 0 auto 0 0 !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    overflow: hidden !important;
+    touch-action: pan-y !important;
+  }
+  [data-sl-dashboard="true"] > aside nav {
+    min-height: 0 !important;
+    flex: 1 1 auto !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior-y: contain !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-y !important;
+  }
+  [data-sl-dashboard="true"] main > header {
+    position: sticky !important;
+    top: 0 !important;
+  }
+  [data-sl-dashboard="true"] main > nav[aria-label$="shortcuts"] > div {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    touch-action: pan-x !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+}
