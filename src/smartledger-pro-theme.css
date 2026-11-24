@@ -1496,3 +1496,76 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
     -webkit-overflow-scrolling:touch;
   }
 }
+
+
+/* Android and mobile: restore reliable page-level vertical scrolling.
+   Keep horizontal table/shortcut scrollers independent from the document. */
+html {
+  height:auto!important;
+  min-height:100%;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  overscroll-behavior-y:auto;
+  -webkit-text-size-adjust:100%;
+}
+body {
+  position:relative!important;
+  display:block;
+  width:100%;
+  height:auto!important;
+  min-height:100vh;
+  min-height:100dvh;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  touch-action:pan-y pinch-zoom;
+  overscroll-behavior-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
+#root {
+  display:block;
+  width:100%;
+  height:auto!important;
+  min-height:100vh;
+  min-height:100dvh;
+  overflow:visible!important;
+}
+[data-sl-dashboard] {
+  display:block;
+  width:100%;
+  min-height:100vh;
+  min-height:100dvh;
+  height:auto!important;
+  overflow:visible!important;
+  touch-action:pan-y pinch-zoom;
+}
+[data-sl-dashboard] main {
+  min-height:100vh;
+  min-height:100dvh;
+  height:auto!important;
+  overflow:visible!important;
+  touch-action:pan-y pinch-zoom;
+}
+[data-sl-dashboard] main > :not(header):not(nav) {
+  max-width:100%;
+}
+[data-sl-dashboard] aside nav {
+  min-height:0;
+  overflow-y:auto!important;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  touch-action:pan-y;
+}
+[data-sl-dashboard] main :where(.overflow-x-auto) {
+  overflow-x:auto;
+  overscroll-behavior-x:contain;
+  -webkit-overflow-scrolling:touch;
+  touch-action:pan-x pan-y;
+}
+@media(max-width:767px) {
+  html,body,#root,[data-sl-dashboard],[data-sl-dashboard] main {
+    overflow-y:auto!important;
+  }
+  [data-sl-dashboard] main {
+    padding-bottom:calc(24px + env(safe-area-inset-bottom));
+  }
+}
