@@ -2108,3 +2108,174 @@ html,body,#root { max-width:100%; }
     scroll-behavior:auto!important;
   }
 }
+
+
+/* Burgundy visual system — consistent across every module and overlay. */
+:root {
+  --emerald:#7A1E37; --emerald-ink:#65172D; --emerald-tint:#F2E4E8;
+  --amber:#8C304A; --amber-ink:#65172D; --amber-tint:#F5E9EC;
+  --rose:#A33D59; --rose-ink:#65172D; --rose-tint:#F4E5E9;
+  --sky:#8C304A; --sky-ink:#65172D; --sky-tint:#F2E4E8;
+  --violet:#733047; --violet-ink:#5B172D; --violet-tint:#F0E3E7;
+  --orange:#A34A60; --orange-ink:#65172D; --orange-tint:#F5E7EB;
+  --teal:#7A1E37; --teal-ink:#65172D; --teal-tint:#F2E4E8;
+  --card:var(--surface); --muted:var(--surface-2);
+  --shadow-1:0 2px 7px rgba(75,20,39,.07);
+  --shadow-2:0 10px 24px rgba(75,20,39,.13);
+}
+[data-theme="dark"] {
+  --emerald:#D18A9D; --emerald-ink:#F0C8D2; --emerald-tint:rgba(145,42,69,.24);
+  --amber:#D18A9D; --amber-ink:#F0C8D2; --amber-tint:rgba(145,42,69,.24);
+  --rose:#D18A9D; --rose-ink:#F0C8D2; --rose-tint:rgba(145,42,69,.24);
+  --sky:#D18A9D; --sky-ink:#F0C8D2; --sky-tint:rgba(145,42,69,.24);
+  --violet:#D18A9D; --violet-ink:#F0C8D2; --violet-tint:rgba(145,42,69,.24);
+  --orange:#D18A9D; --orange-ink:#F0C8D2; --orange-tint:rgba(145,42,69,.24);
+  --teal:#D18A9D; --teal-ink:#F0C8D2; --teal-tint:rgba(145,42,69,.24);
+}
+
+/* Shared surfaces, form controls, data tables, dialogs and popovers. */
+[data-sl-dashboard] main :is(.bg-white,.bg-gray-50,.bg-gray-100,.bg-slate-50,.bg-slate-100,.bg-stone-50,.bg-stone-100),
+[data-sl-dashboard] [role="dialog"],
+[data-sl-dashboard] [role="menu"],
+[data-sl-dashboard] [role="listbox"] {
+  background-color:var(--surface)!important;
+  color:var(--text)!important;
+  border-color:var(--border)!important;
+}
+[data-sl-dashboard] main :is(input,select,textarea),
+[data-sl-dashboard] main button:not(.sl-new-transaction):not(.sl-primary):not(.btn-primary) {
+  border-color:var(--border);
+}
+[data-sl-dashboard] main :is(input,select,textarea) {
+  background:var(--surface)!important;
+  color:var(--text)!important;
+}
+[data-sl-dashboard] main :is(input,select,textarea):focus {
+  border-color:var(--indigo)!important;
+  box-shadow:0 0 0 3px var(--indigo-tint)!important;
+}
+[data-sl-dashboard] main table thead,
+[data-sl-dashboard] main table th {
+  background:var(--surface-2)!important;
+  color:var(--text-2)!important;
+}
+[data-sl-dashboard] main table tbody tr:nth-child(even) {
+  background:color-mix(in srgb,var(--surface-2) 48%,transparent);
+}
+[data-sl-dashboard] main table tbody tr:hover {
+  background:var(--indigo-tint)!important;
+}
+[data-sl-dashboard] main a,
+[data-sl-dashboard] main [class*="text-indigo-"],
+[data-sl-dashboard] main [class*="text-emerald-"],
+[data-sl-dashboard] main [class*="text-teal-"] {
+  color:var(--indigo-ink);
+}
+[data-sl-dashboard] main :is(.border-indigo-100,.border-emerald-100,.border-teal-100) {
+  border-color:var(--border)!important;
+}
+
+/* Dashboard charts: fixed two-column, two-row composition at every breakpoint. */
+[data-sl-dashboard] .sl-charts-shell {
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  grid-auto-flow:row!important;
+  align-items:stretch;
+  gap:12px!important;
+  width:100%;
+  min-width:0;
+}
+[data-sl-dashboard] .sl-chart-card {
+  min-width:0!important;
+  width:100%;
+  padding:clamp(9px,2vw,20px)!important;
+  overflow:hidden;
+  border-radius:14px!important;
+}
+[data-sl-dashboard] .sl-chart-card > div {
+  min-width:0;
+}
+@media(max-width:380px) {
+  [data-sl-dashboard] .sl-charts-shell { gap:8px!important; }
+  [data-sl-dashboard] .sl-chart-card { padding:8px!important; }
+  [data-sl-dashboard] .sl-chart-card h3 { font-size:11px!important; }
+  [data-sl-dashboard] .sl-chart-card p { font-size:10px!important; }
+}
+
+/* Repair both kinds of side scrolling: horizontal data regions and the sidebar list. */
+[data-sl-dashboard] > aside {
+  min-height:0!important;
+}
+[data-sl-dashboard] > aside nav {
+  min-height:0!important;
+  flex:1 1 auto!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  overscroll-behavior-y:contain!important;
+  -webkit-overflow-scrolling:touch!important;
+  touch-action:pan-y!important;
+  scrollbar-width:thin;
+}
+[data-sl-dashboard] main :where(.overflow-x-auto,.overflow-auto),
+[data-sl-dashboard] main .sl-table-scroll,
+[data-sl-dashboard] main [data-horizontal-scroll="true"] {
+  display:block;
+  width:100%;
+  max-width:100%!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  overscroll-behavior-x:contain!important;
+  -webkit-overflow-scrolling:touch!important;
+  touch-action:pan-x pan-y!important;
+  scrollbar-width:thin;
+  scrollbar-color:var(--indigo) var(--surface-2);
+}
+[data-sl-dashboard] main :where(.overflow-x-auto,.overflow-auto) > table,
+[data-sl-dashboard] main .sl-table-scroll > table {
+  min-width:620px;
+}
+[data-sl-dashboard] main nav[aria-label$="shortcuts"] > div {
+  max-width:100%;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  -webkit-overflow-scrolling:touch!important;
+  touch-action:pan-x!important;
+  scrollbar-width:thin;
+}
+
+/* Restrained, consistent motion; respects the device accessibility preference. */
+[data-sl-dashboard] main :is(.sl-metric-card,.sl-dashboard-panel,.sl-chart-card,.sl-card,button,a),
+[data-sl-dashboard] > aside :is(button,a) {
+  transition:
+    transform .22s cubic-bezier(.2,.7,.2,1),
+    background-color .22s ease,
+    border-color .22s ease,
+    box-shadow .22s ease,
+    color .18s ease;
+}
+[data-sl-dashboard] .sl-metric-card:hover,
+[data-sl-dashboard] .sl-chart-card:hover {
+  transform:translateY(-2px);
+  box-shadow:0 9px 22px rgba(75,20,39,.14)!important;
+}
+[data-sl-dashboard] main :is(button,a):active {
+  transform:scale(.985);
+}
+[data-sl-dashboard] main > .sl-dashboard-content,
+[data-sl-dashboard] main > div {
+  animation:sl-content-enter .24s ease both;
+}
+@keyframes sl-content-enter {
+  from { opacity:.82; transform:translateY(5px); }
+  to { opacity:1; transform:translateY(0); }
+}
+@media(prefers-reduced-motion:reduce) {
+  [data-sl-dashboard] *,
+  [data-sl-dashboard] *::before,
+  [data-sl-dashboard] *::after {
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
+    scroll-behavior:auto!important;
+    transition-duration:.01ms!important;
+  }
+}
