@@ -35,7 +35,7 @@ export default function BusinessIntelligence() {
         ))}
       </div>
       {data.warnings.length > 0 && (
-        <div style={{ marginTop: 14, padding: 12, borderRadius: 10, background: "#fff1e9", color: "#8b3d24" }}>
+        <div style={{ marginTop: 14, padding: 12, borderRadius: 10, background: "var(--amber-tint)", color: "var(--amber-ink)", border: "1px solid var(--amber)" }}>
           <strong>Data quality warnings</strong>
           {data.warnings.map((warning, i) => <p key={i} style={{ margin: "6px 0 0", fontSize: 13 }}>{warning}</p>)}
         </div>
