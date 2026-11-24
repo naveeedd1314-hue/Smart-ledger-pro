@@ -1286,3 +1286,171 @@ main :where(.overflow-y-auto,.overflow-auto) {scrollbar-width:thin;scrollbar-col
 [data-theme="dark"] main table tbody tr:nth-child(even) {background:color-mix(in srgb,var(--surface-2) 55%,var(--surface))!important}
 
 /* Browser smoke-test baseline: responsive overflow and theme-token checks. */
+
+
+/* 5.2 — Application-wide usability and responsive polish */
+:root {
+  --page-gutter: clamp(12px, 2.2vw, 28px);
+  --control-radius: 11px;
+}
+html { scroll-padding-top: 88px; }
+body { overscroll-behavior-x: none; }
+button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+:where(button,a,input,select,textarea,[tabindex]):focus-visible {
+  outline: 2px solid var(--teal) !important;
+  outline-offset: 3px;
+}
+[data-sl-dashboard] > main { flex: 1 1 auto; }
+[data-sl-dashboard] > main > header {
+  min-width: 0;
+  padding-left: max(12px, env(safe-area-inset-left));
+  padding-right: max(12px, env(safe-area-inset-right));
+}
+[data-sl-dashboard] > main > header > div:last-child {
+  min-width: 0;
+  flex-shrink: 0;
+}
+[data-sl-dashboard] > main > header button {
+  min-width: 40px;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+[data-sl-dashboard] main > nav[aria-label$="shortcuts"] {
+  min-width: 0;
+  max-width: 100%;
+}
+[data-sl-dashboard] main > nav[aria-label$="shortcuts"] > div {
+  scrollbar-width: thin;
+  scrollbar-color: var(--text-2) transparent;
+}
+[data-sl-dashboard] main > nav[aria-label$="shortcuts"] button {
+  min-height: 40px;
+  white-space: nowrap;
+}
+[data-sl-dashboard] main :where(input,select,textarea) {
+  min-height: 42px;
+  max-width: 100%;
+  border-radius: var(--control-radius);
+}
+[data-sl-dashboard] main textarea { min-height: 88px; }
+[data-sl-dashboard] main :where(button) { touch-action: manipulation; }
+[data-sl-dashboard] main :where(.rounded-xl,.rounded-2xl) {
+  scroll-margin-top: 100px;
+}
+[data-sl-dashboard] main :where(.overflow-x-auto,.overflow-auto) {
+  width: 100%;
+  max-width: 100%;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--text-2) var(--surface-2);
+}
+[data-sl-dashboard] main table {
+  max-width: none;
+  border-spacing: 0;
+}
+[data-sl-dashboard] main table th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+[data-sl-dashboard] main table td,
+[data-sl-dashboard] main table th {
+  vertical-align: middle;
+}
+[data-sl-dashboard] .sl-dashboard-content {
+  padding-bottom: max(28px, env(safe-area-inset-bottom));
+}
+[data-sl-dashboard] .sl-metric-card,
+[data-sl-dashboard] .sl-chart-card,
+[data-sl-dashboard] .sl-dashboard-panel,
+[data-sl-dashboard] .sl-nav-group {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+[data-sl-dashboard] .sl-chart-card[role="button"] { cursor: pointer; }
+[data-sl-dashboard] .sl-chart-card[role="button"]:focus-visible {
+  outline-offset: 4px !important;
+}
+[data-sl-dashboard] [role="dialog"] {
+  overscroll-behavior: contain;
+}
+@media (max-width: 767px) {
+  html, body { scroll-behavior: auto; }
+  [data-sl-dashboard] > main > header {
+    height: 66px;
+    gap: 8px;
+  }
+  [data-sl-dashboard] > main > header > div:first-child { min-width: 0; }
+  [data-sl-dashboard] > main > header > div:first-child > div {
+    min-width: 0;
+  }
+  [data-sl-dashboard] > main > header h2 {
+    max-width: 34vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 15px;
+  }
+  [data-sl-dashboard] > main > header p {
+    max-width: 38vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 10px;
+  }
+  [data-sl-dashboard] > main > header > div:last-child { gap: 5px; }
+  [data-sl-dashboard] > main > header > div:last-child > button {
+    width: 38px;
+    min-width: 38px;
+    min-height: 38px;
+    padding: 8px;
+    border-radius: 11px;
+  }
+  [data-sl-dashboard] main > nav[aria-label$="shortcuts"] {
+    top: 66px;
+    padding-top: 7px;
+    padding-bottom: 7px;
+  }
+  [data-sl-dashboard] .sl-dashboard-content {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+  [data-sl-dashboard] .sl-dashboard-heading {
+    gap: 12px;
+    margin-bottom: 15px !important;
+  }
+  [data-sl-dashboard] .sl-dashboard-heading > button {
+    width: 100%;
+    justify-content: center;
+    min-height: 44px;
+  }
+  [data-sl-dashboard] main :where(.card,.sl-dashboard-panel) {
+    border-radius: 14px;
+  }
+  [data-sl-dashboard] main :where(input,select,textarea) {
+    font-size: 16px;
+  }
+  [data-sl-dashboard] main table th,
+  [data-sl-dashboard] main table td {
+    padding: 10px 11px !important;
+  }
+}
+@media (max-width: 380px) {
+  [data-sl-dashboard] > main > header > div:last-child > button {
+    width: 35px;
+    min-width: 35px;
+    padding: 7px;
+  }
+  [data-sl-dashboard] > main > header h2 { max-width: 28vw; }
+  [data-sl-dashboard] > main > header p { max-width: 31vw; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto !important; }
+  [data-sl-dashboard] *, [data-sl-dashboard] *::before, [data-sl-dashboard] *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
