@@ -149,7 +149,11 @@ jobs:
                 if(!item||String(item.id)!==String(originalId)||item.name!=='Test Notebook XLS Updated'||Number(item.stock)!==18||Number(item.purchase)!==22||Number(item.selling)!==29) throw new Error('.xlsx SKU update did not preserve identity or update fields: '+JSON.stringify(item));
                 if(!imported.history.some(x=>x.productId===originalId&&x.field==='purchase'&&Number(x.newPrice)===22)) throw new Error('.xlsx price change was not written to price history');
                 if(!imported.stock.some(x=>x.productId===originalId&&Number(x.change)===12)||!imported.stock.some(x=>x.productId===originalId&&Number(x.change)===6)) throw new Error('Excel import stock movements were not audited');
-                console.log('PASS Excel import: BIFF8 .xls create, .xlsx SKU update, all mapped fields, preserved ID, price and stock audit logs');
+                await upload('xlsx',[['Product Name','Barcode / SKU','Selling Price'],['Test Notebook XLS Updated','SLTEST-001','31']]);
+                imported=await page.evaluate(()=>JSON.parse(localStorage.getItem('smartledger-products')||'[]'));
+                item=imported.find(p=>p.sku==='SLTEST-001');
+                if(!item||Number(item.selling)!==31||Number(item.purchase)!==22||Number(item.stock)!==18||item.category!=='Stationery'||item.hsn!=='4820'||Number(item.gstRate)!==5) throw new Error('Import without optional columns erased existing stock, cost, category, HSN or GST fields: '+JSON.stringify(item));
+                console.log('PASS Excel import: BIFF8 .xls create, .xlsx SKU update, optional-column preservation, ID, price and stock audit logs');
               }
 
               if (size.width < 768) {
@@ -177,12 +181,50 @@ jobs:
               const supplierDialog=page.getByRole('dialog',{name:'Supplier outstanding details'});
               await supplierDialog.waitFor({state:'visible',timeout:10000});
               await supplierDialog.getByRole('button',{name:'Close'}).click();
-              // Verify both theme modes update tokens and restore the original setting.
+              // Validate discounted customer gross profit and return reversal using isolated fixture data.
+              if (size.width === 412) {
+                await page.evaluate(() => {
+                  localStorage.setItem('smartledger-pro-customers',JSON.stringify([{id:'profit-customer',name:'Margin Test Customer',opening:0}]));
+                  localStorage.setItem('smartledger-pro-sales',JSON.stringify([{id:'profit-sale',invoice:'MARGIN-001',date:'2026-11-24',customer:'Margin Test Customer',product:'Test Notebook',qty:2,rate:100,discountAmount:20,taxableValue:180,total:201.6,paid:0,purchasePrice:60}]));
+                  localStorage.setItem('smartledger-pro-returns',JSON.stringify([{id:'profit-return',originalId:'profit-sale',type:'Sales Return',invoice:'MARGIN-001',party:'Margin Test Customer',product:'Test Notebook',qty:1,rate:100,amount:90,taxAmount:10,totalAmount:100,purchasePrice:60,date:'2026-11-24',reason:'Test'}]));
+                  localStorage.setItem('smartledger-pro-expenses','[]');
+                  localStorage.setItem('smartledger-pro-payments','[]');
+                });
+                const nav=page.locator('[data-sl-dashboard] aside nav');
+                await nav.getByRole('button',{name:'Ledger'}).evaluate(el=>el.click());
+                await page.waitForFunction(()=>location.hash==='#page=Ledger');
+                await page.locator('select').first().selectOption({label:'Margin Test Customer'});
+                const profitCard=page.getByText('Gross profit before expenses').locator('..');
+                await profitCard.waitFor({state:'visible'});
+                if(!(await profitCard.innerText()).includes('₹30')) throw new Error('Customer ledger did not apply discounted net revenue and costed return reversal: '+await profitCard.innerText());
+                await nav.getByRole('button',{name:'Reports'}).evaluate(el=>el.click());
+                await page.waitForFunction(()=>location.hash==='#page=Reports');
+                const reportProfit=page.getByText('Gross Profit',{exact:true}).locator('..');
+                if(!(await reportProfit.innerText()).includes('₹30')) throw new Error('Financial report gross profit did not match expected ₹30: '+await reportProfit.innerText());
+                await page.locator('[data-sl-dashboard] aside nav').getByRole('button',{name:'Dashboard'}).evaluate(el=>el.click());
+                await page.waitForFunction(()=>location.hash==='#page=Dashboard');
+              }
+              // Verify both theme modes, actual card/chart text contrast and AI panel visibility.
               const themeButton = page.getByRole('button',{name:'Toggle colour theme'});
               const beforeTheme = await page.locator('html').getAttribute('data-theme');
               await themeButton.click();
               const afterTheme = await page.locator('html').getAttribute('data-theme');
               if (beforeTheme === afterTheme || !['light','dark'].includes(afterTheme)) throw new Error('Theme toggle did not change theme');
+              if(afterTheme==='dark'){
+                const darkState=await page.evaluate(()=>{
+                  const card=document.querySelector('.sl-metric-card');
+                  const cardText=card?.querySelector('p');
+                  const tick=document.querySelector('.recharts-cartesian-axis-tick-value');
+                  const cs=card?getComputedStyle(card):null;
+                  return {cardBg:cs?.backgroundColor,cardText:cardText?getComputedStyle(cardText).color:'',tick:tick?getComputedStyle(tick).fill:'',theme:document.documentElement.dataset.theme};
+                });
+                if(!darkState.cardBg||darkState.cardBg===darkState.cardText||darkState.tick==='rgb(0, 0, 0)') throw new Error('Dark dashboard card or chart labels are not readable: '+JSON.stringify(darkState));
+                await page.getByRole('button',{name:'Open SmartLedger AI'}).click();
+                const aiPanel=page.locator('section[style*="position: fixed"]');
+                await aiPanel.waitFor({state:'visible'});
+                const aiColors=await aiPanel.evaluate(el=>({bg:getComputedStyle(el).backgroundColor,text:getComputedStyle(el).color,content:el.innerText}));
+                if(aiColors.bg===aiColors.text||!aiColors.content.includes('Automatic business review')) throw new Error('Dark-mode SmartLedger AI panel is not readable: '+JSON.stringify(aiColors));
+              }
               await themeButton.click();
               const restoredTheme = await page.locator('html').getAttribute('data-theme');
               if (restoredTheme !== beforeTheme) throw new Error('Theme toggle did not restore original theme');
