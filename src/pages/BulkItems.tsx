@@ -181,7 +181,7 @@ export default function BulkItems() {
           stock: stock ?? undefined,
           _importHasStock: headers.some(header => aliases.stock.includes(header)),
           _importFields: Object.keys(aliases).filter(field => headers.some(header => aliases[field].includes(header))),
-        })
+        } as Product)
       })
       if (errors.length) {
         setPreview([])
