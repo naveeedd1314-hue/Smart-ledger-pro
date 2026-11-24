@@ -118,7 +118,7 @@ export default function BulkItems() {
       rows = rows.map(row => row.map(value => String(value ?? '').trim()))
       const aliases: Record<string, string[]> = {
         name: ['name','product','item','itemname','productname','itemdescription','description','stockitem','particulars','itemparticulars'],
-        sku: ['sku','barcode','itemcode','productcode','code','itemid','itemnumber','articlecode'],
+        sku: ['sku','barcode','barcodesku','barcodeandsku','skubarcode','itemcode','productcode','code','itemid','itemnumber','articlecode'],
         category: ['category','group','itemgroup','productgroup','brand','stockgroup'],
         hsn: ['hsn','hsncode','hsnsac','hsnsaccode'],
         gstRate: ['gstrate','gst','gstpercentage','gstpercent','taxpercentage','taxrate','igstpercent','taxpercent'],
