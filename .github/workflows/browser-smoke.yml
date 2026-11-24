@@ -25,7 +25,7 @@ jobs:
           node-version: 22
       - name: Install Playwright
         run: |
-          npm install --no-save playwright
+          npm install --no-save playwright xlsx
           npx playwright install --with-deps chromium
       - name: Test deployed app at mobile, tablet and desktop sizes
         env:
@@ -114,6 +114,44 @@ jobs:
                 if(pageErrors.length) throw new Error(moduleName+' triggered browser errors: '+pageErrors.join(' | '));
                 console.log('MODULE PASS '+size.name+' '+moduleName);
               }
+              // End-to-end Excel import coverage: create real BIFF8 .xls and .xlsx files,
+              // upload through the app UI, apply, and verify persisted inventory + audit history.
+              if (size.width === 412) {
+                const XLSX = await import('xlsx');
+                const nav = page.locator('[data-sl-dashboard] aside nav');
+                await nav.getByRole('button',{name:'Bulk Items'}).click();
+                await page.waitForFunction(() => location.hash === '#page=Bulk%20Items');
+                const makeWorkbook = (rows) => {
+                  const wb=XLSX.utils.book_new();
+                  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'Stock Summary');
+                  return wb;
+                };
+                const upload = async (extension, rows) => {
+                  const wb=makeWorkbook(rows);
+                  const buffer=XLSX.write(wb,{type:'buffer',bookType:extension==='xls'?'biff8':'xlsx'});
+                  await page.locator('input[type=file]').setInputFiles({
+                    name:'inventory-test.'+extension,
+                    mimeType:extension==='xls'?'application/vnd.ms-excel':'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    buffer,
+                  });
+                  await page.getByText(/1 products read from inventory-test\\./).waitFor({timeout:15000});
+                  await page.getByRole('button',{name:'Apply import'}).click();
+                };
+                const headers=['Item Name','Barcode','Opening Stock','Purchase Price','Selling Price','GST %','Category','HSN Code'];
+                await upload('xls',[['Stock Summary Report'],headers,['Test Notebook XLS','SLTEST-001','12','20','25','12','Stationery','4820']]);
+                let imported=await page.evaluate(()=>JSON.parse(localStorage.getItem('smartledger-products')||'[]'));
+                let item=imported.find(p=>p.sku==='SLTEST-001');
+                if(!item||item.name!=='Test Notebook XLS'||Number(item.stock)!==12||Number(item.purchase)!==20||Number(item.selling)!==25) throw new Error('Legacy .xls import did not persist expected product fields: '+JSON.stringify(item));
+                const originalId=item.id;
+                await upload('xlsx',[['Inventory Export'],headers,['Test Notebook XLS Updated','SLTEST-001','18','22','29','5','Stationery','4820']]);
+                imported=await page.evaluate(()=>({products:JSON.parse(localStorage.getItem('smartledger-products')||'[]'),history:JSON.parse(localStorage.getItem('smartledger-pro-price-history')||'[]'),stock:JSON.parse(localStorage.getItem('smartledger-pro-stock-adjustments')||'[]')}));
+                item=imported.products.find(p=>p.sku==='SLTEST-001');
+                if(!item||String(item.id)!==String(originalId)||item.name!=='Test Notebook XLS Updated'||Number(item.stock)!==18||Number(item.purchase)!==22||Number(item.selling)!==29) throw new Error('.xlsx SKU update did not preserve identity or update fields: '+JSON.stringify(item));
+                if(!imported.history.some(x=>x.productId===originalId&&x.field==='purchase'&&Number(x.newPrice)===22)) throw new Error('.xlsx price change was not written to price history');
+                if(!imported.stock.some(x=>x.productId===originalId&&Number(x.change)===12)||!imported.stock.some(x=>x.productId===originalId&&Number(x.change)===6)) throw new Error('Excel import stock movements were not audited');
+                console.log('PASS Excel import: BIFF8 .xls create, .xlsx SKU update, all mapped fields, preserved ID, price and stock audit logs');
+              }
+
               if (size.width < 768) {
                 const menuButton=page.getByRole('button',{name:'Open navigation menu'});
                 if (await menuButton.isVisible()) await menuButton.click();
