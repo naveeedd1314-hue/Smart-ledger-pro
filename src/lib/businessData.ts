@@ -31,14 +31,40 @@ export function getBusinessSnapshot() {
     purchasePrice: pick(p, ["averageCost", "purchase", "purchasePrice", "costPrice", "buyPrice"])
   })));
 
+  const returns = read("smartledger-pro-returns");
   const sales = calculateSalesProfit(bills.flatMap(b => {
     const lines = Array.isArray(b.items) ? b.items : Array.isArray(b.products) ? b.products : [b];
-    return lines.map((item: any) => ({
-      quantity: pick(item, ["quantity", "qty", "quantitySold"]),
-      sellingPrice: pick(item, ["sellingPrice", "price", "rate", "salePrice"]),
-      purchasePrice: pick(item, ["purchasePrice", "purchase", "costPrice"])
-    }));
+    return lines.map((item: any) => {
+      const quantity = pick(item, ["quantity", "qty", "quantitySold"]) ?? 0;
+      const rate = pick(item, ["sellingPrice", "price", "rate", "salePrice"]) ?? 0;
+      const taxableValue = pick(item, ["taxableValue"]);
+      const discountAmount = pick(item, ["discountAmount"]) ?? 0;
+      const sellingPrice = quantity > 0 && taxableValue !== null
+        ? taxableValue / quantity
+        : quantity > 0 ? Math.max(0, rate - discountAmount / quantity) : rate;
+      return {
+        quantity,
+        sellingPrice,
+        purchasePrice: pick(item, ["purchasePrice", "purchase", "costPrice"])
+      };
+    });
   }));
+  const salesReturns = returns.filter(item => item.type === "Sales Return");
+  const returnRevenue = salesReturns.reduce((sum, item) => sum + (pick(item, ["amount"]) ?? 0), 0);
+  const costedReturnProfit = salesReturns.reduce((sum, item) => {
+    const quantity = pick(item, ["qty", "quantity"]) ?? 0;
+    const revenue = pick(item, ["amount"]) ?? 0;
+    const cost = pick(item, ["purchasePrice"]);
+    return cost !== null && cost > 0 && quantity > 0 ? sum + revenue - quantity * cost : sum;
+  }, 0);
+  const missingReturnCosts = salesReturns.filter(item => {
+    const cost = pick(item, ["purchasePrice"]);
+    return cost === null || cost <= 0;
+  }).length;
+  sales.revenue = Math.round(Math.max(0, sales.revenue - returnRevenue) * 100) / 100;
+  sales.knownGrossProfit = Math.round((sales.knownGrossProfit - costedReturnProfit) * 100) / 100;
+  sales.missingCostLines += missingReturnCosts;
+  sales.complete = sales.missingCostLines === 0;
 
   const expenseTotal = expenses.reduce((sum, e) => {
     const amount = pick(e, ["amount", "total", "expenseAmount"]);
