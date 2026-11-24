@@ -32,7 +32,7 @@ export default function Reports() {
   const periodExpenses = expenses.filter(inRange);
   const periodPayments = payments.filter(inRange);
   const periodReturns = returns.filter(inRange);
-  const salesTotal = periodSales.reduce((s,x)=>s+(x.taxableValue !== undefined && x.taxableValue !== null ? num(x.taxableValue) : (num(x.qty)*num(x.rate) || num(x.total))),0);
+  const salesTotal = periodSales.reduce((s,x)=>s+(x.taxableValue !== undefined && x.taxableValue !== null ? num(x.taxableValue) : Math.max(0, (num(x.qty)*num(x.rate) || num(x.total)) - num(x.discountAmount))),0);
   const purchaseTotal = periodPurchases.reduce((s,x)=>s+(x.taxableValue !== undefined && x.taxableValue !== null ? num(x.taxableValue) : (num(x.qty)*num(x.rate) || num(x.total || x.amount))),0);
   const salesReturns = periodReturns.filter(x=>x.type==='Sales Return');
   const purchaseReturns = periodReturns.filter(x=>x.type==='Purchase Return');
@@ -66,7 +66,7 @@ export default function Reports() {
   const invoiceProfitRows = periodSales.map((x, index) => {
     const qty = num(x.qty);
     const rate = num(x.rate);
-    const revenue = x.taxableValue !== undefined && x.taxableValue !== null ? num(x.taxableValue) : qty * rate;
+    const revenue = x.taxableValue !== undefined && x.taxableValue !== null ? num(x.taxableValue) : Math.max(0, qty * rate - num(x.discountAmount));
     const costPrice = num(x.purchasePrice);
     const hasCost = x.purchasePrice !== undefined && x.purchasePrice !== null && x.purchasePrice !== '' && Number.isFinite(Number(x.purchasePrice)) && Number(x.purchasePrice) > 0;
     const cost = hasCost ? qty * costPrice : 0;
@@ -90,7 +90,7 @@ export default function Reports() {
     const hasCost = x.purchasePrice !== undefined && x.purchasePrice !== null && x.purchasePrice !== '' && Number.isFinite(Number(x.purchasePrice)) && Number(x.purchasePrice) > 0;
     const qty = num(x.qty);
     const rate = num(x.rate);
-    return { profit: hasCost ? (rate - num(x.purchasePrice)) * qty : 0, hasCost };
+    return { profit: hasCost ? num(x.amount) - num(x.purchasePrice) * qty : 0, hasCost };
   });
   const returnsMissingCost = salesReturnProfitRows.filter(x => !x.hasCost).length;
   const salesReturnGrossProfit = salesReturnProfitRows.filter(x => x.hasCost).reduce((sum, x) => sum + x.profit, 0);
