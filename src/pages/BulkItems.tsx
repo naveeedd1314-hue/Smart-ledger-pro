@@ -161,12 +161,12 @@ export default function BulkItems() {
         }
         const gst = number('gstRate', 'GST rate', true)
         if (gst !== null && gst > 100) errors.push(`Row ${rowNumber}: GST rate cannot exceed 100%.`)
-        const purchase = number('purchase', 'purchase price')
+        const purchase = number('purchase', 'purchase price', true)
         const averageCost = number('averageCost', 'average cost', true)
         const selling = number('selling', 'selling price')
-        const wholesale = number('wholesale', 'wholesale price')
-        const stock = number('stock', 'opening stock')
-        if (selling !== null && selling <= 0) errors.push(`Row ${rowNumber}: selling price must be greater than zero.`)
+        const wholesale = number('wholesale', 'wholesale price', true)
+        const stock = number('stock', 'opening stock', true)
+        if (selling === null || selling <= 0) errors.push(`Row ${rowNumber}: selling price must be greater than zero.`)
         parsed.push({
           id: crypto.randomUUID(),
           name,
