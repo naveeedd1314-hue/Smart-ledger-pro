@@ -97,15 +97,15 @@ export default function Ledger() {
   const customerSalesGrossProfit = customerSales.reduce((sum, sale) => {
     const cost = sale.purchasePrice === undefined || sale.purchasePrice === null ? Number.NaN : Number(sale.purchasePrice);
     const quantity = Number(sale.qty) || 0;
-    const rate = Number(sale.rate) || 0;
-    return sum + (Number.isFinite(cost) && cost > 0 ? (rate - cost) * quantity : 0);
+    const grossRevenue = sale.taxableValue !== undefined && sale.taxableValue !== null ? Number(sale.taxableValue) || 0 : Math.max(0, quantity * (Number(sale.rate) || 0) - (Number(sale.discountAmount) || 0));
+    return sum + (Number.isFinite(cost) && cost > 0 ? grossRevenue - cost * quantity : 0);
   }, 0);
   const customerReturnRows = type === 'Customer' ? returns.filter(x => x.type === 'Sales Return' && x.party === party && inDateRange(String(x.date || ''))) : [];
   const customerReturnProfit = customerReturnRows.reduce((sum, item) => {
     const cost = item.purchasePrice === undefined || item.purchasePrice === null ? Number.NaN : Number(item.purchasePrice);
     const quantity = Number(item.qty) || 0;
-    const rate = Number(item.rate) || 0;
-    return sum + (Number.isFinite(cost) && cost > 0 ? (rate - cost) * quantity : 0);
+    const returnedRevenue = Number(item.amount) || 0;
+    return sum + (Number.isFinite(cost) && cost > 0 ? returnedRevenue - cost * quantity : 0);
   }, 0);
   const customerGrossProfit = customerSalesGrossProfit - customerReturnProfit;
   const salesMissingCost = customerSales.filter(x => x.purchasePrice === undefined || x.purchasePrice === null || !Number.isFinite(Number(x.purchasePrice)) || Number(x.purchasePrice) <= 0).length
@@ -151,7 +151,7 @@ export default function Ledger() {
       {type === 'Customer' && <div className="grid gap-3 sm:grid-cols-2">
         <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
           <p className="text-sm text-[var(--text-2)]">Gross profit before expenses</p><strong className="text-xl">{money(customerGrossProfit)}</strong>
-          <p className="mt-1 text-xs text-[var(--text-2)]">Based on saved sale-time purchase costs; GST excluded from margin.</p>
+          <p className="mt-1 text-xs text-[var(--text-2)]">Based on saved sale-time purchase costs and discounted taxable sales; GST excluded from margin.</p>
         </div>
         <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
           <p className="text-sm text-[var(--text-2)]">Sales missing cost data</p><strong className="text-xl">{salesMissingCost}</strong>
