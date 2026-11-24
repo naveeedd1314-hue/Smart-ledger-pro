@@ -65,7 +65,6 @@ export default function Reports() {
 
   const invoiceProfitRows = periodSales.map((x, index) => {
     const qty = num(x.qty);
-    const rate = num(x.rate);
     const revenue = x.taxableValue !== undefined && x.taxableValue !== null ? num(x.taxableValue) : Math.max(0, qty * rate - num(x.discountAmount));
     const costPrice = num(x.purchasePrice);
     const hasCost = x.purchasePrice !== undefined && x.purchasePrice !== null && x.purchasePrice !== '' && Number.isFinite(Number(x.purchasePrice)) && Number(x.purchasePrice) > 0;
