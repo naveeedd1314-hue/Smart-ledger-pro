@@ -2079,3 +2079,25 @@ html,body,#root { max-width:100%; }
   html { scroll-behavior:smooth!important; }
   [data-sl-dashboard] > main { scroll-behavior:auto!important; }
 }
+
+/* Desktop/tablet main-content scrolling: the sidebar remains fixed while the page content owns vertical scroll. */
+@media (min-width:768px) {
+  [data-sl-dashboard="true"] > main {
+    height:100vh!important;
+    min-height:100vh!important;
+    max-height:100vh!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    overscroll-behavior-y:contain!important;
+    scroll-behavior:smooth!important;
+    -webkit-overflow-scrolling:touch!important;
+  }
+}
+@media (max-width:767px) {
+  [data-sl-dashboard="true"] > main {
+    height:auto!important;
+    min-height:100dvh!important;
+    max-height:none!important;
+    overflow:visible!important;
+  }
+}
