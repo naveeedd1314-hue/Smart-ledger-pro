@@ -72,6 +72,7 @@ export function calculateWeightedCost(items: Array<{ quantity: unknown; purchase
 
 export function calculateSalesProfit(lines: SalesLine[]) {
   let revenue = 0;
+  let costedRevenue = 0;
   let knownCost = 0;
   let costedQuantity = 0;
   let missingCostLines = 0;
@@ -81,19 +82,22 @@ export function calculateSalesProfit(lines: SalesLine[]) {
     const selling = toNumber(line.sellingPrice);
     const cost = toNumber(line.purchasePrice);
     if (quantity === null || selling === null || quantity <= 0 || selling < 0) continue;
-    revenue += quantity * selling;
+    const lineRevenue = quantity * selling;
+    revenue += lineRevenue;
     if (cost === null || cost <= 0) {
       missingCostLines++;
       continue;
     }
+    costedRevenue += lineRevenue;
     knownCost += quantity * cost;
     costedQuantity += quantity;
   }
 
   return {
     revenue: round(revenue),
+    costedRevenue: round(costedRevenue),
     knownCost: round(knownCost),
-    knownGrossProfit: round(revenue - knownCost),
+    knownGrossProfit: round(costedRevenue - knownCost),
     costedQuantity: round(costedQuantity),
     missingCostLines,
     complete: missingCostLines === 0
