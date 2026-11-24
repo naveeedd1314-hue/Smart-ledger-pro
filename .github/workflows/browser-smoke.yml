@@ -134,7 +134,7 @@ jobs:
                     mimeType:extension==='xls'?'application/vnd.ms-excel':'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                     buffer,
                   });
-                  await page.getByText(/1 products read from inventory-test\\./).waitFor({timeout:15000});
+                  await page.getByText(/1 products read from inventory-test\./).waitFor({timeout:15000});
                   await page.getByRole('button',{name:'Apply import'}).click();
                 };
                 const headers=['Item Name','Barcode','Opening Stock','Purchase Price','Selling Price','GST %','Category','HSN Code'];
