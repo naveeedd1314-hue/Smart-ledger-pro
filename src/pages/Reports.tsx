@@ -142,6 +142,26 @@ export default function Reports() {
       ['Product','Average Cost','Wholesale','Retail','Profit / Unit','Margin %','Stock','Potential Stock Profit'],
       ...productMarginRows.map(x => [x.name,x.cost,x.wholesale,x.retail,x.unitProfit,x.margin,x.stock,x.stockProfit])
     ];
+    const purchaseRows = [
+      ['Invoice','Date','Supplier','Product','Quantity','Rate','Taxable Value','GST Rate %','Invoice Total','Initially Paid','Return Credit','Balance Before Later Payments'],
+      ...periodPurchases.map(x => {
+        const credit = periodReturns.filter(r => r.type === 'Purchase Return' && String(r.originalId) === String(x.id)).reduce((s,r) => s + num(r.totalAmount ?? r.amount), 0);
+        const total = num(x.total || x.amount || num(x.qty) * num(x.rate));
+        return [String(x.invoice || x.invoiceNo || x.id || ''),String(x.date || ''),String(x.supplier || ''),String(x.product || ''),num(x.qty),num(x.rate),num(x.taxableValue ?? num(x.qty)*num(x.rate)),num(x.gstRate),total,num(x.paid),credit,Math.max(0,total-num(x.paid)-credit)];
+      })
+    ];
+    const expenseRows = [
+      ['Date','Category','Description','Amount'],
+      ...periodExpenses.map(x => [String(x.date || ''),String(x.category || ''),String(x.description || ''),num(x.amount)])
+    ];
+    const paymentRows = [
+      ['Date','Type','Party','Amount','Method','Reference','Note','Invoice Allocations'],
+      ...periodPayments.map(x => [String(x.date || ''),String(x.type || ''),String(x.party || ''),num(x.amount),String(x.method || ''),String(x.reference || ''),String(x.note || ''),Array.isArray(x.allocations) ? x.allocations.map((a:any) => String(a.invoice || a.invoiceId || '') + ': ₹' + num(a.amount)).join(' | ') : ''])
+    ];
+    const returnRows = [
+      ['Date','Type','Original Invoice','Party','Product','Quantity','Rate','Taxable Credit','Tax Credit','Total Credit','Purchase Cost / Unit','Reason'],
+      ...periodReturns.map(x => [String(x.date || ''),String(x.type || ''),String(x.invoice || ''),String(x.party || ''),String(x.product || ''),num(x.qty),num(x.rate),num(x.amount),num(x.taxAmount),num(x.totalAmount ?? x.amount),x.purchasePrice == null ? '' : num(x.purchasePrice),String(x.reason || '')])
+    ];
     const workbook = XLSX.utils.book_new();
     const add = (name: string, rows: (string | number)[][]) => {
       const sheet = XLSX.utils.aoa_to_sheet(rows);
@@ -149,6 +169,10 @@ export default function Reports() {
     };
     add('Summary', summary);
     add('Sales Profit', salesRows);
+    add('Purchase Detail', purchaseRows);
+    add('Expenses', expenseRows);
+    add('Payments', paymentRows);
+    add('Returns', returnRows);
     add('Stock Margins', stockRows);
     XLSX.writeFile(workbook, `SmartLedger-Financial-Report-${fromDate || 'All'}-to-${toDate || 'All'}.xlsx`);
   };
