@@ -201,6 +201,13 @@ jobs:
                 await page.waitForFunction(()=>location.hash==='#page=Reports');
                 const reportProfit=page.getByText('Gross Profit',{exact:true}).locator('..');
                 if(!(await reportProfit.innerText()).includes('₹30')) throw new Error('Financial report gross profit did not match expected ₹30: '+await reportProfit.innerText());
+                const XLSX=(await import('xlsx')).default;
+                const fs=await import('node:fs/promises');
+                const workbookDownload=page.waitForEvent('download');
+                await page.getByRole('button',{name:'Export Excel Workbook'}).click();
+                const workbookFile=await workbookDownload;
+                const workbook=XLSX.read(await fs.readFile(await workbookFile.path()),{type:'buffer'});
+                for(const sheet of ['Summary','Sales Profit','Purchase Detail','Expenses','Payments','Returns','Stock Margins']) if(!workbook.SheetNames.includes(sheet)) throw new Error('Financial workbook is missing sheet '+sheet+': '+workbook.SheetNames.join(', '));
                 await page.locator('[data-sl-dashboard] aside nav').getByRole('button',{name:'Dashboard'}).evaluate(el=>el.click());
                 await page.waitForFunction(()=>location.hash==='#page=Dashboard');
               }
