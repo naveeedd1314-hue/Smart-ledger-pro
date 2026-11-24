@@ -184,6 +184,8 @@ export function validateBusinessRecords() {
     if (!Number.isFinite(qty) || qty <= 0) warnings.push("Sale " + (i + 1) + ": quantity missing or invalid.");
     if (!Number.isFinite(rate) || rate < 0) warnings.push("Sale " + (i + 1) + ": selling rate is missing or invalid.");
     if (!Number.isFinite(paid) || paid < 0 || (Number.isFinite(total) && paid > total + 0.01)) warnings.push("Sale " + (i + 1) + ": payment exceeds invoice total or is invalid.");
+    const cost = sale.purchasePrice ?? sale.costPrice;
+    if (cost === undefined || cost === null || cost === "" || !Number.isFinite(Number(cost)) || Number(cost) <= 0) warnings.push("Sale " + (i + 1) + ": purchase-cost snapshot is missing; invoice gross profit cannot be verified.");
   });
   purchases.forEach((purchase: any, i: number) => {
     const total = Number(purchase.total ?? purchase.grandTotal ?? purchase.amount);
@@ -272,10 +274,25 @@ export function validateBusinessRecords() {
     if (amount > available + 0.01) warnings.push("Supplier " + key + ": recorded refunds exceed the available credit balance.");
   });
 
+  const returnedQuantities = new Map<string, number>();
   returns.forEach((item: any, i: number) => {
     const qty = Number(item.qty);
     if (!Number.isFinite(qty) || qty <= 0) warnings.push("Return " + (i + 1) + ": quantity missing or invalid.");
     if (!item.originalId) warnings.push("Return " + (i + 1) + ": original invoice link is missing.");
+    const isSalesReturn = item.type === "Sales Return";
+    const original = isSalesReturn
+      ? sales.find((invoice: any) => String(invoice.id) === String(item.originalId))
+      : purchases.find((invoice: any) => String(invoice.id) === String(item.originalId));
+    if (item.originalId && !original) warnings.push("Return " + (i + 1) + ": linked original invoice cannot be found.");
+    if (original && Number.isFinite(qty) && qty > 0) {
+      const key = String(item.type) + ":" + String(item.originalId);
+      const cumulative = (returnedQuantities.get(key) || 0) + qty;
+      returnedQuantities.set(key, cumulative);
+      if (cumulative > Number(original.qty ?? original.quantity ?? 0) + 0.001) warnings.push("Invoice " + String(original.invoice || original.id) + ": returned quantity exceeds the original invoice quantity.");
+    }
+    if (isSalesReturn && (item.purchasePrice === undefined || item.purchasePrice === null || Number(item.purchasePrice) <= 0)) warnings.push("Return " + (i + 1) + ": original sale-time purchase cost is missing; return profit cannot be verified.");
+    if (item.productId && !products.some((product: any) => String(product.id) === String(item.productId))) warnings.push("Return " + (i + 1) + ": linked inventory product cannot be found.");
+    if (!validAmount(item.amount ?? 0) || !validAmount(item.totalAmount ?? item.amount ?? 0)) warnings.push("Return " + (i + 1) + ": return credit value is invalid.");
   });
   return { valid: warnings.length === 0, warnings, checked: {
     products: products.length, customers: customers.length, suppliers: suppliers.length, sales: sales.length,
