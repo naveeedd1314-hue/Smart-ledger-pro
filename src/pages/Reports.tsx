@@ -65,6 +65,7 @@ export default function Reports() {
 
   const invoiceProfitRows = periodSales.map((x, index) => {
     const qty = num(x.qty);
+    const rate = num(x.rate);
     const revenue = x.taxableValue !== undefined && x.taxableValue !== null ? num(x.taxableValue) : Math.max(0, qty * rate - num(x.discountAmount));
     const costPrice = num(x.purchasePrice);
     const hasCost = x.purchasePrice !== undefined && x.purchasePrice !== null && x.purchasePrice !== '' && Number.isFinite(Number(x.purchasePrice)) && Number(x.purchasePrice) > 0;
@@ -88,7 +89,6 @@ export default function Reports() {
   const salesReturnProfitRows = salesReturns.map(x => {
     const hasCost = x.purchasePrice !== undefined && x.purchasePrice !== null && x.purchasePrice !== '' && Number.isFinite(Number(x.purchasePrice)) && Number(x.purchasePrice) > 0;
     const qty = num(x.qty);
-    const rate = num(x.rate);
     return { profit: hasCost ? num(x.amount) - num(x.purchasePrice) * qty : 0, hasCost };
   });
   const returnsMissingCost = salesReturnProfitRows.filter(x => !x.hasCost).length;
