@@ -1454,3 +1454,45 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
     transition-duration: .01ms !important;
   }
 }
+
+
+/* Final cross-module theme and chart contrast pass */
+.recharts-cartesian-axis-tick-value { fill:var(--text-2)!important; }
+.recharts-cartesian-grid line { stroke:var(--border)!important; }
+.recharts-legend-item-text { color:var(--text-2)!important; }
+.recharts-tooltip-wrapper { outline:none!important; }
+.recharts-default-tooltip {
+  background:var(--surface)!important;
+  border:1px solid var(--border)!important;
+  border-radius:10px!important;
+  color:var(--text)!important;
+  box-shadow:var(--shadow-2)!important;
+}
+.recharts-tooltip-label,.recharts-tooltip-item { color:var(--text)!important; }
+[data-theme="dark"] .recharts-text { fill:var(--text-2); }
+[data-theme="dark"] main :where(.bg-white,.bg-gray-50,.bg-slate-50,.bg-stone-50) {
+  background:var(--surface)!important;
+  color:var(--text)!important;
+}
+[data-theme="dark"] main :where(.text-gray-900,.text-gray-800,.text-gray-700,.text-slate-900,.text-slate-800,.text-slate-700) {
+  color:var(--text)!important;
+}
+[data-theme="dark"] main :where(.border-gray-100,.border-gray-200,.border-gray-300,.border-slate-100,.border-slate-200) {
+  border-color:var(--border)!important;
+}
+[data-theme="dark"] [data-sl-dashboard] .sl-section-heading,
+[data-theme="dark"] [data-sl-dashboard] .sl-section-heading h3,
+[data-theme="dark"] [data-sl-dashboard] .sl-section-heading span {
+  color:var(--text)!important;
+}
+[data-sl-dashboard] .sl-chart-card :where(.recharts-responsive-container,svg) { min-width:0; }
+[data-sl-dashboard] main :where(input,select,textarea) { color-scheme:inherit; }
+@media(max-width:640px) {
+  [data-sl-dashboard] .sl-chart-card { min-width:0; }
+  [data-sl-dashboard] .sl-chart-card .recharts-wrapper { max-width:100%; }
+  [data-sl-dashboard] main :where(.overflow-x-auto,.overflow-auto) {
+    max-width:100%;
+    overscroll-behavior-x:contain;
+    -webkit-overflow-scrolling:touch;
+  }
+}
