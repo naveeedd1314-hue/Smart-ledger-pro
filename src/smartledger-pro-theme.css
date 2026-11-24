@@ -1569,3 +1569,37 @@ body {
     padding-bottom:calc(24px + env(safe-area-inset-bottom));
   }
 }
+
+
+/* Android scroll root correction: use the document as the single vertical scroller. */
+html {
+  height: auto !important;
+  min-height: 100% !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior-y: auto !important;
+  touch-action: auto !important;
+}
+body {
+  position: static !important;
+  display: block !important;
+  height: auto !important;
+  min-height: 100% !important;
+  overflow: visible !important;
+  overscroll-behavior: auto !important;
+  touch-action: auto !important;
+  -webkit-overflow-scrolling: auto !important;
+}
+#root,
+[data-sl-dashboard],
+[data-sl-dashboard] > main {
+  height: auto !important;
+  min-height: 100dvh !important;
+  overflow: visible !important;
+  touch-action: auto !important;
+}
+@media (max-width: 767px) {
+  html { overflow-y: scroll !important; }
+  body { overflow: visible !important; }
+  [data-sl-dashboard] main { padding-bottom: calc(32px + env(safe-area-inset-bottom)); }
+}
