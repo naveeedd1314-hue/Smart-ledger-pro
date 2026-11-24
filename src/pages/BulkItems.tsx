@@ -104,7 +104,7 @@ export default function BulkItems() {
         const workbook = XLSX.read(buffer, { type: 'array', cellDates: false })
         if (!workbook.SheetNames.length) throw new Error('The workbook does not contain a readable worksheet.')
         const normalizeHeader = (value: unknown) => String(value ?? '').toLowerCase().replace(/[^a-z0-9]/g, '')
-        const productNameHeaders = new Set(['name','product','item','itemname','productname','itemdescription','description','stockitem','particulars'])
+        const productNameHeaders = new Set(['name','product','item','itemname','productname','itemdescription','description','stockitem','particulars','itemparticulars'])
         const worksheets = workbook.SheetNames.map(sheetName => {
           const sheet = workbook.Sheets[sheetName]
           return sheet ? XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: false }) as string[][] : []
@@ -243,8 +243,8 @@ export default function BulkItems() {
     let added = 0, updated = 0
     preview.forEach(p => {
       const index = next.findIndex(x =>
-        (p.sku && x.sku && p.sku.toLowerCase() === x.sku.toLowerCase()) ||
-        x.name.toLowerCase() === p.name.toLowerCase()
+        (p.sku && x.sku && p.sku.trim().toLowerCase() === String(x.sku).trim().toLowerCase()) ||
+        String(x.name || '').trim().toLowerCase() === p.name.trim().toLowerCase()
       )
       const previous = index >= 0 ? next[index] : null
       const previousStock = Number(previous?.stock || 0)
