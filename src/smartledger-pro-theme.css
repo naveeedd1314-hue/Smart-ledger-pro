@@ -2068,3 +2068,14 @@ html,body,#root { max-width:100%; }
 @media (prefers-reduced-motion:reduce) {
   html,[data-sl-dashboard] main :where(.overflow-x-auto,.overflow-auto) { scroll-behavior:auto!important; }
 }
+
+/* Smooth vertical movement inside the desktop app scroll container. */
+[data-sl-dashboard] > main {
+  scroll-behavior:smooth!important;
+  -webkit-overflow-scrolling:touch!important;
+  overscroll-behavior-y:contain;
+}
+@media (max-width:767px) {
+  html { scroll-behavior:smooth!important; }
+  [data-sl-dashboard] > main { scroll-behavior:auto!important; }
+}
