@@ -117,7 +117,7 @@ jobs:
               // End-to-end Excel import coverage: create real BIFF8 .xls and .xlsx files,
               // upload through the app UI, apply, and verify persisted inventory + audit history.
               if (size.width === 412) {
-                const XLSX = await import('xlsx');
+                const XLSX = (await import('xlsx')).default;
                 const nav = page.locator('[data-sl-dashboard] aside nav');
                 await nav.getByRole('button',{name:'Bulk Items'}).click();
                 await page.waitForFunction(() => location.hash === '#page=Bulk%20Items');
