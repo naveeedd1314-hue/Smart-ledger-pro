@@ -91,12 +91,18 @@ jobs:
               if(state.documentWidth>size.width+2) throw new Error('Unexpected horizontal page overflow: '+state.documentWidth+'px');
               if(!state.bg||!state.surface) throw new Error('Theme tokens missing');
               if(state.chartCount!==4) throw new Error('Expected four dashboard charts, found '+state.chartCount);
-              // Exercise vertical page scrolling in both directions.
-              await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-              await page.waitForTimeout(100);
-              const pageReachedBottom = await page.evaluate(() => window.scrollY > 0);
-              await page.evaluate(() => window.scrollTo(0, 0));
-              if (state.bodyHeight > state.viewportHeight && !pageReachedBottom) throw new Error('Main page did not scroll vertically');
+              // The app uses one dedicated main scroll container to avoid Android WebView body/root gesture conflicts.
+              const mainScroll = await page.locator('[data-sl-dashboard] > main').evaluate(async el => {
+                const before = el.scrollTop;
+                el.scrollTop = el.scrollHeight;
+                await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+                const reached = el.scrollTop > before;
+                const result = {scrollHeight:el.scrollHeight,clientHeight:el.clientHeight,scrollTop:el.scrollTop,reached};
+                el.scrollTop = 0;
+                return result;
+              });
+              const pageReachedBottom = mainScroll.reached;
+              if (mainScroll.scrollHeight > mainScroll.clientHeight + 2 && !pageReachedBottom) throw new Error('Main content did not scroll vertically: '+JSON.stringify(mainScroll));
 
               // Exercise the sidebar's own scroll container.
               const sidebarNav = page.locator('[data-sl-dashboard] aside nav');

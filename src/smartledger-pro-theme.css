@@ -1693,3 +1693,19 @@ body { position: fixed !important; inset: 0 !important; }
   [data-sl-dashboard] > main > nav[aria-label$="shortcuts"] { top: 66px !important; }
   [data-sl-dashboard] > aside { width: min(86vw,310px) !important; }
 }
+
+
+/* Tablet layout: allow the main flex item to shrink below its content's min-content width. */
+[data-sl-dashboard] > main {
+  box-sizing: border-box !important;
+  min-width: 0 !important;
+  flex: 0 0 calc(100% - 256px) !important;
+  max-width: calc(100% - 256px) !important;
+}
+@media (max-width: 767px) {
+  [data-sl-dashboard] > main {
+    flex: 0 0 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+}
