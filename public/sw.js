@@ -1,4 +1,4 @@
-const CACHE_NAME = 'smartledger-pro-shell-v3';
+const CACHE_NAME = 'smartledger-pro-shell-v4';
 const appRoot = () => new URL('./', self.registration.scope).pathname;
 const shellUrls = () => {
   const root = appRoot();
