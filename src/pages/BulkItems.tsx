@@ -16,6 +16,7 @@ type Product = {
   gstRate?: number
   wholesale?: number
   _importHasStock?: boolean
+  _importFields?: string[]
 }
 
 const KEY = 'smartledger-products'
@@ -173,12 +174,13 @@ export default function BulkItems() {
           category: get(row, 'category') || 'General',
           hsn: get(row, 'hsn'),
           gstRate: gst ?? 0,
-          purchase: purchase ?? 0,
+          purchase: purchase ?? undefined,
           averageCost: averageCost !== null && averageCost > 0 ? averageCost : null,
-          selling: selling ?? 0,
+          selling: selling ?? undefined,
           wholesale: wholesale ?? 0,
-          stock: stock ?? 0,
+          stock: stock ?? undefined,
           _importHasStock: headers.some(header => aliases.stock.includes(header)),
+          _importFields: Object.keys(aliases).filter(field => headers.some(header => aliases[field].includes(header))),
         })
       })
       if (errors.length) {
@@ -254,11 +256,17 @@ export default function BulkItems() {
       if (index >= 0) {
         const current = next[index]
         const savedAt = new Date().toISOString()
-        if (Number(current.purchase) !== Number(p.purchase)) priceHistory.unshift({ id: crypto.randomUUID(), productId: current.id, productName: p.name, field: 'purchase', oldPrice: Number(current.purchase) || 0, newPrice: p.purchase, date: savedAt.slice(0,10), savedAt, source: 'Bulk item import' })
-        if (Number(current.selling) !== Number(p.selling)) priceHistory.unshift({ id: crypto.randomUUID(), productId: current.id, productName: p.name, field: 'selling', oldPrice: Number(current.selling) || 0, newPrice: p.selling, date: savedAt.slice(0,10), savedAt, source: 'Bulk item import' })
-        next[index] = { ...current, ...p, stock: p._importHasStock ? p.stock : current.stock, averageCost: p.averageCost ?? current.averageCost ?? (Number(current.purchase) > 0 ? Number(current.purchase) : null), id: current.id }; delete (next[index] as any)._importHasStock; savedProductId = current.id; updated++
+        const fields = new Set(p._importFields || Object.keys(p))
+        const merged: Product = { ...current, name: p.name, id: current.id }
+        ;(['sku','category','hsn','gstRate','purchase','averageCost','selling','wholesale','stock'] as const).forEach(field => {
+          if (fields.has(field) && p[field] !== undefined && p[field] !== null && p[field] !== '') (merged as any)[field] = p[field]
+        })
+        if (fields.has('purchase') && Number(current.purchase) !== Number(merged.purchase)) priceHistory.unshift({ id: crypto.randomUUID(), productId: current.id, productName: p.name, field: 'purchase', oldPrice: Number(current.purchase) || 0, newPrice: Number(merged.purchase) || 0, date: savedAt.slice(0,10), savedAt, source: 'Bulk item import' })
+        if (fields.has('selling') && Number(current.selling) !== Number(merged.selling)) priceHistory.unshift({ id: crypto.randomUUID(), productId: current.id, productName: p.name, field: 'selling', oldPrice: Number(current.selling) || 0, newPrice: Number(merged.selling) || 0, date: savedAt.slice(0,10), savedAt, source: 'Bulk item import' })
+        merged.averageCost = merged.averageCost ?? (Number(merged.purchase) > 0 ? Number(merged.purchase) : null)
+        next[index] = merged; savedProductId = current.id; updated++
       }
-      else { const imported = { ...p, stock: p._importHasStock ? p.stock : 0, averageCost: p.averageCost ?? (Number(p.purchase) > 0 ? Number(p.purchase) : null) }; delete (imported as any)._importHasStock; const uniqueProduct = next.some(x => String(x.id) === String(p.id)) ? { ...imported, id: crypto.randomUUID() } : imported; next.push(uniqueProduct); savedProductId = uniqueProduct.id; added++ }
+      else { const imported = { ...p, sku: p.sku || '', category: p.category || 'General', hsn: p.hsn || '', gstRate: Number(p.gstRate) || 0, purchase: Number(p.purchase) || 0, selling: Number(p.selling) || 0, wholesale: Number(p.wholesale) || 0, stock: p._importHasStock ? Number(p.stock) || 0 : 0, averageCost: p.averageCost ?? (Number(p.purchase) > 0 ? Number(p.purchase) : null) }; delete (imported as any)._importHasStock; delete (imported as any)._importFields; const uniqueProduct = next.some(x => String(x.id) === String(p.id)) ? { ...imported, id: crypto.randomUUID() } : imported; next.push(uniqueProduct); savedProductId = uniqueProduct.id; added++ }
       const savedStock = Number(next.find(x => String(x.id) === String(savedProductId))?.stock || 0)
       const change = savedStock - previousStock
       if (change !== 0) logs.unshift({ id: crypto.randomUUID(), date: localDateISO(), productId: savedProductId, product: p.name, change, movement: change > 0 ? 'Stock In' : 'Stock Out', stockAfter: savedStock, reason: 'Bulk item import' })
